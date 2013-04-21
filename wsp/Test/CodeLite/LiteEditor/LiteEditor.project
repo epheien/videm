@@ -1,0 +1,1055 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeLite_Project Name="LiteEditor">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00070001N0004Unix0000000000000001N0011Unix_Make_J0000000000000001N0015WinDebugUnicode0000000000000001N0011WinDebug_290000000000000001N0017WinReleaseUnicode0000000000000001N0013WinRelease_290000000000000001N0016Win_wxWidgets_29000000000000]]>
+    </Plugin>
+  </Plugins>
+  <VirtualDirectory Name="Source Files">
+    <File Name="cpp_symbol_tree.cpp"/>
+    <File Name="filedroptarget.cpp"/>
+    <File Name="fileview.cpp"/>
+    <File Name="resources.cpp"/>
+    <File Name="filehistory.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Header Files">
+    <File Name="cpp_symbol_tree.h"/>
+    <File Name="filedroptarget.h"/>
+    <File Name="fileview.h"/>
+    <File Name="menumanager.h"/>
+    <File Name="resource.h"/>
+    <File Name="stdwx.h"/>
+    <File Name="filehistory.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Dialogs">
+    <VirtualDirectory Name="Debugger">
+      <File Name="breakpoint_dlg_base.cpp"/>
+      <File Name="breakpoint_dlg_base.h"/>
+      <File Name="breakpointdlg.h"/>
+      <File Name="breakpointdlg.cpp"/>
+      <File Name="debuggersettingsdlg.h"/>
+      <File Name="debuggersettingsbasedlg.cpp"/>
+      <File Name="debuggersettingsbasedlg.h"/>
+      <File Name="debuggersettingsdlg.cpp"/>
+      <File Name="dbgcommanddlg.h"/>
+      <File Name="dbgcommandbasedlg.cpp"/>
+      <File Name="dbgcommandbasedlg.h"/>
+      <File Name="dbgcommanddlg.cpp"/>
+      <File Name="attachdbgprocdlg.h"/>
+      <File Name="attachdbgprocbasedlg.cpp"/>
+      <File Name="attachdbgprocbasedlg.h"/>
+      <File Name="attachdbgprocdlg.cpp"/>
+      <File Name="quickdebugdlg.h"/>
+      <File Name="quickdebugbase.cpp"/>
+      <File Name="quickdebugbase.h"/>
+      <File Name="quickdebugdlg.cpp"/>
+      <File Name="newquickwatch.cpp"/>
+      <File Name="newquickwatch.h"/>
+      <File Name="new_quick_watch_dlg.h"/>
+      <File Name="new_quick_watch_dlg.cpp"/>
+      <File Name="debugger_predefined_types_page.h"/>
+      <File Name="debugger_predefined_types_page.cpp"/>
+      <File Name="console_frame.cpp"/>
+      <File Name="console_frame.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Misc">
+      <File Name="simpletable.cpp"/>
+      <File Name="simpletable.h"/>
+      <File Name="simpletablebase.h"/>
+      <File Name="simpletablebase.cpp"/>
+      <File Name="listctrlpanelbase.h"/>
+      <File Name="listctrlpanelbase.cpp"/>
+      <File Name="listctrlpanel.h"/>
+      <File Name="listctrlpanel.cpp"/>
+      <File Name="close_all_dlg.cpp"/>
+      <File Name="close_all_dlg.h"/>
+      <File Name="lexer_page.h"/>
+      <File Name="lexer_page.cpp"/>
+      <File Name="free_text_dialog.h"/>
+      <File Name="free_text_dialog.cpp"/>
+      <File Name="add_option_dialog.cpp"/>
+      <File Name="add_option_dialog.h"/>
+      <File Name="envvar_dlg.cpp"/>
+      <File Name="envvar_dlg.h"/>
+      <File Name="envvar_table.cpp"/>
+      <File Name="envvar_table.h"/>
+      <File Name="findreplacedlg.h"/>
+      <File Name="findreplacedlg.cpp"/>
+      <File Name="findinfilesdlg.h"/>
+      <File Name="findinfilesdlg.cpp"/>
+      <File Name="replaceinfilespanel.h"/>
+      <File Name="replaceinfilespanel.cpp"/>
+      <File Name="dialogspagebase.h"/>
+      <File Name="dialogspagebase.cpp"/>
+      <File Name="syntaxhighlightdlg.h"/>
+      <File Name="syntaxhighlightbasedlg.cpp"/>
+      <File Name="syntaxhighlightbasedlg.h"/>
+      <File Name="syntaxhighlightdlg.cpp"/>
+      <VirtualDirectory Name="EditorOptionsDlg">
+        <File Name="options_base_dlg2.cpp"/>
+        <File Name="options_base_dlg2.h"/>
+        <File Name="options_dlg2.cpp"/>
+        <File Name="options_dlg2.h"/>
+        <File Name="treebooknodebase.cpp"/>
+        <File Name="treebooknodebase.h"/>
+        <VirtualDirectory Name="General">
+          <VirtualDirectory Name="Guides">
+            <File Name="editor_options_general_guides_panel.cpp"/>
+            <File Name="editor_options_general_guides_panel.h"/>
+            <File Name="editoroptionsgeneralguidespanelbase.cpp"/>
+            <File Name="editoroptionsgeneralguidespanelbase.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Indentation">
+            <File Name="editoroptionsgeneralindentationpanel.cpp"/>
+            <File Name="editoroptionsgeneralindentationpanel.h"/>
+            <File Name="editoroptionsgeneralindetationpanelbase.cpp"/>
+            <File Name="editoroptionsgeneralindetationpanelbase.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Right Margin">
+            <File Name="editoroptionsgeneralrightmarginpanel.cpp"/>
+            <File Name="editoroptionsgeneralrightmarginpanel.h"/>
+            <File Name="editoroptionsgeneralrightmarginpanelbase.cpp"/>
+            <File Name="editoroptionsgeneralrightmarginpanelbase.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Save Options">
+            <File Name="editoroptionsgeneralsavepanel.cpp"/>
+            <File Name="editoroptionsgeneralsavepanel.h"/>
+            <File Name="editoroptionsgeneralsavepanelbase.cpp"/>
+            <File Name="editoroptionsgeneralsavepanelbase.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Code Navigation">
+            <File Name="editoroptionsgeneralcodenavpanelbase.cpp"/>
+            <File Name="editoroptionsgeneralcodenavpanelbase.h"/>
+            <File Name="editoroptionsgeneralcodenavpanel.cpp"/>
+            <File Name="editoroptionsgeneralcodenavpanel.h"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Comments">
+          <File Name="editorsettingscomments.cpp"/>
+          <File Name="editorsettingscomments.h"/>
+          <File Name="editorsettingscommentsbase.cpp"/>
+          <File Name="editorsettingscommentsbase.h"/>
+          <File Name="editorsettingscommentsdoxygenpanel.cpp"/>
+          <File Name="editorsettingscommentsdoxygenpanel.h"/>
+          <File Name="editorsettingscommentsdoxygenpanelbase.cpp"/>
+          <File Name="editorsettingscommentsdoxygenpanelbase.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Bookmarks">
+          <File Name="editorsettingsbookmarksbasepanel.cpp"/>
+          <File Name="editorsettingsbookmarksbasepanel.h"/>
+          <File Name="editorsettingsbookmarkspanel.h"/>
+          <File Name="editorsettingsbookmarkspanel.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Folding">
+          <File Name="editorsettingsfolding.cpp"/>
+          <File Name="editorsettingsfolding.h"/>
+          <File Name="editorsettingsfoldingbase.cpp"/>
+          <File Name="editorsettingsfoldingbase.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Dialogs">
+          <File Name="editorsettingsdialogs.cpp"/>
+          <File Name="editorsettingsdialogs.h"/>
+          <File Name="editorsettingsdialogsbase.cpp"/>
+          <File Name="editorsettingsdialogsbase.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Misc">
+          <File Name="editorsettingsmiscbasepanel.cpp"/>
+          <File Name="editorsettingsmiscbasepanel.h"/>
+          <File Name="editorsettingsmiscpanel.cpp"/>
+          <File Name="editorsettingsmiscpanel.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Caret">
+          <File Name="editorsettingscaretbase.cpp"/>
+          <File Name="editorsettingscaretbase.h"/>
+          <File Name="editorsettingscaret.h"/>
+          <File Name="editorsettingscaret.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Terminal">
+          <File Name="editorsettings_terminal_base.cpp"/>
+          <File Name="editorsettings_terminal_base.h"/>
+          <File Name="editorsettingsterminal.h"/>
+          <File Name="editorsettingsterminal.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="DockingWindows">
+          <File Name="editorsettingsdockingwindowsbase.cpp"/>
+          <File Name="editorsettingsdockingwindowsbase.h"/>
+          <File Name="editorsettingsdockingwidows.h"/>
+          <File Name="editorsettingsdockingwidows.cpp"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+      <File Name="findinfilesdlgbase.h"/>
+      <File Name="findinfilesdlgbase.cpp"/>
+      <File Name="yestoalldlg.h"/>
+      <File Name="yestoallbasedlg.cpp"/>
+      <File Name="yestoallbasedlg.h"/>
+      <File Name="yestoalldlg.cpp"/>
+      <File Name="env_var_dlg_base.h"/>
+      <File Name="env_var_dlg_base.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="CodeCompletion">
+      <File Name="quickoutlinedlg.cpp"/>
+      <File Name="quickoutlinedlg.h"/>
+      <File Name="setters_getters_base_dlg.cpp"/>
+      <File Name="setters_getters_base_dlg.h"/>
+      <File Name="setters_getters_dlg.cpp"/>
+      <File Name="setters_getters_dlg.h"/>
+      <File Name="symbols_dialog.cpp"/>
+      <File Name="symbols_dialog.h"/>
+      <File Name="symbols_dialog_base.cpp"/>
+      <File Name="symbols_dialog_base.h"/>
+      <File Name="tags_options_dlg.cpp"/>
+      <File Name="tags_options_dlg.h"/>
+      <File Name="addincludefiledlgbase.h"/>
+      <File Name="addincludefiledlg.cpp"/>
+      <File Name="addincludefiledlg.h"/>
+      <File Name="addincludefiledlgbase.cpp"/>
+      <File Name="movefuncimpldlg.h"/>
+      <File Name="movefuncimplbasedlg.cpp"/>
+      <File Name="movefuncimplbasedlg.h"/>
+      <File Name="movefuncimpldlg.cpp"/>
+      <File Name="tags_options_base_dlg.h"/>
+      <File Name="tags_options_base_dlg.cpp"/>
+      <File Name="tagsparsersearchpathsbasedlg.cpp"/>
+      <File Name="tagsparsersearchpathsbasedlg.h"/>
+      <File Name="tags_parser_search_path_dlg.h"/>
+      <File Name="tags_parser_search_path_dlg.cpp"/>
+      <File Name="implementparentvirtualfunctionsbase.cpp"/>
+      <File Name="implementparentvirtualfunctionsbase.h"/>
+      <File Name="implement_parent_virtual_functions.h"/>
+      <File Name="implement_parent_virtual_functions.cpp"/>
+      <File Name="cc_colourise_page.cpp"/>
+      <File Name="cc_colourise_page.h"/>
+      <File Name="cc_display_and_behavior_page.cpp"/>
+      <File Name="cc_display_and_behavior_page.h"/>
+      <File Name="cc_triggering_page.cpp"/>
+      <File Name="cc_triggering_page.h"/>
+      <File Name="cc_include_files.cpp"/>
+      <File Name="cc_include_files.h"/>
+      <File Name="cc_advance_page.cpp"/>
+      <File Name="cc_advance_page.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Compiler">
+      <File Name="advanced_settings.h"/>
+      <File Name="advanced_settings.cpp"/>
+      <File Name="editcmpfileinfodlg.h"/>
+      <File Name="editcmpfileinfobase.cpp"/>
+      <File Name="editcmpfileinfobase.h"/>
+      <File Name="editcmpfileinfodlg.cpp"/>
+      <File Name="compilertoolspage.h"/>
+      <File Name="compiler_pages.cpp"/>
+      <File Name="compiler_pages.h"/>
+      <File Name="compileradvancepage.cpp"/>
+      <File Name="compileradvancepage.h"/>
+      <File Name="compilerfiletypespage.cpp"/>
+      <File Name="compilerfiletypespage.h"/>
+      <File Name="compilerpatternspage.cpp"/>
+      <File Name="compilerpatternspage.h"/>
+      <File Name="compilerswitchespage.cpp"/>
+      <File Name="compilerswitchespage.h"/>
+      <File Name="compilertoolspage.cpp"/>
+      <File Name="addoptioncheckdlgbase.h"/>
+      <File Name="compilercompileroptionspage.cpp"/>
+      <File Name="compilercompileroptionspage.h"/>
+      <File Name="compilerlinkeroptionspage.cpp"/>
+      <File Name="compilerlinkeroptionspage.h"/>
+      <File Name="addoptioncheckdlg.cpp"/>
+      <File Name="addoptioncheckdlg.h"/>
+      <File Name="addoptioncheckdlgbase.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Build">
+      <File Name="configuration_manager_base_dlg.cpp"/>
+      <File Name="configuration_manager_base_dlg.h"/>
+      <File Name="configuration_manager_dlg.cpp"/>
+      <File Name="configuration_manager_dlg.h"/>
+      <File Name="build_page.cpp"/>
+      <File Name="build_page.h"/>
+      <File Name="edit_configuration.cpp"/>
+      <File Name="edit_configuration.h"/>
+      <File Name="edit_workspace_conf_dlg.cpp"/>
+      <File Name="edit_workspace_conf_dlg.h"/>
+      <File Name="new_configuration_dlg.cpp"/>
+      <File Name="new_configuration_dlg.h"/>
+      <File Name="buildsettingstab.h"/>
+      <File Name="buildsettingstab.cpp"/>
+      <File Name="buildsettingstabbase.h"/>
+      <File Name="buildsettingstabbase.cpp"/>
+      <File Name="batchbuilddlg.h"/>
+      <File Name="batchbuildbasedlg.cpp"/>
+      <File Name="batchbuildbasedlg.h"/>
+      <File Name="batchbuilddlg.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="ProjectSettings">
+      <File Name="depend_dlg_page.cpp"/>
+      <File Name="depend_dlg_page.h"/>
+      <File Name="depends_dlg.cpp"/>
+      <File Name="depends_dlg.h"/>
+      <File Name="project_settings_base_dlg.cpp"/>
+      <File Name="project_settings_dlg.cpp"/>
+      <File Name="project_settings_dlg.h"/>
+      <File Name="project_settings_base_dlg.h"/>
+      <File Name="buildorderbasepage.h"/>
+      <File Name="buildorderbasepage.cpp"/>
+      <File Name="ps_resources_page.h"/>
+      <File Name="ps_compiler_page.cpp"/>
+      <File Name="ps_compiler_page.h"/>
+      <File Name="ps_custom_build_page.cpp"/>
+      <File Name="ps_custom_build_page.h"/>
+      <File Name="ps_custom_makefile_rules_page.cpp"/>
+      <File Name="ps_custom_makefile_rules_page.h"/>
+      <File Name="ps_debugger_page.cpp"/>
+      <File Name="ps_debugger_page.h"/>
+      <File Name="ps_environment_page.cpp"/>
+      <File Name="ps_environment_page.h"/>
+      <File Name="ps_general_page.cpp"/>
+      <File Name="ps_general_page.h"/>
+      <File Name="ps_linker_page.cpp"/>
+      <File Name="ps_linker_page.h"/>
+      <File Name="ps_resources_page.cpp"/>
+      <File Name="ps_build_events_page.cpp"/>
+      <File Name="ps_build_events_page.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="ProjectManagement">
+      <File Name="new_item_dlg.cpp"/>
+      <File Name="new_item_dlg.h"/>
+      <File Name="newworkspacedlg.h"/>
+      <File Name="newworkspacebasedlg.cpp"/>
+      <File Name="newworkspacebasedlg.h"/>
+      <File Name="newworkspacedlg.cpp"/>
+      <File Name="newprojectdlg.h"/>
+      <File Name="newprojectbasedlg.cpp"/>
+      <File Name="newprojectbasedlg.h"/>
+      <File Name="newprojectdlg.cpp"/>
+      <File Name="new_item_base_dlg.h"/>
+      <File Name="new_item_base_dlg.cpp"/>
+      <File Name="importfilesdialog.cpp"/>
+      <File Name="importfilesdialog.h"/>
+      <File Name="workspacesettingsbase.cpp"/>
+      <File Name="workspacesettingsbase.h"/>
+      <File Name="workspacesettingsdlg.h"/>
+      <File Name="workspacesettingsdlg.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Plugins">
+      <File Name="pluginmgrdlg.h"/>
+      <File Name="plugindlgbase.cpp"/>
+      <File Name="plugindlgbase.h"/>
+      <File Name="pluginmgrdlg.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="DoxygenUI">
+      <File Name="commentpagebase.h"/>
+      <File Name="commentpage.cpp"/>
+      <File Name="commentpage.h"/>
+      <File Name="commentpagebase.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Accelerators">
+      <File Name="acceltabledlg.h"/>
+      <File Name="acceltablebasedlg.cpp"/>
+      <File Name="acceltablebasedlg.h"/>
+      <File Name="acceltabledlg.cpp"/>
+      <File Name="newkeyshortcutdlg.h"/>
+      <File Name="newkeyshortcutbasedlg.cpp"/>
+      <File Name="newkeyshortcutbasedlg.h"/>
+      <File Name="newkeyshortcutdlg.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="About">
+      <File Name="aboutdlg.cpp"/>
+      <File Name="aboutdlg.h"/>
+      <File Name="aboutdlgbase.h"/>
+      <File Name="aboutdlgbase.cpp"/>
+      <File Name="contributers.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Sessions">
+      <File Name="tabgroupdlg.h"/>
+      <File Name="tabgroupbasedlgs.cpp"/>
+      <File Name="tabgroupbasedlgs.h"/>
+      <File Name="tabgroupdlg.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="LocalSettings">
+      <File Name="editorsettingslocal.cpp"/>
+      <File Name="editorsettingslocal.h"/>
+      <File Name="editorsettingslocalbase.cpp"/>
+      <File Name="editorsettingslocalbase.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Tasks">
+      <File Name="tasksfindwhatdlgbase.cpp"/>
+      <File Name="tasksfindwhatdlgbase.h"/>
+      <File Name="tasks_find_what_dlg.h"/>
+      <File Name="tasks_find_what_dlg.cpp"/>
+      <File Name="taskpanel.cpp"/>
+      <File Name="taskpanel.h"/>
+      <File Name="taskspaneldata.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Application">
+    <File Name="app.cpp"/>
+    <File Name="app.h"/>
+    <File Name="frame.h"/>
+    <File Name="stack_walker.h"/>
+    <File Name="stack_walker.cpp"/>
+    <File Name="iconsextra.cpp"/>
+    <File Name="generalinfo.cpp"/>
+    <File Name="generalinfo.h"/>
+    <File Name="frame.cpp"/>
+    <File Name="customstatusbar.cpp"/>
+    <File Name="customstatusbar.h"/>
+    <File Name="singleinstancethreadjob.cpp"/>
+    <File Name="singleinstancethreadjob.h"/>
+    <File Name="webupdatethread.cpp"/>
+    <File Name="webupdatethread.h"/>
+    <File Name="newversionbasedlg.cpp"/>
+    <File Name="newversionbasedlg.h"/>
+    <File Name="newversiondlg.h"/>
+    <File Name="newversiondlg.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Controls">
+    <File Name="checktreectrl.cpp"/>
+    <File Name="checktreectrl.h"/>
+    <File Name="checkdirtreectrl.cpp"/>
+    <File Name="checkdirtreectrl.h"/>
+    <File Name="fileexplorertree.cpp"/>
+    <File Name="fileexplorertree.h"/>
+    <File Name="debuggertip.cpp"/>
+    <File Name="debuggertip.h"/>
+    <File Name="cc_boxbase.h"/>
+    <File Name="cc_box.cpp"/>
+    <File Name="cc_box.h"/>
+    <File Name="cc_boxbase.cpp"/>
+    <File Name="ccvirtuallistctrl.cpp"/>
+    <File Name="ccvirtuallistctrl.h"/>
+    <File Name="quickfindbar.h"/>
+    <File Name="quickfindbar.cpp"/>
+    <File Name="navbar.h"/>
+    <File Name="navbar.cpp"/>
+    <File Name="filechecklist.cpp"/>
+    <File Name="filechecklist.h"/>
+    <File Name="filechecklistbase.cpp"/>
+    <File Name="filechecklistbase.h"/>
+    <File Name="clauidockart.cpp"/>
+    <File Name="clauidockart.h"/>
+    <File Name="settersgetterstreectrl.cpp"/>
+    <File Name="settersgetterstreectrl.h"/>
+    <File Name="quickfindbarbase.h"/>
+    <File Name="quickfindbarbase.cpp"/>
+    <File Name="messagepane_base.h"/>
+    <File Name="messagepane_base.cpp"/>
+    <File Name="message_pane.h"/>
+    <File Name="message_pane.cpp"/>
+    <File Name="navbarbase.cpp"/>
+    <File Name="navbarbase.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Editor">
+    <File Name="context_base.h"/>
+    <File Name="context_cpp.h"/>
+    <File Name="context_manager.h"/>
+    <File Name="generic_context.h"/>
+    <File Name="menu_event_handlers.h"/>
+    <File Name="context_base.cpp"/>
+    <File Name="context_cpp.cpp"/>
+    <File Name="context_manager.cpp"/>
+    <File Name="generic_context.cpp"/>
+    <File Name="menumanager.cpp"/>
+    <File Name="menu_event_handlers.cpp"/>
+    <File Name="cl_editor.cpp"/>
+    <File Name="cl_editor.h"/>
+    <File Name="renamesymboldlg.h"/>
+    <File Name="renamesymbolbase.cpp"/>
+    <File Name="renamesymbolbase.h"/>
+    <File Name="renamesymboldlg.cpp"/>
+    <File Name="stringhighlighterjob.cpp"/>
+    <File Name="stringhighlighterjob.h"/>
+    <File Name="context_diff.cpp"/>
+    <File Name="context_diff.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Manager">
+    <File Name="manager.h"/>
+    <File Name="manager.cpp"/>
+    <File Name="importfilessettings.cpp"/>
+    <File Name="importfilessettings.h"/>
+    <File Name="buildtabsettingsdata.cpp"/>
+    <File Name="buildtabsettingsdata.h"/>
+    <File Name="colourthread.h"/>
+    <File Name="colourthread.cpp"/>
+    <File Name="colourrequest.cpp"/>
+    <File Name="colourrequest.h"/>
+    <File Name="refactorindexbuildjob.cpp"/>
+    <File Name="refactorindexbuildjob.h"/>
+    <File Name="implparentvirtualfunctionsdata.h"/>
+    <File Name="macromanager.h"/>
+    <File Name="macromanager.cpp"/>
+    <File Name="tabgroupspane.h"/>
+    <File Name="tabgroupmanager.cpp"/>
+    <File Name="tabgroupmanager.h"/>
+    <File Name="tabgroupspane.cpp"/>
+    <File Name="dbcontentcacher.h"/>
+    <File Name="dbcontentcacher.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="resources">
+    <File Name="code_parser.rc"/>
+    <File Name="svninfo.cpp"/>
+    <File Name="../Runtime/rc/menu.xrc"/>
+    <File Name="resources.xrc"/>
+    <File Name="../Runtime/config/accelerators.conf.default"/>
+    <File Name="../InnoSetup/lite_editor.iss"/>
+    <File Name="../Runtime/config/codelite.xml.default.gtk"/>
+    <File Name="../Runtime/config/codelite.xml.default"/>
+    <File Name="../Runtime/config/codelite.xml.default.mac"/>
+    <File Name="../codelite-icons/manifest.ini"/>
+    <File Name="../InnoSetup/codelite_mingw.iss"/>
+    <File Name="../InnoSetup/codelite_mingw_wx.iss"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Docking Windows">
+    <File Name="output_pane.cpp"/>
+    <File Name="workspace_pane.cpp"/>
+    <File Name="output_pane.h"/>
+    <File Name="workspace_pane.h"/>
+    <File Name="debuggerpane.h"/>
+    <File Name="debuggerpane.cpp"/>
+    <File Name="fileexplorer.cpp"/>
+    <File Name="fileexplorer.h"/>
+    <File Name="mainbook.cpp"/>
+    <File Name="mainbook.h"/>
+    <File Name="tiptree.cpp"/>
+    <File Name="tiptree.h"/>
+    <File Name="openwindowspanelbase.h"/>
+    <File Name="openwindowspanel.cpp"/>
+    <File Name="openwindowspanel.h"/>
+    <File Name="openwindowspanelbase.cpp"/>
+    <File Name="threadlistpanel.h"/>
+    <File Name="threadlistbasepanel.cpp"/>
+    <File Name="threadlistbasepanel.h"/>
+    <File Name="threadlistpanel.cpp"/>
+    <File Name="buidltab.cpp"/>
+    <File Name="buidltab.h"/>
+    <File Name="outputtabwindow.cpp"/>
+    <File Name="outputtabwindow.h"/>
+    <File Name="findresultstab.cpp"/>
+    <File Name="findresultstab.h"/>
+    <File Name="shelltab.h"/>
+    <File Name="shelltab.cpp"/>
+    <File Name="workspacetab.cpp"/>
+    <File Name="workspacetab.h"/>
+    <File Name="memoryviewbase.h"/>
+    <File Name="memoryview.cpp"/>
+    <File Name="memoryview.h"/>
+    <File Name="memoryviewbase.cpp"/>
+    <File Name="errorstab.h"/>
+    <File Name="errorstab.cpp"/>
+    <File Name="debuggerasciiviewerbase.cpp"/>
+    <File Name="debuggerasciiviewerbase.h"/>
+    <File Name="debuggerasciiviewer.h"/>
+    <File Name="debuggerasciiviewer.cpp"/>
+    <File Name="localstable.cpp"/>
+    <File Name="localstable.h"/>
+    <File Name="findusagetab.h"/>
+    <File Name="findusagetab.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Plugins">
+    <File Name="pluginmanager.h"/>
+    <File Name="pluginmanager.cpp"/>
+    <File Name="keyboardmanager.cpp"/>
+    <File Name="keyboardmanager.h"/>
+  </VirtualDirectory>
+  <Dependencies>
+    <Project Name="wxscintilla"/>
+    <Project Name="sqlite3"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="CodeFormatter"/>
+    <Project Name="DebuggerGDB"/>
+    <Project Name="Subversion"/>
+    <Project Name="Gizmos"/>
+    <Project Name="Cscope"/>
+    <Project Name="Copyright"/>
+    <Project Name="UnitTestPP"/>
+  </Dependencies>
+  <VirtualDirectory Name="scripts">
+    <File Name="../Runtime/build_update.bat"/>
+    <File Name="../Runtime/update.bat"/>
+    <File Name="../Runtime/make_mac_bundle.sh"/>
+    <File Name="../Runtime/le_killproc.sh"/>
+    <File Name="../Runtime/le_exec.sh"/>
+    <File Name="../make_src_targz.sh"/>
+    <File Name="../make_deb.sh"/>
+    <File Name="../make_repo.sh"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="formbuilder">
+    <File Name="newversionbasedlg.fbp"/>
+    <File Name="tagsmanagementbasedlg.fbp"/>
+    <File Name="optionsdialogbase2.fbp"/>
+    <File Name="debuggerasciiviewerbase.fbp"/>
+    <File Name="tagsparsersearchpathsbasedlg.fbp"/>
+    <File Name="newquickwatch.fbp"/>
+    <File Name="importfilesdialog.fbp"/>
+    <File Name="workspacesettingsbase.fbp"/>
+    <File Name="implementparentvirtualfunctionsbase.fbp"/>
+    <File Name="tasksfindwhatdlgbase.fbp"/>
+    <File Name="quickfindbarbase.fbp"/>
+    <File Name="messagepane.fbp"/>
+    <File Name="navbarbase.fbp"/>
+    <File Name="editor_options_codenav.fbp"/>
+    <File Name="editor_options_right_margin.fbp"/>
+    <File Name="editor_options_guides.fbp"/>
+    <File Name="editor_options_save.fbp"/>
+    <File Name="editor_options_bookmarks.fbp"/>
+    <File Name="editor_options_caret.fbp"/>
+    <File Name="editor_options_comments.fbp"/>
+    <File Name="editor_options_comments_doxygen.fbp"/>
+    <File Name="editor_options_indetation.fbp"/>
+    <File Name="editor_options_dialogs.fbp"/>
+    <File Name="editor_options_docking_windows.fbp"/>
+    <File Name="editor_options_folding.fbp"/>
+    <File Name="editor_options_misc.fbp"/>
+    <File Name="editor_options_terminal.fbp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Debugger">
+    <File Name="breakpointsmgr.h"/>
+    <File Name="breakpointpropertiesdlg.cpp"/>
+    <File Name="breakpointpropertiesdlg.h"/>
+    <File Name="breakpointsmgr.cpp"/>
+  </VirtualDirectory>
+  <Options/>
+  <Dependencies Name="UnixCodeLite">
+    <Project Name="wxscintilla"/>
+    <Project Name="sqlite3"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="CodeFormatter"/>
+    <Project Name="DebuggerGDB"/>
+    <Project Name="Gizmos"/>
+    <Project Name="Cscope"/>
+    <Project Name="Copyright"/>
+    <Project Name="UnitTestPP"/>
+    <Project Name="abbreviation"/>
+    <Project Name="snipwiz"/>
+    <Project Name="ExternalTools"/>
+    <Project Name="ContinuousBuild"/>
+  </Dependencies>
+  <Dependencies Name="WinDebug_29">
+    <Project Name="wxscintilla"/>
+    <Project Name="sqlite3"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="CodeFormatter"/>
+    <Project Name="DebuggerGDB"/>
+    <Project Name="Gizmos"/>
+    <Project Name="Cscope"/>
+    <Project Name="Copyright"/>
+    <Project Name="UnitTestPP"/>
+    <Project Name="ContinuousBuild"/>
+    <Project Name="CppChecker"/>
+    <Project Name="ExternalTools"/>
+    <Project Name="QMakePlugin"/>
+    <Project Name="Subversion2"/>
+    <Project Name="SymbolView"/>
+    <Project Name="abbreviation"/>
+    <Project Name="wxFormBuilder"/>
+    <Project Name="snipwiz"/>
+  </Dependencies>
+  <Dependencies Name="WinReleaseUnicode_NoPlugins">
+    <Project Name="wxscintilla"/>
+    <Project Name="sqlite3"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="DebuggerGDB"/>
+  </Dependencies>
+  <VirtualDirectory Name="ClangCodeCompletion">
+    <File Name="clang_code_completion.h"/>
+    <File Name="clang_code_completion.cpp"/>
+  </VirtualDirectory>
+  <Dependencies Name="WinRelease_29">
+    <Project Name="wxscintilla"/>
+    <Project Name="sqlite3"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="DebuggerGDB"/>
+    <Project Name="CodeFormatter"/>
+    <Project Name="Gizmos"/>
+    <Project Name="Cscope"/>
+    <Project Name="Copyright"/>
+    <Project Name="UnitTestPP"/>
+    <Project Name="Subversion2"/>
+    <Project Name="ContinuousBuild"/>
+    <Project Name="CppChecker"/>
+    <Project Name="ExternalTools"/>
+    <Project Name="QMakePlugin"/>
+    <Project Name="SymbolView"/>
+    <Project Name="abbreviation"/>
+    <Project Name="snipwiz"/>
+    <Project Name="wxFormBuilder"/>
+  </Dependencies>
+  <Dependencies Name="Unix">
+    <Project Name="wxscintilla"/>
+    <Project Name="sqlite3"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="CodeFormatter"/>
+    <Project Name="DebuggerGDB"/>
+    <Project Name="Gizmos"/>
+    <Project Name="Cscope"/>
+    <Project Name="Copyright"/>
+    <Project Name="UnitTestPP"/>
+  </Dependencies>
+  <Dependencies Name="Unix_Make_J">
+    <Project Name="wxscintilla"/>
+    <Project Name="sqlite3"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="CodeFormatter"/>
+    <Project Name="DebuggerGDB"/>
+    <Project Name="Subversion"/>
+    <Project Name="Gizmos"/>
+    <Project Name="Cscope"/>
+    <Project Name="Copyright"/>
+    <Project Name="UnitTestPP"/>
+  </Dependencies>
+  <Dependencies Name="Win_wxWidgets_29">
+    <Project Name="wxscintilla"/>
+    <Project Name="sqlite3"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="CodeFormatter"/>
+    <Project Name="DebuggerGDB"/>
+    <Project Name="Gizmos"/>
+    <Project Name="Cscope"/>
+    <Project Name="Copyright"/>
+    <Project Name="UnitTestPP"/>
+    <Project Name="ContinuousBuild"/>
+    <Project Name="ExternalTools"/>
+    <Project Name="CppChecker"/>
+    <Project Name="QMakePlugin"/>
+    <Project Name="Subversion2"/>
+    <Project Name="SymbolView"/>
+    <Project Name="abbreviation"/>
+    <Project Name="snipwiz"/>
+    <Project Name="wxFormBuilder"/>
+  </Dependencies>
+  <Dependencies Name="WinReleaseUnicode">
+    <Project Name="sqlite3"/>
+    <Project Name="wxscintilla"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="CodeFormatter"/>
+    <Project Name="DebuggerGDB"/>
+    <Project Name="Gizmos"/>
+    <Project Name="Cscope"/>
+    <Project Name="Copyright"/>
+    <Project Name="UnitTestPP"/>
+    <Project Name="ExternalTools"/>
+    <Project Name="snipwiz"/>
+    <Project Name="wxFormBuilder"/>
+    <Project Name="abbreviation"/>
+    <Project Name="ContinuousBuild"/>
+    <Project Name="QMakePlugin"/>
+    <Project Name="CppChecker"/>
+    <Project Name="Subversion2"/>
+    <Project Name="SymbolView"/>
+    <Project Name="git"/>
+  </Dependencies>
+  <Dependencies Name="WinDebugUnicode">
+    <Project Name="wxscintilla"/>
+    <Project Name="sqlite3"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="CodeFormatter"/>
+    <Project Name="DebuggerGDB"/>
+    <Project Name="Gizmos"/>
+    <Project Name="Cscope"/>
+    <Project Name="Copyright"/>
+    <Project Name="UnitTestPP"/>
+    <Project Name="ExternalTools"/>
+    <Project Name="snipwiz"/>
+    <Project Name="wxFormBuilder"/>
+    <Project Name="abbreviation"/>
+    <Project Name="ContinuousBuild"/>
+    <Project Name="QMakePlugin"/>
+    <Project Name="CppChecker"/>
+    <Project Name="Subversion2"/>
+    <Project Name="SymbolView"/>
+    <Project Name="git"/>
+  </Dependencies>
+  <Dependencies Name="WinDebugUnicode">
+    <Project Name="wxscintilla"/>
+    <Project Name="sqlite3"/>
+    <Project Name="wxsqlite3"/>
+    <Project Name="CodeLite"/>
+    <Project Name="plugin_sdk"/>
+    <Project Name="CodeFormatter"/>
+    <Project Name="DebuggerGDB"/>
+    <Project Name="Gizmos"/>
+    <Project Name="Cscope"/>
+    <Project Name="Copyright"/>
+    <Project Name="UnitTestPP"/>
+    <Project Name="ExternalTools"/>
+    <Project Name="snipwiz"/>
+    <Project Name="wxFormBuilder"/>
+    <Project Name="abbreviation"/>
+    <Project Name="ContinuousBuild"/>
+    <Project Name="QMakePlugin"/>
+    <Project Name="CppChecker"/>
+    <Project Name="Subversion2"/>
+    <Project Name="SymbolView"/>
+    <Project Name="git"/>
+  </Dependencies>
+  <Settings Type="Executable">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="">
+        <IncludePath Value="."/>
+        <Preprocessor Value="__WX__"/>
+        <Preprocessor Value="WXUSINGDLL"/>
+        <Preprocessor Value="WXUSINGDLL_SDK"/>
+        <Preprocessor Value="WXUSINGDLL_CL"/>
+        <Preprocessor Value="WXUSINGDLL_WXSQLITE3"/>
+        <Preprocessor Value="WXUSINGDLL_SCI"/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Unix" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="$(shell wx-config --cxxflags --debug=no --unicode=yes);-O2;$(shell pkg-config --cflags gtk+-2.0);-Wall;-fno-strict-aliasing" C_Options="$(shell wx-config --cxxflags --debug=no --unicode=yes);-O2;$(shell pkg-config --cflags gtk+-2.0);-Wall;-fno-strict-aliasing" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../CodeLite"/>
+        <IncludePath Value="../sdk/wxsqlite3/include"/>
+        <IncludePath Value="../sdk/wxscintilla/include"/>
+        <IncludePath Value="../Plugin"/>
+        <IncludePath Value="../Interfaces"/>
+        <Preprocessor Value="__WX__"/>
+        <Preprocessor Value="WXUSINGDLL"/>
+      </Compiler>
+      <Linker Options="-O2;$(shell wx-config --libs --unicode=yes --debug=no);$(shell pkg-config --libs gtk+-2.0)" Required="yes">
+        <LibraryPath Value="../lib/gcc_lib"/>
+        <Library Value="libCodeLiteu.a"/>
+        <Library Value="libplugin_sdku.a"/>
+        <Library Value="libwxscintillau.a"/>
+        <Library Value="libwxsqlite3u.a"/>
+        <Library Value="libsqlite3.a"/>
+      </Linker>
+      <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="no"/>
+      <General OutputFile="../Runtime/codelite" IntermediateDirectory="./ReleaseUnicode" Command="/home/eran/devl/codelite/Runtime/codelite" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="/home/eran/devl/codelite/Runtime" PauseExecWhenProcTerminates="yes"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <Target Name="configure --enable-debug">./configure --enable-debug</Target>
+        <Target Name="configure">./configure</Target>
+        <RebuildCommand>make -w clean all</RebuildCommand>
+        <CleanCommand>make clean</CleanCommand>
+        <BuildCommand>make -w</BuildCommand>
+        <PreprocessFileCommand>make Debug_gcc_unicode/$(CurrentFileName).o.i</PreprocessFileCommand>
+        <SingleFileCommand>make Debug_gcc_unicode/$(CurrentFileName).o</SingleFileCommand>
+        <MakefileGenerationCommand>./configure</MakefileGenerationCommand>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>$(WorkspacePath)</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild>resources.cpp
+resources.cpp: resources.xrc
+	wxrc -c -v -o resources.cpp resources.xrc</CustomPreBuild>
+      </AdditionalRules>
+    </Configuration>
+    <Configuration Name="Unix_Make_J" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="$(shell wx-config --cxxflags --debug=no --unicode=yes);-O2;$(shell pkg-config --cflags gtk+-2.0);-Wall;-fno-strict-aliasing" C_Options="$(shell wx-config --cxxflags --debug=no --unicode=yes);-O2;$(shell pkg-config --cflags gtk+-2.0);-Wall;-fno-strict-aliasing" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../CodeLite"/>
+        <IncludePath Value="../sdk/wxsqlite3/include"/>
+        <IncludePath Value="../sdk/wxscintilla/include"/>
+        <IncludePath Value="../Plugin"/>
+        <IncludePath Value="../Interfaces"/>
+        <Preprocessor Value="__WX__"/>
+        <Preprocessor Value="WXUSINGDLL"/>
+      </Compiler>
+      <Linker Options="-O2;$(shell wx-config --libs --unicode=yes --debug=no);$(shell pkg-config --libs gtk+-2.0)" Required="yes">
+        <LibraryPath Value="../lib/gcc_lib"/>
+        <Library Value="libCodeLiteu.a"/>
+        <Library Value="libplugin_sdku.a"/>
+        <Library Value="libwxscintillau.a"/>
+        <Library Value="libwxsqlite3u.a"/>
+        <Library Value="libsqlite3.a"/>
+      </Linker>
+      <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="no"/>
+      <General OutputFile="../Runtime/codelite" IntermediateDirectory="./ReleaseUnicode" Command="/usr/bin/codelite" CommandArguments="--no-plugins" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="no"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <Target Name="configure --enable-debug">./configure --enable-debug</Target>
+        <Target Name="configure">./configure</Target>
+        <RebuildCommand>make clean &amp;&amp; make -j2</RebuildCommand>
+        <CleanCommand>make clean</CleanCommand>
+        <BuildCommand>make -j 2</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand>./configure</MakefileGenerationCommand>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>$(WorkspacePath)</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild>resources.cpp
+resources.cpp: resources.xrc
+	wxrc -c -v -o resources.cpp resources.xrc</CustomPreBuild>
+      </AdditionalRules>
+    </Configuration>
+    <Configuration Name="WinDebugUnicode" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="$(shell wx-config --wxcfg=gcc_dll/mswud --debug=yes --cxxflags --unicode=yes);-Wall;-fno-strict-aliasing;-g" C_Options="$(shell wx-config --wxcfg=gcc_dll/mswud --debug=yes --cxxflags --unicode=yes);-Wall;-fno-strict-aliasing;-g" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../CodeLite"/>
+        <IncludePath Value="../sdk/wxsqlite3/include"/>
+        <IncludePath Value="../sdk/wxscintilla/include"/>
+        <IncludePath Value="../Plugin"/>
+        <IncludePath Value="../Interfaces"/>
+      </Compiler>
+      <Linker Options="-g;$(shell wx-config --debug=yes --libs --unicode=yes);-Wl,--subsystem,windows -mwindows;" Required="yes">
+        <LibraryPath Value="."/>
+        <LibraryPath Value="../lib/gcc_lib"/>
+        <Library Value="libplugin_sdkud.dll"/>
+        <Library Value="libCodeLiteud.dll"/>
+        <Library Value="libwxscintillaud.dll"/>
+        <Library Value="libwxsqlite3ud.dll"/>
+      </Linker>
+      <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="yes"/>
+      <General OutputFile="../Runtime/codelite.exe" IntermediateDirectory="./Debug" Command="./codelite.exe" CommandArguments="-b . " UseSeparateDebugArgs="no" DebugArguments="-b . --no-plugins" WorkingDirectory="../Runtime " PauseExecWhenProcTerminates="no"/>
+      <Environment EnvVarSetName="Default" DbgSetName="Default"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <Target Name="configure --enable-debug">./configure --enable-debug</Target>
+        <Target Name="configure">./configure</Target>
+        <RebuildCommand/>
+        <CleanCommand>mingw32-make -f LiteEditor_wsp.mk type=ReleaseANSI clean</CleanCommand>
+        <BuildCommand>mingw32-make -f LiteEditor_wsp.mk type=ReleaseANSI</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild>resources.cpp svninfo.cpp
+resources.cpp: resources.xrc
+	wxrc /c /v /o resources.cpp resources.xrc
+
+svninfo.cpp:
+	autorev .
+</CustomPreBuild>
+      </AdditionalRules>
+    </Configuration>
+    <Configuration Name="WinReleaseUnicode" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="$(shell wx-config --wxcfg=gcc_dll/mswu --debug=no --cxxflags --unicode=yes);-Wall;-fno-strict-aliasing;-O2" C_Options="$(shell wx-config --wxcfg=gcc_dll/mswu --debug=no --cxxflags --unicode=yes);-Wall;-fno-strict-aliasing;-O2" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../CodeLite"/>
+        <IncludePath Value="../sdk/wxsqlite3/include"/>
+        <IncludePath Value="../sdk/wxscintilla/include"/>
+        <IncludePath Value="../Plugin"/>
+        <IncludePath Value="../Interfaces"/>
+      </Compiler>
+      <Linker Options="-s;$(shell wx-config --debug=no --unicode=yes --libs );-Wl,--subsystem,windows -mwindows;-Wl,-M=codelite.map;-O2" Required="yes">
+        <LibraryPath Value="."/>
+        <LibraryPath Value="../lib/gcc_lib"/>
+        <Library Value="libplugin_sdku.dll"/>
+        <Library Value="libcodeliteu.dll"/>
+        <Library Value="libwxscintillau.dll"/>
+        <Library Value="libwxsqlite3u.dll"/>
+      </Linker>
+      <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="yes"/>
+      <General OutputFile="../Runtime/codelite.exe" IntermediateDirectory="Release" Command="./codelite.exe" CommandArguments="-b ." UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="../Runtime" PauseExecWhenProcTerminates="no"/>
+      <Environment EnvVarSetName="Default" DbgSetName="Default"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild>
+        <Command Enabled="yes">autorev .</Command>
+      </PreBuild>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand>mingw32-make -f LiteEditor_wsp.mk type=ReleaseANSI clean</CleanCommand>
+        <BuildCommand>mingw32-make -f LiteEditor_wsp.mk type=ReleaseANSI</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild>resources.cpp
+resources.cpp: resources.xrc
+	wxrc /c /v /o resources.cpp resources.xrc</CustomPreBuild>
+      </AdditionalRules>
+    </Configuration>
+    <Configuration Name="Win_wxWidgets_29" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="$(shell wx-config --wxcfg=gcc_dll/mswud --debug=yes --cxxflags --unicode=yes);-Wall;-fno-strict-aliasing;-g" C_Options="$(shell wx-config --wxcfg=gcc_dll/mswud --debug=yes --cxxflags --unicode=yes);-Wall;-fno-strict-aliasing;-g" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../CodeLite"/>
+        <IncludePath Value="../sdk/wxsqlite3/include"/>
+        <IncludePath Value="../sdk/wxscintilla/include"/>
+        <IncludePath Value="../Plugin"/>
+        <IncludePath Value="../Interfaces"/>
+      </Compiler>
+      <Linker Options="-g;$(shell wx-config --debug=yes --libs --unicode=yes);-Wl,--subsystem,windows -mwindows;" Required="yes">
+        <LibraryPath Value="."/>
+        <LibraryPath Value="../lib/gcc_lib"/>
+        <Library Value="libplugin_sdkud.dll"/>
+        <Library Value="libCodeLiteud.dll"/>
+        <Library Value="libwxscintillaud.dll"/>
+        <Library Value="libwxsqlite3ud.dll"/>
+      </Linker>
+      <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="yes"/>
+      <General OutputFile="../Runtime/codelite.exe" IntermediateDirectory="./WinDbg29" Command="./codelite.exe" CommandArguments="-b . --no-plugins" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="../Runtime " PauseExecWhenProcTerminates="no"/>
+      <Environment EnvVarSetName="Default" DbgSetName="wxWidgets-29"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <Target Name="configure --enable-debug">./configure --enable-debug</Target>
+        <Target Name="configure">./configure</Target>
+        <RebuildCommand/>
+        <CleanCommand>mingw32-make -f LiteEditor_wsp.mk type=ReleaseANSI clean</CleanCommand>
+        <BuildCommand>mingw32-make -f LiteEditor_wsp.mk type=ReleaseANSI</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild>resources.cpp svninfo.cpp
+resources.cpp: resources.xrc
+	wxrc /c /v /o resources.cpp resources.xrc
+
+svninfo.cpp:
+	autorev .</CustomPreBuild>
+      </AdditionalRules>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

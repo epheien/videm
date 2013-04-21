@@ -1,0 +1,14 @@
+main	/home/fan/Desktop/TEMP/Cpp/main.cpp	/^int main(int argc, char **argv)$/;"	function	line:3	signature:(int argc, char **argv)	returns:int 
+MyTemplate	/home/fan/Desktop/TEMP/Cpp/main.h	/^template<typename T> class MyTemplate { $/;"	class	line:2
+t	/home/fan/Desktop/TEMP/Cpp/main.h	/^    T t;$/;"	member	line:4	class:MyTemplate	access:public
+Foo	/home/fan/Desktop/TEMP/Cpp/main.h	/^class Foo {$/;"	class	line:7
+m_a	/home/fan/Desktop/TEMP/Cpp/main.h	/^    char m_a;$/;"	member	line:9	class:Foo	access:public
+m_b	/home/fan/Desktop/TEMP/Cpp/main.h	/^    short m_b;$/;"	member	line:10	class:Foo	access:public
+m_c	/home/fan/Desktop/TEMP/Cpp/main.h	/^    int m_c;$/;"	member	line:11	class:Foo	access:public
+Func	/home/fan/Desktop/TEMP/Cpp/main.h	/^    void Func(void)$/;"	function	line:12	class:Foo	access:public	signature:(void)	returns:void 
+Test	/home/fan/Desktop/TEMP/Cpp/main.h	/^class Test {$/;"	class	line:18
+m_foo	/home/fan/Desktop/TEMP/Cpp/main.h	/^    MyTemplate<Foo> m_foo;$/;"	member	line:20	class:Test	access:public
+Func	/home/fan/Desktop/TEMP/Cpp/main.h	/^    void Func(void)$/;"	function	line:21	class:Test	access:public	signature:(void)	returns:void 
+DFoo	/home/fan/Desktop/TEMP/Cpp/main.h	/^class DFoo : public Foo {$/;"	class	line:27	inherits:Foo
+DFoo	/home/fan/Desktop/TEMP/Cpp/main.h	/^	DFoo();$/;"	prototype	line:29	class:DFoo	access:public	signature:()
+~DFoo	/home/fan/Desktop/TEMP/Cpp/main.h	/^	~DFoo();$/;"	prototype	line:30	class:DFoo	access:public	signature:()
