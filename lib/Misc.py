@@ -124,9 +124,9 @@ def SplitStrBy(string, sep):
 
 def GetMTime(fn):
     try:
-        return os.path.getmtime(fn)
+        return int(os.path.getmtime(fn))
     except:
-        return 0.0
+        return 0
 
 def TempFile():
     fd, fn = tempfile.mkstemp()
