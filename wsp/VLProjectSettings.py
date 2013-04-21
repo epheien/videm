@@ -6,7 +6,7 @@
 
 import os.path
 import json
-import Globals
+from Misc import Dict2Obj, Obj2Dict
 
 class DebuggerSettings:
     def __init__(self, d = {}):
@@ -15,10 +15,10 @@ class DebuggerSettings:
             self.FromDict(d)
 
     def FromDict(self, d):
-        Globals.Dict2Obj(self, d)
+        Dict2Obj(self, d)
 
     def ToDict(self):
-        return Globals.Obj2Dict(self)
+        return Obj2Dict(self)
 
 class VLProjectSetting:
     '''单个项目设置，每个项目设置名对应一个这样的实例

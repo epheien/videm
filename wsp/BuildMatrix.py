@@ -5,7 +5,7 @@ from xml.dom import minidom
 import sys
 import os
 import XmlUtils
-import Macros
+from Macros import BoolToString
 
 
 class ConfigMappingEntry:
@@ -33,7 +33,7 @@ class WorkspaceConfiguration:
         doc = minidom.Document()
         node = doc.createElement('WorkspaceConfiguration')
         node.setAttribute('Name', self.name)
-        node.setAttribute('Selected', Macros.BoolToString(self.isSelected))
+        node.setAttribute('Selected', BoolToString(self.isSelected))
 
         for i in self.mappingList:
             projNode = doc.createElement('Project')

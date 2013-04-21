@@ -3,7 +3,7 @@
 
 '''编译器对象，很简单的设计'''
 
-from Globals import Obj2Dict, Dict2Obj
+from Misc import Obj2Dict, Dict2Obj
 import json
 
 class Compiler:

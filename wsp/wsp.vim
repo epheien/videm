@@ -443,7 +443,7 @@ def VLGetCurUnsavedFile():
 
 def HandleHeaderIssue(sHeaderFile):
     '''处理头文件的问题'''
-    if Globals.IsCppHeaderFile(sHeaderFile):
+    if IsCppHeaderFile(sHeaderFile):
         # 头文件的话，需要添加对应的源文件中在包含此头文件之前的所有包含语句内容
         swapFiles = ws.GetSHSwapList(sHeaderFile)
         if swapFiles:
@@ -1025,7 +1025,7 @@ endfunction
 function! s:Autocmd_Quit() "{{{2
     VLWDbgStop
     while 1
-        py vim.command('let nCnt = %d' % Globals.GetBgThdCnt())
+        py vim.command('let nCnt = %d' % GetBgThdCnt())
         if nCnt != 0
             redraw
             let sMsg = printf(
@@ -1630,7 +1630,7 @@ function! s:DbgStart(...) "{{{2
             py del proj
             " 用临时文件
             let s:dbgProjectFile = tempname()
-            py Globals.Touch(vim.eval('s:dbgProjectFile'))
+            py Touch(vim.eval('s:dbgProjectFile'))
             call s:DbgLoadBreakpointsToFile(s:dbgProjectFile)
             " 需要用 g:VLWDbgProjectFile 这种方式，否则会有同步问题
             let g:VLWDbgProjectFile = s:dbgProjectFile
@@ -1786,7 +1786,7 @@ def SaveDbgBpsFunc(data):
         return
     baseTime = time.time()
     for i in xrange(10): # 顶多试十次
-        modiTime = Globals.GetMTime(dbgProjectFile)
+        modiTime = GetMTime(dbgProjectFile)
         if modiTime > baseTime:
             # 开工
             DbgSaveBreakpoints(data)
@@ -1804,7 +1804,7 @@ PYTHON_EOF
         if g:VLWDbgSaveBreakpointsInfo
             exec 'Cproject' fnameescape(s:dbgProjectFile)
             " 要用异步的方式保存...
-            "py Globals.RunSimpleThread(SaveDbgBpsFunc, 
+            "py Misc.RunSimpleThread(SaveDbgBpsFunc, 
                         "\              vim.eval('s:GenSaveDbgBpsFuncData()'))
             " 还是用同步的方式保存比较靠谱，懒得处理同步问题
             py SaveDbgBpsFunc(vim.eval('s:GenSaveDbgBpsFuncData()'))
@@ -1939,7 +1939,7 @@ def DbgLoadBreakpointsToFile(pyclewnProjFile):
     #print settingsFile
     if not settingsFile:
         return False
-    ds = Globals.DirSaver()
+    ds = DirSaver()
     os.chdir(vim.eval('s:dbgProjectDirName'))
     ins = VLProjectSettings()
     if not ins.Load(settingsFile):
@@ -2423,7 +2423,7 @@ function! s:InitVLWCscopeDatabase(...) "{{{2
         return
     endif
 
-    py l_ds = Globals.DirSaver()
+    py l_ds = DirSaver()
     py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
 
     let lFiles = []
@@ -2439,7 +2439,7 @@ function! s:InitVLWCscopeDatabase(...) "{{{2
 python << PYTHON_EOF
 def InitVLWCscopeDatabase():
     # 检查是否需要更新 cscope.files 文件
-    csFilesMt = Globals.GetFileModificationTime(vim.eval('sCsFilesFile'))
+    csFilesMt = GetMTime(vim.eval('sCsFilesFile'))
     wspFileMt = ws.VLWIns.GetWorkspaceFileLastModifiedTime()
     needUpdateCsNameFile = False
     # FIXME: codelite 每次退出都会更新工作空间文件的时间戳
@@ -2545,7 +2545,7 @@ function! s:UpdateVLWCscopeDatabase(...) "{{{2
         return
     endif
 
-    py l_ds = Globals.DirSaver()
+    py l_ds = DirSaver()
     py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
 
     let sWspName = GetWspName()
@@ -2610,7 +2610,7 @@ endfunction
 " 可选参数为 cscope.out 文件
 function! s:ConnectCscopeDatabase(...) "{{{2
     " 默认的文件名...
-    py l_ds = Globals.DirSaver()
+    py l_ds = DirSaver()
     py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
     let sWspName = GetWspName()
     let sCsOutFile = sWspName . g:VLWorkspaceCscpoeOutFile
@@ -2629,7 +2629,7 @@ endfunction
 " ========== GNU Global Tags =========
 function! s:InitVLWGtagsDatabase(bIncremental) "{{{2
     " 求简单，调用这个函数就表示强制新建数据库
-    py l_ds = Globals.DirSaver()
+    py l_ds = DirSaver()
     py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
 
     let lFiles = []
@@ -3719,7 +3719,7 @@ def GetVLWProjectCompileOpts(projName):
         vim.command("echom 'no project'")
         return
 
-    ds = Globals.DirSaver()
+    ds = DirSaver()
     try:
         os.chdir(project.dirName)
     except OSError:
@@ -3766,7 +3766,7 @@ function! s:InitVLWProjectClangPCH(projName) "{{{2
         return
     endif
 
-    py ds = Globals.DirSaver()
+    py ds = DirSaver()
     py project = ws.VLWIns.FindProjectByName(vim.eval('a:projName'))
     py if project and os.path.exists(project.dirName): os.chdir(project.dirName)
 
@@ -4498,7 +4498,7 @@ def CreateWspBuildConfDialog():
     vim.command("call wspBCMDlg.AddBlankLine()")
 
     projectNameList = ws.VLWIns.projects.keys()
-    projectNameList.sort(Globals.Cmp)
+    projectNameList.sort(CmpIC)
     for projName in projectNameList:
         project = ws.VLWIns.FindProjectByName(projName)
         vim.command("let ctl = g:VCComboBox.New('%s')" % ToVimStr(projName))
@@ -5811,7 +5811,7 @@ endfunction
 
 function g:VLWVersion() "{{{2
     if s:bHadInited
-        py vim.command("return %d" % Globals.VIMLITE_VER)
+        py vim.command("return %d" % VIMLITE_VER)
     else
         return 0
     endif
@@ -5825,6 +5825,8 @@ function! s:InitPythonInterfaces() "{{{2
 
     let pyf = g:vlutils#os.path.join(fnamemodify(s:sfile, ':h'), 'wsp.py')
     exec 'pyfile' fnameescape(pyf)
+    py from Misc import GetBgThdCnt, Touch, GetMTime
+    py from Macros import VIMLITE_VER
 endfunction
 "}}}2
 function! s:LoadPlugin()

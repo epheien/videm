@@ -5,10 +5,10 @@ import os, sys
 import os.path
 from xml.dom import minidom
 
-import Globals
 import XmlUtils
 from ProjectSettings import ProjectSettings
-from Globals import WSP_PATH_SEP
+from Macros import WSP_PATH_SEP, PROJECT_FILE_SUFFIX
+from Misc import GetMTime, DirSaver, IsWindowsOS
 
 
 def JoinWspPath(a, *p):
@@ -65,7 +65,7 @@ class Project:
                     .encode('utf-8')
             self.fileName = os.path.abspath(fileName) #绝对路径
             self.dirName, self.baseName = os.path.split(self.fileName) #绝对路径
-            self.modifyTime = Globals.GetFileModificationTime(fileName)
+            self.modifyTime = GetMTime(fileName)
             self.settings = ProjectSettings(XmlUtils.FindFirstByTagName(
                 self.rootNode, 'Settings'))
     
@@ -117,7 +117,7 @@ class Project:
     def Create(self, name, description, path, projectType):
         self.name = name
         self.fileName = os.path.join(
-            path, name + os.extsep + Globals.PROJECT_FILE_SUFFIX)
+            path, name + os.extsep + PROJECT_FILE_SUFFIX)
         self.fileName = os.path.abspath(self.fileName)
         self.dirName, self.baseName = os.path.split(self.fileName)
         
@@ -163,7 +163,7 @@ class Project:
             if bldConf:
                 ignoredFiles = bldConf.ignoredFiles.copy()
         if absPath:
-            ds = Globals.DirSaver()
+            ds = DirSaver()
             os.chdir(self.dirName)
             files = self.GetFilesOfNode(XmlUtils.GetRoot(self.doc), True,
                                         '', ignoredFiles)
@@ -285,7 +285,7 @@ class Project:
     def IsFileExists(self, fileName):
         '''find the file under this node.
         Convert the file path to be relative to the project path'''
-        ds = Globals.DirSaver()
+        ds = DirSaver()
         
         os.chdir(self.dirName)
         # fileName relative to the project path
@@ -293,7 +293,7 @@ class Project:
         
         files = self.GetAllFiles()
         for i in files:
-            if Globals.IsWindowsOS():
+            if IsWindowsOS():
                 if os.path.abspath(i).lower() \
                    == os.path.abspath(relFileName).lower():
                     return True
@@ -324,7 +324,7 @@ class Project:
         return XmlUtils.GetRoot(self.doc).getAttribute('InternalType')
     
     def GetProjFileLastModifiedTime(self):
-        return Globals.GetFileModificationTime(self.fileName)
+        return GetMTime(self.fileName)
     
     def GetProjectLastModifiedTime(self):
         return self.modifyTime

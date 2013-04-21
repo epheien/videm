@@ -3,7 +3,7 @@
 
 '''构建器对象'''
 
-from Globals import Obj2Dict, Dict2Obj
+from Misc import Obj2Dict, Dict2Obj
 
 class Builder:
     '''构建器基类'''

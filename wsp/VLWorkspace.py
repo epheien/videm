@@ -6,11 +6,13 @@ import sys
 import os
 import shutil
 import XmlUtils
-import Globals
 
 from VLProject import VLProject
 from BuildMatrix import BuildMatrix
 from BuildMatrix import ConfigMappingEntry
+from Macros import WSP_PATH_SEP, WORKSPACE_FILE_SUFFIX, PROJECT_FILE_SUFFIX
+from Misc import CmpIC, SplitSmclStr, GetMTime, DirSaver, IsWindowsOS, PosixPath
+from Misc import Touch
 
 TYPE_WORKSPACE = 0
 TYPE_PROJECT = 1
@@ -22,14 +24,6 @@ EXPAND_PREFIX = '~'
 FOLD_PREFIX = '+'
 FILE_PREFIX = '-'
 IGNORED_FILE_PREFIX = '#'
-
-WSP_PATH_SEP = Globals.WSP_PATH_SEP
-
-WORKSPACE_FILE_SUFFIX = Globals.WORKSPACE_FILE_SUFFIX
-PROJECT_FILE_SUFFIX = Globals.PROJECT_FILE_SUFFIX
-
-from Globals import Cmp
-
 
 def ConvertWspFileToNewFormat(fileName):
     ins = VLWorkspace(fileName)
@@ -65,7 +59,7 @@ def Glob(sDir, filters):
     lFiles = []
     lFilters = filters
     if isinstance(filters, str):
-        lFilters = [i for i in Globals.SplitSmclStr(filters)]
+        lFilters = [i for i in SplitSmclStr(filters)]
     for sFilter in lFilters:
         if sFilter != '.':
             lFiles.extend(glob.glob(os.path.join(sDir, sFilter)))
@@ -112,7 +106,7 @@ def DirectoryToXmlNode(sDir, filters,
     # 防止重复文件
     filesSet = set(lFiles)
     lFiles = list(filesSet)
-    lFiles.sort(Cmp) # 排序不分大小写
+    lFiles.sort(CmpIC) # 排序不分大小写
     for sFile in lFiles:
         if not os.path.isfile(sFile):
             continue
@@ -167,7 +161,7 @@ def SortVirtualDirectoryByNode(lNode):
     for i in lNode:
         dic[i.attributes['Name'].value] = i
     li = dic.keys()
-    li.sort(Cmp)
+    li.sort(CmpIC)
 #    print li
     li = [dic[i] for i in li]
     return li
@@ -178,7 +172,7 @@ def SortFileByNode(lNode):
     for i in lNode:
         dic[os.path.basename(i.attributes['Name'].value)] = i
     li = dic.keys()
-    li.sort(Cmp)
+    li.sort(CmpIC)
 #    print li
     li = [dic[i] for i in li]
     return li
@@ -225,9 +219,9 @@ class VLWorkspace:
             self.fileName = os.path.abspath(fileName)
             self.dirName, self.baseName = os.path.split(self.fileName)
             
-            self.modifyTime = Globals.GetFileModificationTime(fileName)
+            self.modifyTime = GetMTime(fileName)
             
-            ds = Globals.DirSaver()
+            ds = DirSaver()
             os.chdir(self.dirName)
             for i in self.rootNode.childNodes:
                 if i.nodeName == 'Project':
@@ -258,7 +252,7 @@ class VLWorkspace:
                 i += 1
             
             # sort
-            tmpList.sort(Cmp)
+            tmpList.sort(CmpIC)
             for i in tmpList:
                 self.vimLineData.append(tmpDict[i])
                 
@@ -652,8 +646,8 @@ class VLWorkspace:
         else:
             return 0
 
-        if Globals.IsWindowsOS():
-            name = Globals.NormalizePath(name)
+        if IsWindowsOS():
+            name = PosixPath(name)
         
         newNode.setAttribute('Name', name)
         if insertingNode:
@@ -783,11 +777,11 @@ class VLWorkspace:
                             os.path.basename(i.getAttribute('Name'))] = datum
                 li = []
                 if vdList:
-                    vdList.sort(Cmp)
+                    vdList.sort(CmpIC)
                     for i in vdList:
                         li.append(vdDict[i])
                 if fileList:
-                    fileList.sort(Cmp)
+                    fileList.sort(CmpIC)
                     for i in fileList:
                         li.append(fileDict[i])
                 if li:
@@ -1021,7 +1015,7 @@ class VLWorkspace:
         xmlNode = datum['node']
         file = xmlNode.getAttribute('Name').encode('utf-8')
         if absPath:
-            ds = Globals.DirSaver()
+            ds = DirSaver()
             os.chdir(datum['project'].dirName)
             file = os.path.abspath(file)
         return file
@@ -1239,7 +1233,7 @@ class VLWorkspace:
         return self.fileName
 
     def GetWorkspaceFileLastModifiedTime(self):
-        return Globals.GetFileModificationTime(self.fileName)
+        return GetMTime(self.fileName)
 
     def GetWorkspaceLastModifiedTime(self):
         return self.modifyTime
@@ -1248,7 +1242,7 @@ class VLWorkspace:
         self.modifyTime = modTime
 
     def GetFileLastModifiedTime(self):
-        return int(os.path.getmtime(self.fileName))
+        return GetMTime(self.fileName)
 
     def GetActiveProjectName(self):
         return self.activeProject
@@ -1370,12 +1364,12 @@ class VLWorkspace:
         '''更新本工作区包含的所有项目的项目文件，
         主要目的是另它们重建 Makefile'''
         for project in self.projects.itervalues():
-            Globals.Touch(project.fileName)
+            Touch(project.fileName)
 
     def TouchProject(self, projName):
         project = self.FindProjectByName(projName)
         if project:
-            Globals.Touch(project.fileName)
+            Touch(project.fileName)
 
 #=====
     def CreateWorkspace(self, name, path):
@@ -1391,7 +1385,7 @@ class VLWorkspace:
         self.fileName = os.path.abspath(os.path.join(path, name + os.extsep 
                                                      + WORKSPACE_FILE_SUFFIX))
 
-        #ds = Globals.DirSaver()
+        #ds = DirSaver()
         #os.chdir(path)
         dbFileName = './' + name + '.tags'
         # TagsManagerST.Get().OpenDatabase(dbFileName)
@@ -1526,7 +1520,7 @@ class VLWorkspace:
     def GetProjectList(self):
         '''返回工作空间包含的项目的名称列表'''
         li = self.projects.keys()
-        li.sort(Cmp)
+        li.sort(CmpIC)
         return li
 
     def AddProject(self, projFile):

@@ -4,9 +4,11 @@
 import pickle
 import os.path
 
-import Globals
+from Macros import VIMLITE_DIR
+from Utils import SplitVarDef, ExpandVariables
+from Misc import GetMTime
 
-CONFIG_FILE = os.path.join(Globals.VIMLITE_DIR, 'config', 'EnvVarSettings.conf')
+CONFIG_FILE = os.path.join(VIMLITE_DIR, 'config', 'EnvVarSettings.conf')
 
 class EnvVar:
     '''代表一个环境变量'''
@@ -15,7 +17,7 @@ class EnvVar:
         self.value = ''
         self.string = string
         if string:
-            self.key, self.value = Globals.SplitVarDef(string)
+            self.key, self.value = SplitVarDef(string)
 
     def GetKey(self):
         return self.key
@@ -105,7 +107,7 @@ class EnvVarSettings:
             d[envVar.GetKey()] = envVar.GetValue()
             #result = result.replace('$(%s)' % envVar.GetKey(),
                                     #envVar.GetValue())
-        result = Globals.ExpandVariables(result, d, trim)
+        result = ExpandVariables(result, d, trim)
 
         return result
 
@@ -131,7 +133,7 @@ class EnvVarSettings:
             for envVar in envVarSet:
                 key = envVar.GetKey()
                 val = envVar.GetValue()
-                val = Globals.ExpandVariables(val, d, True) # 清除变量
+                val = ExpandVariables(val, d, True) # 清除变量
                 envVar.SetValue(val)
                 d[key] = val
 
@@ -155,7 +157,7 @@ class EnvVarSettings:
             self.fileName = obj.fileName
             self.envVarSets = obj.envVarSets
             #self.activeSetName = obj.activeSetName # 这个值只有临时保存，不需要
-            self.mtime = Globals.GetFileModificationTime(fileName)
+            self.mtime = GetMTime(fileName)
             del obj
             ret = True
 
@@ -178,7 +180,7 @@ class EnvVarSettings:
             f = open(fileName, 'wb')
             pickle.dump(self, f)
             f.close()
-            self.mtime = Globals.GetFileModificationTime(fileName)
+            self.mtime = GetMTime(fileName)
             ret = True
         except IOError:
             print 'IOError:', fileName

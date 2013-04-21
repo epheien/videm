@@ -5,12 +5,13 @@
 '''
 
 from xml.dom import minidom
-import Globals
 import XmlUtils
-import Macros
 import BuildSettings
 #from Project import Project
 import Project
+
+from Misc import JoinToSmclStr, SplitSmclStr, PosixPath
+from Macros import BoolToString, USE_WORKSPACE_ENV_VAR_SET, USE_GLOBAL_SETTINGS
 
 class BuildCommand:
     '''构建命令
@@ -89,8 +90,8 @@ class BuildConfigCommon:
                         li1.append(XmlUtils.ReadString(i, 'Value'))
                     elif i.nodeName == 'Preprocessor':
                         li2.append(XmlUtils.ReadString(i, 'Value'))
-                self.includePath = Globals.JoinToSmclStr(li1)
-                self.preprocessor = Globals.JoinToSmclStr(li2)
+                self.includePath = JoinToSmclStr(li1)
+                self.preprocessor = JoinToSmclStr(li2)
 
             # 读取链接器设置
             linkerNode = XmlUtils.FindFirstByTagName(xmlNode, 'Linker')
@@ -103,8 +104,8 @@ class BuildConfigCommon:
                         li1.append(XmlUtils.ReadString(i, 'Value'))
                     elif i.nodeName == 'LibraryPath':
                         li2.append(XmlUtils.ReadString(i, 'Value'))
-                self.libs = Globals.JoinToSmclStr(li1)
-                self.libPath = Globals.JoinToSmclStr(li2)
+                self.libs = JoinToSmclStr(li1)
+                self.libPath = JoinToSmclStr(li2)
 
             # 读取资源编译器设置
             resCmpNode = XmlUtils.FindFirstByTagName(xmlNode, 'ResourceCompiler')
@@ -114,7 +115,7 @@ class BuildConfigCommon:
                 for i in resCmpNode.childNodes:
                     if i.nodeName == 'IncludePath':
                         li1.append(XmlUtils.ReadString(i, 'Value'))
-                self.resCompileIncludePath = Globals.JoinToSmclStr(li1)
+                self.resCompileIncludePath = JoinToSmclStr(li1)
         else:
             if self.includePath:
                 self.includePath += ';.'
@@ -166,14 +167,14 @@ class BuildConfigCommon:
         compileNode.setAttribute('C_Cpp_Options', self.cCxxCmplOpts)
         newNode.appendChild(compileNode)
 
-        includePathList = Globals.SplitSmclStr(self.includePath)
+        includePathList = SplitSmclStr(self.includePath)
         for i in includePathList:
             if i:
                 optionNode = doc.createElement('IncludePath')
                 optionNode.setAttribute('Value', i)
                 compileNode.appendChild(optionNode)
         
-        preprocessorList = Globals.SplitSmclStr(self.preprocessor)
+        preprocessorList = SplitSmclStr(self.preprocessor)
         for i in preprocessorList:
             if i:
                 prepNode = doc.createElement('Preprocessor')
@@ -186,14 +187,14 @@ class BuildConfigCommon:
         linkNode.setAttribute('Options', self.linkOptions)
         newNode.appendChild(linkNode)
         
-        libPathList = Globals.SplitSmclStr(self.libPath)
+        libPathList = SplitSmclStr(self.libPath)
         for i in libPathList:
             if i:
                 optionNode = doc.createElement('LibraryPath')
                 optionNode.setAttribute('Value', i)
                 linkNode.appendChild(optionNode)
         
-        libsList = Globals.SplitSmclStr(self.libs)
+        libsList = SplitSmclStr(self.libs)
         for i in libsList:
             if i:
                 optionNode = doc.createElement('Library')
@@ -205,7 +206,7 @@ class BuildConfigCommon:
         resCmpNode.setAttribute('Options', self.resCompileOptions)
         newNode.appendChild(resCmpNode)
         
-        resCompileIncludePathList = Globals.SplitSmclStr(self.resCompileIncludePath)
+        resCompileIncludePathList = SplitSmclStr(self.resCompileIncludePath)
         for i in resCompileIncludePathList:
             if i:
                 optionNode = doc.createElement('IncludePath')
@@ -219,7 +220,7 @@ class BuildConfigCommon:
     
     def SetPreprocessor(self, prepr):
         if type(prepr) == type([]):
-            self.preprocessor = Globals.JoinToSmclStr(prepr)
+            self.preprocessor = JoinToSmclStr(prepr)
         else:
             self.preprocessor = prepr
     
@@ -252,7 +253,7 @@ class BuildConfigCommon:
     
     def SetIncludePath(self, paths):
         if type(paths) == type([]):
-            self.includePath = Globals.JoinToSmclStr(paths)
+            self.includePath = JoinToSmclStr(paths)
         else:
             self.includePath = paths
     
@@ -261,7 +262,7 @@ class BuildConfigCommon:
     
     def SetLibraries(self, libs):
         if type(libs) == type([]):
-            self.libs = Globals.JoinToSmclStr(libs)
+            self.libs = JoinToSmclStr(libs)
         else:
             self.libs = libs
     
@@ -270,7 +271,7 @@ class BuildConfigCommon:
     
     def SetLibPath(self, paths):
         if type(paths) == type([]):
-            self.libPath == Globals.JoinToSmclStr(paths)
+            self.libPath == JoinToSmclStr(paths)
         else:
             self.libPath = paths
     
@@ -282,13 +283,13 @@ class BuildConfigCommon:
 
     def SetResCompileIncludePath(self, paths):
         if type(paths) == type([]):
-            self.resCompileIncludePath = Globals.JoinToSmclStr(paths)
+            self.resCompileIncludePath = JoinToSmclStr(paths)
         else:
             self.resCompileIncludePath = paths
 
     def SetResCmpIncludePath(self, paths):
         if type(paths) == type([]):
-            self.resCompileIncludePath = Globals.JoinToSmclStr(paths)
+            self.resCompileIncludePath = JoinToSmclStr(paths)
         else:
             self.resCompileIncludePath = paths
 
@@ -432,8 +433,8 @@ class BuildConfig:
                         cmd = BuildCommand(XmlUtils.GetNodeContent(i), enabled)
                         self.postBuildCommands.append(cmd)
             
-            self.envVarSet = Macros.USE_WORKSPACE_ENV_VAR_SET
-            self.dbgEnvSet = Macros.USE_GLOBAL_SETTINGS
+            self.envVarSet = USE_WORKSPACE_ENV_VAR_SET
+            self.dbgEnvSet = USE_GLOBAL_SETTINGS
             
             # read the environment page
             envNode = XmlUtils.FindFirstByTagName(xmlNode, 'Environment')
@@ -571,30 +572,30 @@ class BuildConfig:
         
         compilerNode = XmlUtils.FindFirstByTagName(node, 'Compiler')
         if compilerNode:
-            compilerNode.setAttribute('Required', Macros.BoolToString(self.compilerRequired))
+            compilerNode.setAttribute('Required', BoolToString(self.compilerRequired))
             compilerNode.setAttribute('PreCompiledHeader', self.precompiledHeader)
         
         linkerNode = XmlUtils.FindFirstByTagName(node, 'Linker')
         if linkerNode:
-            linkerNode.setAttribute('Required', Macros.BoolToString(self.linkerRequired))
+            linkerNode.setAttribute('Required', BoolToString(self.linkerRequired))
         
         resCmpNode = XmlUtils.FindFirstByTagName(node, 'ResourceCompiler')
         if resCmpNode:
-            resCmpNode.setAttribute('Required', Macros.BoolToString(self.isResCmpNeeded))
+            resCmpNode.setAttribute('Required', BoolToString(self.isResCmpNeeded))
             
         generalNode = minidom.Document().createElement('General')
         generalNode.setAttribute('OutputFile', self.outputFile)
         generalNode.setAttribute('IntermediateDirectory', self.intermediateDirectory)
         generalNode.setAttribute('Command', self.command)
         generalNode.setAttribute('CommandArguments', self.commandArguments)
-        generalNode.setAttribute('UseSeparateDebugArgs', Macros.BoolToString(self.useSeparateDebugArgs))
+        generalNode.setAttribute('UseSeparateDebugArgs', BoolToString(self.useSeparateDebugArgs))
         generalNode.setAttribute('DebugArguments', self.debugArgs)
         generalNode.setAttribute('WorkingDirectory', self.workingDirectory)
-        generalNode.setAttribute('PauseExecWhenProcTerminates', Macros.BoolToString(self.pauseWhenExecEnds))
+        generalNode.setAttribute('PauseExecWhenProcTerminates', BoolToString(self.pauseWhenExecEnds))
         node.appendChild(generalNode)
         
         debuggerNode = minidom.Document().createElement('Debugger')
-        debuggerNode.setAttribute('IsRemote', Macros.BoolToString(self.isDbgRemoteTarget))
+        debuggerNode.setAttribute('IsRemote', BoolToString(self.isDbgRemoteTarget))
         debuggerNode.setAttribute('RemoteHostName', self.dbgHostName)
         debuggerNode.setAttribute('RemoteHostPort', self.dbgHostPort)
         debuggerNode.setAttribute('DebuggerPath', self.debuggerPath)
@@ -620,7 +621,7 @@ class BuildConfig:
         node.appendChild(preBuildNode)
         for i in self.preBuildCommands:
             commandNode = dom.createElement('Command')
-            commandNode.setAttribute('Enabled', Macros.BoolToString(i.enabled))
+            commandNode.setAttribute('Enabled', BoolToString(i.enabled))
             XmlUtils.SetNodeContent(commandNode, i.command)
             preBuildNode.appendChild(commandNode)
         
@@ -629,14 +630,14 @@ class BuildConfig:
         node.appendChild(postBuildNode)
         for i in self.postBuildCommands:
             commandNode = dom.createElement('Command')
-            commandNode.setAttribute('Enabled', Macros.BoolToString(i.enabled))
+            commandNode.setAttribute('Enabled', BoolToString(i.enabled))
             XmlUtils.SetNodeContent(commandNode, i.command)
             postBuildNode.appendChild(commandNode)
         
         # Add custom build commands
         customBuildNode = dom.createElement('CustomBuild')
         node.appendChild(customBuildNode)
-        customBuildNode.setAttribute('Enabled', Macros.BoolToString(self.enableCustomBuild))
+        customBuildNode.setAttribute('Enabled', BoolToString(self.enableCustomBuild))
         
         # Add the working directory of the cutstom build
         customBuildWDNode = dom.createElement('WorkingDirectory')
@@ -832,13 +833,13 @@ class BuildConfig:
         return self.linkerRequired
     
     def GetOutputFileName(self):
-        return Globals.NormalizePath(self.outputFile)
+        return PosixPath(self.outputFile)
     
     def GetIntermediateDirectory(self):
-        return Globals.NormalizePath(self.intermediateDirectory)
+        return PosixPath(self.intermediateDirectory)
 
     def GetOutDir(self):
-        return Globals.NormalizePath(self.intermediateDirectory)
+        return PosixPath(self.intermediateDirectory)
     
     def GetCommand(self):
         return self.command
@@ -847,7 +848,7 @@ class BuildConfig:
         return self.commandArguments
     
     def GetWorkingDirectory(self):
-        return Globals.NormalizePath(self.workingDirectory)
+        return PosixPath(self.workingDirectory)
     
     def IsCustomBuild(self):
         return self.enableCustomBuild

@@ -4,9 +4,10 @@
 import pickle
 import os.path
 
-import Globals
+from Macros import VIMLITE_DIR
+from Misc import IsWindowsOS
 
-CONFIG_FILE = os.path.join(Globals.VIMLITE_DIR, 'config', 'TagsSettings.conf')
+CONFIG_FILE = os.path.join(VIMLITE_DIR, 'config', 'TagsSettings.conf')
 
 class TagsSettings:
     '''tags 设置'''
@@ -152,7 +153,7 @@ def GetGccIncludeSearchPaths():
             break
 
         if start:
-            if Globals.IsWindowsOS():
+            if IsWindowsOS():
                 result.append(os.path.realpath(line.strip()))
             else:
                 result.append(line.strip())

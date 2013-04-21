@@ -2,11 +2,11 @@
 # -*- encoding:utf-8 -*-
 
 import os.path
-import Globals
 from VLProject import VLProject
+from Misc import DirSaver, IsWindowsOS
 
 def GetTemplateDict(dir):
-    ds = Globals.DirSaver()
+    ds = DirSaver()
     try:
         os.chdir(dir)
     except:
@@ -38,7 +38,7 @@ def GetTemplateDict(dir):
 
 
 def test():
-    if Globals.IsWindowsOS():
+    if IsWindowsOS():
         templatesDir = r'D:\Program Files\Vim\vimlite\templates\projects'
     else:
         templatesDir = '/home/eph/.codelite/templates/projects'

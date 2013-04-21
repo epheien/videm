@@ -14,7 +14,6 @@ import json
 import vim
 
 sys.path.append(os.path.join(vim.eval('g:VimLiteDir'), 'VimLite'))
-import Globals
 import VLWorkspace
 from VLWorkspace import VLWorkspaceST
 from TagsSettings import TagsSettings
@@ -31,10 +30,12 @@ import IncludeParser
 
 from GetTemplateDict import GetTemplateDict
 
-from Globals import SplitSmclStr
-from Globals import JoinToSmclStr
-from Globals import EscStr4DQ
 from VimUtils import ToVimEval
+from Misc import SplitSmclStr, JoinToSmclStr, EscStr4DQ, IsWindowsOS, CmpIC
+from Misc import DirSaver, PosixPath
+from Utils import IsCCppSourceFile, IsCppHeaderFile, ExpandAllVariables
+from Utils import IsCppSourceFile, GetIncludesFromArgs, GetMacrosFromArgs
+from Macros import CPP_HEADER_EXT, C_SOURCE_EXT, CPP_SOURCE_EXT
 
 VimLiteDir = vim.eval('g:VimLiteDir')
 
@@ -319,12 +320,12 @@ class VimLiteWorkspace:
             vim.command("let g:VLOmniCpp_PrependSearchScopes = %s" % \
                 self.VLWSettings.GetUsingNamespace())
             # 设置全局源文件判断
-            Globals.CSrcExtReset()
-            Globals.CppSrcExtReset()
+            Utils.CSrcExtReset()
+            Utils.CppSrcExtReset()
             for i in self.VLWSettings.cSrcExts:
-                Globals.C_SOURCE_EXT.add(i)
+                C_SOURCE_EXT.add(i)
             for i in self.VLWSettings.cppSrcExts:
-                Globals.CPP_SOURCE_EXT.add(i)
+                CPP_SOURCE_EXT.add(i)
             # 根据载入的工作区配置刷新全局的配置
             if self.VLWSettings.enableLocalConfig:
                 VLWSetCurrentConfig(self.VLWSettings.localConfig, force=True)
@@ -390,7 +391,7 @@ class VimLiteWorkspace:
                 vim.command("an <silent> 100.%d ]VLWorkspacePopup.%s <Nop>" 
                     % (idx * 10, value))
             else:
-                if Globals.IsWindowsOS() and value == 'Batch Builds':
+                if IsWindowsOS() and value == 'Batch Builds':
                     '''Windows 下删除菜单有问题'''
                     continue
                 vim.command("an <silent> 100.%d ]VLWorkspacePopup.%s "\
@@ -456,13 +457,13 @@ class VimLiteWorkspace:
         name = os.path.splitext(os.path.basename(fileName))[0]
         results = []
 
-        if Globals.IsCCppSourceFile(fileName):
-            for ext in Globals.CPP_HEADER_EXT:
+        if IsCCppSourceFile(fileName):
+            for ext in CPP_HEADER_EXT:
                 swapFileName = name + ext
                 if self.VLWIns.fname2file.has_key(swapFileName):
                     results.extend(self.VLWIns.fname2file[swapFileName])
-        elif Globals.IsCppHeaderFile(fileName):
-            exts = Globals.C_SOURCE_EXT.union(Globals.CPP_SOURCE_EXT)
+        elif IsCppHeaderFile(fileName):
+            exts = C_SOURCE_EXT.union(CPP_SOURCE_EXT)
             for ext in exts:
                 swapFileName = name + ext
                 if self.VLWIns.fname2file.has_key(swapFileName):
@@ -470,7 +471,7 @@ class VimLiteWorkspace:
         else:
             pass
 
-        results.sort(Globals.Cmp)
+        results.sort(CmpIC)
         return results
 
     def SwapSourceHeader(self, fileName):
@@ -617,7 +618,7 @@ class VimLiteWorkspace:
         elif nodeType == VLWorkspace.TYPE_VIRTUALDIRECTORY: #虚拟目录右键菜单
             vim.command("popup ]VLWVirtualDirectoryPopup")
         elif nodeType == VLWorkspace.TYPE_PROJECT: #项目右键菜单
-            if Globals.IsWindowsOS():
+            if IsWindowsOS():
                 self.ReinstallPopupMenuP()
             vim.command(
                 "silent! aunmenu ]VLWProjectPopup.Custom\\ Build\\ Targets")
@@ -636,7 +637,7 @@ class VimLiteWorkspace:
                     try:
                         # BUG: Clean 为 30, 这里要 25 才能在 Clean 之后
                         menuNumber = self.popupMenuP.index('Clean') * 10 - 5
-                        if Globals.IsWindowsOS():
+                        if IsWindowsOS():
                             menuNumber += 10
                     except ValueError:
                         pass
@@ -649,7 +650,7 @@ class VimLiteWorkspace:
 
             vim.command("popup ]VLWProjectPopup")
         elif nodeType == VLWorkspace.TYPE_WORKSPACE: #工作空间右键菜单
-            if Globals.IsWindowsOS():
+            if IsWindowsOS():
                 self.ReinstallPopupMenuW()
             # 先删除上次添加的菜单
             vim.command("silent! aunmenu ]VLWorkspacePopup.Batch\\ Builds")
@@ -663,7 +664,7 @@ class VimLiteWorkspace:
                     try:
                         menuNumber = self.popupMenuW.index('Batch Builds')
                         menuNumber = (menuNumber - 1) * 10 - 5
-                        if Globals.IsWindowsOS():
+                        if IsWindowsOS():
                             menuNumber += 10
                     except ValueError:
                         pass
@@ -947,7 +948,7 @@ class VimLiteWorkspace:
         if not self.VLWIns.FindProjectByName(projName):
             return
 
-        ds = Globals.DirSaver()
+        ds = DirSaver()
 
         wspSelConfName = self.VLWIns.GetBuildMatrix()\
             .GetSelectedConfigurationName()
@@ -959,7 +960,7 @@ class VimLiteWorkspace:
             os.chdir(self.VLWIns.FindProjectByName(projName).dirName)
         except OSError:
             return
-        wd = Globals.ExpandAllVariables(
+        wd = ExpandAllVariables(
             bldConf.workingDirectory, self.VLWIns, projName, confToBuild, '')
         try:
             if wd:
@@ -973,10 +974,10 @@ class VimLiteWorkspace:
             args = bldConf.debugArgs
         else:
             args = bldConf.commandArguments
-        prog = Globals.ExpandAllVariables(prog, self.VLWIns, projName, 
+        prog = ExpandAllVariables(prog, self.VLWIns, projName, 
             confToBuild, '')
         #print prog
-        args = Globals.ExpandAllVariables(args, self.VLWIns, projName, 
+        args = ExpandAllVariables(args, self.VLWIns, projName, 
             confToBuild, '')
         #print args
         if firstRun and prog:
@@ -988,10 +989,9 @@ class VimLiteWorkspace:
             if not hasProjFile:
                 # NOTE: 不能处理目录名称的第一个字符为空格的情况
                 # TODO: Cfile 要处理特殊字符，能处理多少是多少
-                if Globals.IsWindowsOS():
-                    vim.command("silent Ccd %s/" %
-                                Globals.NormalizePath(os.getcwd()))
-                    vim.command("Cfile '%s'" % Globals.NormalizePath(prog))
+                if IsWindowsOS():
+                    vim.command("silent Ccd %s/" % PosixPath(os.getcwd()))
+                    vim.command("Cfile '%s'" % PosixPath(prog))
                 else:
                     vim.command("silent Ccd %s/" % os.getcwd())
                     vim.command("Cfile '%s'" % prog)
@@ -1012,7 +1012,7 @@ class VimLiteWorkspace:
 
     def BuildProject(self, projName):
         '''构建成功返回 True，否则返回 False'''
-        ds = Globals.DirSaver()
+        ds = DirSaver()
         try:
             os.chdir(self.VLWIns.dirName)
         except OSError:
@@ -1026,7 +1026,7 @@ class VimLiteWorkspace:
             if vim.eval("g:VLWorkspaceSaveAllBeforeBuild") != '0':
                 vim.command("wa")
             tempFile = vim.eval('tempname()')
-            if Globals.IsWindowsOS():
+            if IsWindowsOS():
                 #vim.command('!"%s >%s 2>&1"' % (cmd, tempFile))
                 # 用 subprocess 模块代替
                 p = subprocess.Popen('"C:\\WINDOWS\\system32\\cmd.exe" /c '
@@ -1063,7 +1063,7 @@ class VimLiteWorkspace:
         return result
 
     def CleanProject(self, projName):
-        ds = Globals.DirSaver()
+        ds = DirSaver()
         try:
             os.chdir(self.VLWIns.dirName)
         except OSError:
@@ -1073,7 +1073,7 @@ class VimLiteWorkspace:
 
         if cmd:
             tempFile = vim.eval('tempname()')
-            if Globals.IsWindowsOS():
+            if IsWindowsOS():
                 #vim.command('!"%s >%s 2>&1"' % (cmd, tempFile))
                 p = subprocess.Popen('"C:\\WINDOWS\\system32\\cmd.exe" /c '
                     '"%s 2>&1 | tee %s && pause || pause"' % (cmd, tempFile))
@@ -1086,7 +1086,7 @@ class VimLiteWorkspace:
 
     def RebuildProject(self, projName):
         '''重构建项目，即先 Clean 再 Build'''
-        ds = Globals.DirSaver()
+        ds = DirSaver()
         try:
             os.chdir(self.VLWIns.dirName)
         except OSError:
@@ -1098,7 +1098,7 @@ class VimLiteWorkspace:
         self.BuildProject(projName)
 
     def RunProject(self, projName):
-        ds = Globals.DirSaver()
+        ds = DirSaver()
 
         projInst = self.VLWIns.FindProjectByName(projName)
         if not projInst:
@@ -1116,7 +1116,7 @@ class VimLiteWorkspace:
         except OSError:
             print 'change directory failed:', projInst.dirName
             return
-        wd = Globals.ExpandAllVariables(
+        wd = ExpandAllVariables(
             bldConf.workingDirectory, self.VLWIns, projName, confToBuild, '')
         try:
             if wd:
@@ -1128,10 +1128,10 @@ class VimLiteWorkspace:
 
         prog = bldConf.GetCommand()
         args = bldConf.commandArguments
-        prog = Globals.ExpandAllVariables(prog, self.VLWIns, projName, 
+        prog = ExpandAllVariables(prog, self.VLWIns, projName, 
             confToBuild, '')
         #print prog
-        args = Globals.ExpandAllVariables(args, self.VLWIns, projName, 
+        args = ExpandAllVariables(args, self.VLWIns, projName, 
             confToBuild, '')
         #print args
         if prog:
@@ -1144,7 +1144,7 @@ class VimLiteWorkspace:
             d = os.environ.copy()
             d.update(envsDict)
             global VimLiteDir
-            if Globals.IsWindowsOS():
+            if IsWindowsOS():
                 vlterm = os.path.join(VimLiteDir, 'vlexec.py')
                 if not prog.endswith('.exe'): prog += '.exe'
                 prog = os.path.realpath(prog)
@@ -1193,7 +1193,7 @@ class VimLiteWorkspace:
 
     def BatchBuild(self, batchBuildName, isClean = False):
         '''批量构建'''
-        ds = Globals.DirSaver()
+        ds = DirSaver()
         try:
             os.chdir(self.VLWIns.dirName)
         except OSError:
@@ -1208,7 +1208,7 @@ class VimLiteWorkspace:
             cmd = self.builder.GetBatchBuildCommand(buildOrder, wspSelConfName)
 
         if cmd:
-            if not Globals.IsWindowsOS():
+            if not IsWindowsOS():
                 # 强制设置成英语 locale 以便 quickfix 处理
                 cmd = "export LANG=en_US; " + cmd
             if vim.eval("g:VLWorkspaceSaveAllBeforeBuild") != '0':
@@ -1267,8 +1267,8 @@ class VimLiteWorkspace:
         vim.command("echo 'Scanning header files need to be parsed...'")
 
         # 从工作区获取的全部文件，先过滤不是c++的文件
-        files = [f for f in files if Globals.IsCppHeaderFile(f) or
-                                     Globals.IsCppSourceFile(f)]
+        files = [f for f in files if IsCppHeaderFile(f) or
+                                     IsCppSourceFile(f)]
 
         for f in files:
             parseFiles += IncludeParser.GetIncludeFiles(f, searchPaths)
@@ -1289,7 +1289,7 @@ class VimLiteWorkspace:
             self.ParseFiles(parseFiles, extraMacros=extraMacros)
 
     def ParseFiles(self, files, indicate = True, extraMacros = []):
-        ds = Globals.DirSaver()
+        ds = DirSaver()
         try:
             # 为了 macroFiles 中的相对路径有效
             os.chdir(self.VLWIns.dirName)
@@ -1415,7 +1415,7 @@ class VimLiteWorkspace:
         includePaths = []
         predefineMacros = []
 
-        ds = Globals.DirSaver()
+        ds = DirSaver()
         try:
             os.chdir(project.dirName)
         except OSError:
@@ -1436,7 +1436,7 @@ class VimLiteWorkspace:
             compiler = BuildSettingsST().Get().GetCompilerByName(
                 bldConf.GetCompilerType())
             tmpStr = bldConf.GetIncludePath()
-            tmpStr = Globals.ExpandAllVariables(tmpStr, self.VLWIns,
+            tmpStr = ExpandAllVariables(tmpStr, self.VLWIns,
                                                 projName, projConfName)
             tmpIncPaths = SplitSmclStr(tmpStr)
             for tmpPath in tmpIncPaths:
@@ -1447,7 +1447,7 @@ class VimLiteWorkspace:
                 includePaths.append(os.path.abspath(tmpPath))
 
             tmpStr = bldConf.GetPreprocessor()
-            tmpStr = Globals.ExpandAllVariables(tmpStr, self.VLWIns,
+            tmpStr = ExpandAllVariables(tmpStr, self.VLWIns,
                                                 projName, projConfName)
             predefineMacros += [i.strip()
                                 for i in SplitSmclStr(tmpStr) if i.strip()]
@@ -1455,13 +1455,11 @@ class VimLiteWorkspace:
         # NOTE: 编译器选项是一个字符串，而不是列表
         tmpStr = ' '.join(SplitSmclStr(bldConf.GetCCxxCompileOptions() + ' ' 
                                        + bldConf.GetCCompileOptions()))
-        tmpStr = Globals.ExpandAllVariables(tmpStr, self.VLWIns,
-                                            projName, projConfName)
+        tmpStr = ExpandAllVariables(tmpStr, self.VLWIns, projName, projConfName)
         cCompileOpts.append(tmpStr)
         tmpStr = ' '.join(SplitSmclStr(bldConf.GetCCxxCompileOptions() + ' ' 
                                        + bldConf.GetCompileOptions()))
-        tmpStr = Globals.ExpandAllVariables(tmpStr, self.VLWIns,
-                                            projName, projConfName)
+        tmpStr = ExpandAllVariables(tmpStr, self.VLWIns, projName, projConfName)
         cppCompileOpts.append(tmpStr)
         if flags & 1:
             # C 编译器选项
@@ -1481,7 +1479,7 @@ class VimLiteWorkspace:
             if compiler and compiler.incPat:
                 sw = compiler.incPat.replace('$(Dir)', '')
                 tmpOpts = ' '.join(cCompileOpts)
-                tmp = Globals.GetIncludesFromArgs(tmpOpts, sw)
+                tmp = GetIncludesFromArgs(tmpOpts, sw)
                 results += [os.path.abspath(i.lstrip(sw))
                             for i in tmp]
         if flags & 32:
@@ -1489,7 +1487,7 @@ class VimLiteWorkspace:
             if compiler and compiler.incPat:
                 sw = compiler.incPat.replace('$(Dir)', '')
                 tmpOpts = ' '.join(cppCompileOpts)
-                tmp = Globals.GetIncludesFromArgs(tmpOpts, sw)
+                tmp = GetIncludesFromArgs(tmpOpts, sw)
                 results += [os.path.abspath(i.lstrip(sw))
                             for i in tmp]
         if flags & 64:
@@ -1497,14 +1495,14 @@ class VimLiteWorkspace:
             if compiler and compiler.macPat:
                 sw = compiler.macPat.replace('$(Mac)', '')
                 tmpOpts = ' '.join(cCompileOpts)
-                tmp = Globals.GetMacrosFromArgs(tmpOpts, sw)
+                tmp = GetMacrosFromArgs(tmpOpts, sw)
                 results += [i.lstrip(sw) for i in tmp]
         if flags & 128:
             # 解析后的 C++ 编译器的预定义宏
             if compiler and compiler.macPat:
                 sw = compiler.macPat.replace('$(Mac)', '')
                 tmpOpts = ' '.join(cppCompileOpts)
-                tmp = Globals.GetMacrosFromArgs(tmpOpts, sw)
+                tmp = GetMacrosFromArgs(tmpOpts, sw)
                 results += [i.lstrip(sw) for i in tmp]
 
         return results
@@ -1618,8 +1616,7 @@ class VimLiteWorkspace:
             pass
 
     def __MenuOper_ImportFilesFromDirectory(self, row, useGui = True):
-        li = list(Globals.C_SOURCE_EXT.union(Globals.CPP_SOURCE_EXT,
-                                             Globals.CPP_HEADER_EXT))
+        li = list(C_SOURCE_EXT.union(CPP_SOURCE_EXT, CPP_HEADER_EXT))
         li.sort()
         li2 = []
         for elm in li:
@@ -1747,7 +1744,7 @@ class VimLiteWorkspace:
                 if name:
                     self.AddVirtualDirNode(row, name)
             elif choice == 'Import Files From Directory...':
-                ds = Globals.DirSaver()
+                ds = DirSaver()
                 os.chdir(project.dirName)
                 self.__MenuOper_ImportFilesFromDirectory(row, useGui)
                 del ds
@@ -1775,12 +1772,12 @@ class VimLiteWorkspace:
                 cmd = bldConf.customTargets[target]
                 customBuildWd = bldConf.GetCustomBuildWorkingDir()
                 # 展开变量(宏)
-                customBuildWd = Globals.ExpandAllVariables(
+                customBuildWd = ExpandAllVariables(
                     customBuildWd, self.VLWIns, projName, projSelConfName)
-                cmd = Globals.ExpandAllVariables(cmd, self.VLWIns, projName,
-                                                 projSelConfName)
+                cmd = ExpandAllVariables(cmd, self.VLWIns, projName,
+                                         projSelConfName)
                 try:
-                    ds = Globals.DirSaver()
+                    ds = DirSaver()
                     if customBuildWd:
                         os.chdir(customBuildWd)
                 except OSError:
@@ -1807,7 +1804,7 @@ class VimLiteWorkspace:
                     name = vim.eval(
                         'inputdialog("\nEnter the File Name to be created:")')
                 if name:
-                    ds = Globals.DirSaver()
+                    ds = DirSaver()
                     try:
                         # 若文件不存在, 创建之
                         if project.dirName:
@@ -1825,7 +1822,7 @@ class VimLiteWorkspace:
                     del ds
                     self.AddFileNode(row, name)
             elif choice == 'Add Existing Files...':
-                ds = Globals.DirSaver()
+                ds = DirSaver()
                 try:
                     if project.dirName:
                         os.chdir(project.dirName)
@@ -1856,7 +1853,7 @@ class VimLiteWorkspace:
                 if name:
                     self.AddVirtualDirNode(row, name)
             elif choice == 'Import Files From Directory...':
-                ds = Globals.DirSaver()
+                ds = DirSaver()
                 os.chdir(project.dirName)
                 self.__MenuOper_ImportFilesFromDirectory(row, useGui)
                 del ds

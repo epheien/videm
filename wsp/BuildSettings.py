@@ -5,14 +5,14 @@
 所谓编译器（compiler）就是 gcc，vc++，cobra 之类的
 所谓构建器（builder）就是 gnu make，nmake 之类的'''
 
-from Globals import Obj2Dict, Dict2Obj
+from Misc import Obj2Dict, Dict2Obj
+from Macros import VIMLITE_DIR
 import Compiler
 import Builder
-import Globals
 import json
 import os.path
 
-CONFIG_FILE = os.path.join(Globals.VIMLITE_DIR, 'config', 'BuildSettings.jcnf')
+CONFIG_FILE = os.path.join(VIMLITE_DIR, 'config', 'BuildSettings.jcnf')
 DEFAULT_BUILDER = "GNU makefile for g++/gcc"
 
 class BuildSettings:

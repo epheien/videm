@@ -10,11 +10,9 @@ import time
 import getpass
 import shutil
 
-import Globals
-import Macros
-
 import Compiler
 
+from Utils import ExpandAllInterVariables
 from Builder import Builder
 from VLWorkspace import VLWorkspaceST
 from BuildSettings import BuildSettingsST
@@ -25,62 +23,8 @@ from EnvVarSettings import EnvVarSettingsST
 
 BUILDER_NAME = 'GNU makefile for g++/gcc'
 
-from Globals import EscapeString, EscStr4MkSh, PosixPath, SplitSmclStr
-EscStr = EscapeString
-
-# DEPRECATED
-def __SplitStrBySemicolon(string):
-    '''把 ';' 作为分隔符字符串分割，支持 '\\' 转义'''
-    charli = []
-    result = []
-    esc = False
-    for c in string:
-        if c == '\\':
-            esc = True
-            continue
-        if c == ';' and not esc:
-            if charli:
-                result.append(''.join(charli))
-            del charli[:]
-            continue
-        charli.append(c)
-        esc = False
-    if charli:
-        result.append(''.join(charli))
-        del charli[:]
-    return result
-
-# 用 Globals.SplitSmclStr() 代替了
-def SplitStrBySemicolon(string):
-    '''把 ';' 作为分隔符字符串分割，如果想输入 ';'本身，用加倍之即可 ";;"'''
-    charli = []
-    result = []
-    l = len(string)
-    idx = 0
-    while idx < l:
-        c = string[idx]
-        if c == ';':
-            # 向前查看一个字符，如果仍然是 ';'，当单个 ';'，否则就分割
-            if idx+1 >= l:
-                nextChar = ''
-            else:
-                nextChar = string[idx+1]
-
-            if nextChar == ';':
-                idx += 1 # 跳过当前
-                charli.append(nextChar)
-            else:
-                # 一次分割
-                if charli:
-                    result.append(''.join(charli))
-                del charli[:]
-        else:
-            charli.append(c)
-        idx += 1
-    if charli:
-        result.append(''.join(charli))
-        del charli[:]
-    return result
+import Misc
+from Misc import EscStr, EscStr4MkSh, PosixPath, SplitSmclStr, TempFile
 
 def SmclStr2MkStr(string):
     '''分号分割的字符串安全转为 Makefile 的字符串
@@ -91,12 +35,12 @@ def SmclStr2MkStr(string):
 def IsCxxSource(fileName):
     #ext = os.path.splitext(fileName)[1][1:]
     #return ext in set(['cpp', 'cxx', 'c++', 'cc'])
-    return Globals.IsCppSourceFile(fileName)
+    return Utils.IsCppSourceFile(fileName)
 
 def IsCSource(fileName):
     #ext = os.path.splitext(fileName)[1][1:]
     #return ext in set(['c'])
-    return Globals.IsCSourceFile(fileName)
+    return Utils.IsCSourceFile(fileName)
 
 
 class BuilderGnuMake(Builder):
@@ -204,7 +148,7 @@ class BuilderGnuMake(Builder):
         text += '\n'
         text += '.PHONY: $(PHONY)\n'
 
-        tmpf = Globals.TempFile()
+        tmpf = TempFile()
         try:
             f = open(tmpf, "wb")
             f.write(text)
@@ -256,7 +200,7 @@ class BuilderGnuMake(Builder):
         if not settings or not projBldConfIns:
             return False
 
-        ds = Globals.DirSaver()
+        ds = Misc.DirSaver()
         os.chdir(projInst.dirName)
 
         absProjMakefile = os.path.join(projInst.dirName, projName + '.mk')
@@ -265,15 +209,15 @@ class BuilderGnuMake(Builder):
            and os.path.exists(absProjMakefile):
             # 添加判断，比较项目文件与 makefile 的时间戳，
             # 只有 makefile 比项目文件新才跳过
-            mkModTime = Globals.GetMTime(absProjMakefile)
-            if mkModTime > Globals.GetMTime(projInst.GetFileName()):
+            mkModTime = Misc.GetMTime(absProjMakefile)
+            if mkModTime > Misc.GetMTime(projInst.GetFileName()):
                 return True # 无须重建，直接结束
 
         # 自定义构建的处理是不一样的
         isCustomBuild = projBldConfIns.IsCustomBuild()
         #isCustomBuild = True
 
-        mkdir = 'gmkdir -p' if Globals.IsWindowsOS() else 'mkdir -p'
+        mkdir = 'gmkdir -p' if Misc.IsWindowsOS() else 'mkdir -p'
 
         # 重建流程
         text = ''
@@ -458,7 +402,7 @@ endif
 
         #absProjMakefile = 'test.mk'
         # 写到文件
-        tmpf = Globals.TempFile()
+        tmpf = TempFile()
         try:
             f = open(tmpf, "wb")
             f.write(text)
@@ -497,14 +441,14 @@ endif
             return ''
         if not cmpl: # 编译器实例总会可能是空的
             return 'echo "%s is not a valid complier!"'
-        ds = Globals.DirSaver()
+        ds = Misc.DirSaver()
         os.chdir(projInst.dirName)
         if os.path.isabs(fileName):
             fileName = os.path.relpath(fileName)
         mkFile = '%s.mk' % projName
         bwd = projBldConfIns.GetIntermediateDirectory() or '.'
         # 展开所有 VimLite 内置变量
-        bwd = Globals.ExpandAllInterVariables(bwd, wspIns, projName, wspConfName)
+        bwd = ExpandAllInterVariables(bwd, wspIns, projName, wspConfName)
         if t == 'prp': # 预处理目标
             fn = os.path.splitext(fileName)[0] + cmpl.prpExt
         else: # 对象目标，用于编译文件
@@ -679,14 +623,8 @@ endif
 
 # ============================================================================
 def test():
-    assert SplitStrBySemicolon('abc;def') == ['abc', 'def']
-    assert SplitStrBySemicolon(';abc;def') == ['abc', 'def']
-    assert SplitStrBySemicolon('abc;def;') == ['abc', 'def']
-    assert SplitStrBySemicolon('abc;;d;ef;') == ['abc;d', 'ef']
-
     from BuilderManager import BuilderManagerST
     import json
-    assert SplitStrBySemicolon("snke;;;snekg;") == ['snke;', 'snekg']
     print SmclStr2MkStr("s n'\"\"'ke;;;snekg;")
     ins = VLWorkspaceST.Get()
     ins.OpenWorkspace("CxxParser/CxxParser.vlworkspace")

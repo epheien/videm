@@ -5,9 +5,9 @@ from xml.dom import minidom
 import sys
 import os
 import XmlUtils
-import Globals
 
 from Project import Project
+from Misc import DirSaver
 
 
 class VLProject(Project):
@@ -37,7 +37,7 @@ class VLProject(Project):
         return text
 
     def GetFilesIndex(self):
-        ds = Globals.DirSaver()
+        ds = DirSaver()
         os.chdir(self.dirName)
         return self.GetFilesIndexOfNodes(self.rootNode)
 
