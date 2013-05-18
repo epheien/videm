@@ -174,10 +174,8 @@ class VimLiteWorkspace:
         self.builder = BuilderManagerST.Get().GetActiveBuilderInstance()
         self.VLWSettings = VLWorkspaceSettings() # 工作空间设置实例
 
+        # FIXME: 迟早要干掉这个变量，用 self.plug_data = {} 代替即可
         self.clangIndices = {} # 项目名字到 clang.cindex.Index 实例的字典
-
-        #vim.command("call VimTagsManagerInit()")
-        #self.tagsManager = vtm # 标签管理器
 
         # 标识任何跟构建相关的设置的最后修改时间，粗略算法，可能更新的场合有:
         # (1) 选择工作区构建设置
@@ -185,11 +183,6 @@ class VimLiteWorkspace:
         # (3) 修改了项目的构建设置
         # (4) 修改了全局的头文件搜索路径
         self.buildMTime = time.time()
-
-        if UseVIMCCC():
-            self.popupMenuW.remove('Parse Workspace (Full)')
-            self.popupMenuW.remove('Parse Workspace (Quick)')
-            self.popupMenuW.remove('-Sep3-')
 
         # 项目右键菜单列表
         self.popupMenuP = ['Please select an operation:', 

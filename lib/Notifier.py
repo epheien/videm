@@ -55,6 +55,10 @@ class Notifier:
             ret = item['callback'](val, data, priv)
             nr_calls += 1
 
+            # python 函数默认返回 None，当返回 0 即可
+            if ret is None:
+                ret = self.DONE
+
             if ((ret & self.STOP_MASK) == self.STOP_MASK):
                 break
 

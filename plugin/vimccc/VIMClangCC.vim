@@ -23,7 +23,9 @@ if has('clientserver')
     let s:has_clientserver = 1
 endif
 
-autocmd FileType c,cpp call VIMClangCodeCompletionInit()
+augroup VidemCCVIMCCC
+    autocmd! FileType c,cpp call VIMClangCodeCompletionInit()
+augroup END
 
 " 标识是否第一次初始化
 let s:bFirstInit = 1

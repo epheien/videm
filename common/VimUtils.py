@@ -25,6 +25,8 @@ class VimExcHdr:
 
     @staticmethod
     def VimPrint(msg):
+        print msg
+        return
         if not VimExcHdr.vim_has_gui_running:
             # 终端下直接打印
             print msg

@@ -9,6 +9,9 @@ import time
 from clang import cindex
 from clang.cindex import CursorKind
 from clang.cindex import TranslationUnit
+from VimUtils import VimExcHdr
+
+VimExcHdr.Init()
 
 # 当前文件（缓冲区）的编译选项，即使获取，为了效率，这个变量必须为列表
 #lUserOpts = vim.eval('b:VIM_ClangUserOpts')
@@ -154,10 +157,12 @@ class UpdateTUThread(threading.Thread):
                     tu.reparse(self.lUnsavedFiles)
                     self.tus[self.sFileName] = tu
                 else:
-                    print 'cindex.Index parse %s failed. arguments are: "%s"' \
-                            % (self.sFileName, ' '.join(self.lArgs))
+                    VimExcHdr.VimPrint(
+                        'cindex.Index parse %s failed. arguments are: "%s"'
+                        % (self.sFileName, ' '.join(self.lArgs)))
         except:
-            print "UpdateTUThread() failed"
+            #print "UpdateTUThread() failed"
+            VimExcHdr.VimRaise()
 
         self.tu = tu
         self.lock.release()
