@@ -151,7 +151,7 @@ endfunction
 "}}}
 function! s:StartQucikCalltips() "{{{2
     let s:dCalltipsData.usePrevTags = 1
-    call g:VLCalltips_Start()
+    call vlcalltips#Start()
     return ''
 endfunction
 "}}}
@@ -819,9 +819,8 @@ function! VIMClangCodeCompletionInit(...) "{{{2
     endif
 
     " 初始化函数参数提示服务
-    call g:VLCalltips_RegisterCallback(
-                \s:GetSFuncRef('s:RequestCalltips'), s:dCalltipsData)
-    call g:InitVLCalltips()
+    call vlcalltips#Register(s:GetSFuncRef('s:RequestCalltips'), s:dCalltipsData)
+    call vlcalltips#InitBuffKeymap()
 
     if g:VIMCCC_MayCompleteDot
         if bAsync
@@ -1041,7 +1040,7 @@ function! s:RequestCalltips(...) "{{{2
             py vim.command("let lCalltips = %s" 
                         \% VIMCCCIndex.GetCalltipsFromCacheFilteredResults(
                         \   vim.eval("sFuncName")))
-            call g:VLCalltips_UnkeepCursor()
+            call vlcalltips#UnkeepCursor()
             return lCalltips
         endif
     else
@@ -1087,7 +1086,7 @@ function! s:RequestCalltips(...) "{{{2
         endif
 
         call setpos('.', lOrigCursor)
-        call g:VLCalltips_KeepCursor()
+        call vlcalltips#KeepCursor()
         return lCalltips
     endif
 

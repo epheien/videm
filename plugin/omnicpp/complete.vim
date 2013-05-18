@@ -101,7 +101,7 @@ endfunction
 "}}}
 function! s:StartQucikCalltips() "{{{2
     let s:dCalltipsData.usePrevTags = 1
-    call g:VLCalltips_Start()
+    call vlcalltips#Start()
     return ''
 endfunction
 "}}}
@@ -117,7 +117,7 @@ function! s:RequestCalltips(...) " 可选参数标识是否刚在补全后发出
             if sFuncName[0] !=# '~'
                 normal! h
                 let lCalltips = s:GetCalltips(s:lTags, sFuncName)
-                call g:VLCalltips_UnkeepCursor()
+                call vlcalltips#UnkeepCursor()
                 return lCalltips
             endif
         endif
@@ -318,8 +318,7 @@ function! s:RequestCalltips(...) " 可选参数标识是否刚在补全后发出
     endif
 
     call setpos('.', lOrigCursor)
-    "call g:DisplayVLCalltips(lCalltips, 0, 1)
-    call g:VLCalltips_KeepCursor()
+    call vlcalltips#KeepCursor()
 
     return lCalltips
 endfunction
@@ -389,9 +388,9 @@ function! omnicpp#complete#Init() "{{{2
     call VimTagsManagerInit()
 
     " 初始化函数 Calltips 服务
-    call g:VLCalltips_RegisterCallback(
-                \s:GetSFuncRef('s:RequestCalltips'), s:dCalltipsData)
-    call g:InitVLCalltips()
+    call vlcalltips#Register(s:GetSFuncRef('s:RequestCalltips'),
+            \                s:dCalltipsData)
+    call vlcalltips#InitBuffKeymap()
 
     " 初始化设置
     call omnicpp#settings#Init()

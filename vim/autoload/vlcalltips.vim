@@ -3,10 +3,16 @@
 " Create:       2011 Jun 18
 " License:      GPLv2
 
-if exists('g:loaded_VLCalltips')
+" 正常来说，只需要注册一个回调函数并且只需调用导出的接口即可
+
+if exists('g:loaded_vlcalltips')
     finish
 endif
-let g:loaded_VLCalltips = 1
+let g:loaded_vlcalltips = 1
+
+function! vlcalltips#Init()
+    return 1
+endfunction
 
 " 这个插件的类
 let s:VLCalltips = {}
@@ -21,18 +27,19 @@ function! s:InitVariable(varName, defaultVal) "{{{2
 endfunction
 "}}}
 
-function! g:InitVLCalltips() "{{{1
-    call s:InitVariable('g:VLCalltips_IndicateArgument', 1)
-    call s:InitVariable('g:VLCalltips_EnableSyntaxTest', 0)
+call s:InitVariable('g:VLCalltips_IndicateArgument', 1)
+call s:InitVariable('g:VLCalltips_EnableSyntaxTest', 0)
 
-    call s:InitVariable('g:VLCalltips_DispCalltipsKey', '<A-p>')
-    call s:InitVariable('g:VLCalltips_NextCalltipsKey', '<A-j>')
-    call s:InitVariable('g:VLCalltips_PrevCalltipsKey', '<A-k>')
+call s:InitVariable('g:VLCalltips_DispCalltipsKey', '<A-p>')
+call s:InitVariable('g:VLCalltips_NextCalltipsKey', '<A-j>')
+call s:InitVariable('g:VLCalltips_PrevCalltipsKey', '<A-k>')
 
+function! vlcalltips#InitBuffKeymap() "{{{2
+    " just for test
     "exec 'inoremap <silent> <buffer> ' . g:VLCalltips_DispCalltipsKey 
                 "\. ' <C-r>=<SID>Test()<CR>'
     exec 'inoremap <silent> <buffer> ' . g:VLCalltips_DispCalltipsKey 
-                \. ' <C-r>=g:VLCalltips_Start()<CR>'
+                \. ' <C-r>=vlcalltips#Start()<CR>'
     exec 'inoremap <silent> <buffer> ' . g:VLCalltips_NextCalltipsKey 
                 \. ' <C-r>=<SID>HighlightNextCalltips()<CR>'
     exec 'inoremap <silent> <buffer> ' . g:VLCalltips_PrevCalltipsKey 
@@ -40,23 +47,24 @@ function! g:InitVLCalltips() "{{{1
 endfunction
 "}}}
 
-
 let s:lCalltips = [] "保存函数原型或者原型形参信息的列表(C++ 重载)
 let s:nCurIndex = 0 "当前函数原型的索引
 let s:nArgIndex = 0 "当前形参索引, 0 开始
 
-function! s:Test()
+" just for test
+function! s:Test() "{{{2
     let lLi = []
     call add(lLi, 'int printf(const char *fmt, ...)')
     call add(lLi, 'int printf(const char *fmt, int a, int b)')
-    call g:DisplayVLCalltips(lLi, 0)
+    call s:DisplayVLCalltips(lLi, 0)
 
     return ''
 endfunction
-
+"}}}
 " 接口函数，注册回调函数
-" 回调函数必须接受一个参数，并且必须返回一个列表，项目位函数的完整声明（如上）
-function! g:VLCalltips_RegisterCallback(func, data) "{{{2
+" 回调函数必须接受一个参数，并且必须返回一个列表，项目为函数的完整声明（如上）
+" hook(data) -> [tip1, tip2, ...]
+function! vlcalltips#Register(func, data) "{{{2
     let Cbk = a:func
     if type(a:func) == type("")
         let Cbk = function(a:func)
@@ -64,25 +72,25 @@ function! g:VLCalltips_RegisterCallback(func, data) "{{{2
     let s:VLCalltips.callback = Cbk
     let s:VLCalltips.callbackData = a:data
 endfunction
-
-function! g:VLCalltips_Start() "{{{2
+"}}}
+function! vlcalltips#Start() "{{{2
     if !empty(get(s:VLCalltips, 'callback'))
         let lCalltips = s:VLCalltips.callback(s:VLCalltips.callbackData)
-        call g:DisplayVLCalltips(lCalltips, 0)
+        call s:DisplayVLCalltips(lCalltips, 0)
     endif
     return ''
 endfunction
-
-function! g:VLCalltips_KeepCursor() "{{{2
+"}}}
+" 不允许私自移动光标
+function! vlcalltips#KeepCursor() "{{{2
     let s:VLCalltips.keepCursor = 1
 endfunction
-
-function! g:VLCalltips_UnkeepCursor() "{{{2
+"}}}
+function! vlcalltips#UnkeepCursor() "{{{2
     let s:VLCalltips.keepCursor = 0
 endfunction
-
-" 接口函数, 用于外部调用
-function! g:DisplayVLCalltips(lCalltips, nCurIndex) "{{{2
+"}}}
+function! s:DisplayVLCalltips(lCalltips, nCurIndex) "{{{2
     if empty(a:lCalltips)
         return ''
     endif
