@@ -2,7 +2,7 @@
 " Author: 	fanhe <fanhed@163.com>
 " License:	This file is placed in the public domain.
 " Create: 	2011-05-21
-" Change:	2013-05-38
+" Change:	2013-05-19
 
 if exists('g:loaded_vimdialog')
 	finish
