@@ -229,7 +229,7 @@ function! g:VCSeparator.New(...)
 	let newVCSeparator.editable = 0
 	let newVCSeparator.hiGroup = 'PreProc'
 
-	if exists('a:1')
+	if exists('a:1') && a:1 !=# ''
 		let newVCSeparator.sepChar = a:1
 	else
 		let newVCSeparator.sepChar = '='
@@ -658,6 +658,10 @@ function! g:VCMultiText.SetValue(value) "{{{2
 	endif
 
 	call call(g:VCSingleText.SetValue, [value], self)
+endfunction
+
+function! g:VCMultiText.GetTextList() "{{{2
+    return self.values
 endfunction
 
 function! g:VCMultiText.Action() "{{{2
@@ -1895,8 +1899,11 @@ function! g:VimDialog.New(name, ...)
 		let i += 1
 	endwhile
 
-	let newVimDialog.extraHelpContent = '' "额外的帮助信息内容
-	let newVimDialog._showExtraHelp = 0 "显示额外帮助信息的标志，用于切换
+	"额外的帮助信息内容
+	let newVimDialog.extraHelpContent = repeat('=', s:VC_MAXLINELEN - 2) 
+				\. "\nExtra Help is not specified!"
+	"显示额外帮助信息的标志，用于切换
+	let newVimDialog._showExtraHelp = 0
 
 	"索引控件对象用
 	let newVimDialog.ctlKeys = []
@@ -2523,8 +2530,28 @@ function! g:VimDialog._ClearCtlActivatedHl()
 	call filter(self._inactiveCtlMatchId, 0)
 endfunction
 
-function! g:VimDialog.AddSeparator()
-	call self.AddControl(g:VCSeparator.New())
+" 可选参数为 {分隔符字符}, {缩进长度}
+function! g:VimDialog.AddSeparator(...)
+	let sLabel = ''
+	let nIndent = 0
+	if a:0 == 0
+		" nothing
+	elseif a:0 == 1
+		if type(a:1) == type('')
+			let sLabel = a:1
+		elseif type(a:1) == type(0)
+			let nIndent = a:1
+		endif
+	elseif a:0 == 2
+		let sLabel = a:1
+		let nIndent = a:1
+	else
+		" 忽略
+	endif
+
+	let sep = g:VCSeparator.New(sLabel)
+	call sep.SetIndent(nIndent)
+	call self.AddControl(sep)
 endfunction
 
 function! g:VimDialog.AddBlankLine()
@@ -2836,7 +2863,7 @@ function! g:VimDialog.ToggleExtraHelp() "{{{2
 	if self._showExtraHelp
 		let self._showExtraHelp = 0
 		"删除额外帮助信息
-		let extraHelpLineCount = len(split(self.extraHelpContent, '\n'))
+		let extraHelpLineCount = len(split(self.extraHelpContent, '\n', 1))
 		exec 'silent! 4,'. (4 + extraHelpLineCount - 1) .'delete _'
 		"恢复原始视图
 		if has_key(self, '_saveView')
@@ -2848,7 +2875,7 @@ function! g:VimDialog.ToggleExtraHelp() "{{{2
 		"保存原始视图
 		let self._saveView = winsaveview()
 		"显示额外帮助信息
-		let contentList = split(self.extraHelpContent, '\n')
+		let contentList = split(self.extraHelpContent, '\n', 1)
 		call map(contentList, '"\" " . v:val')
 		call append(3, contentList)
 		"定位到帮助信息开始处
