@@ -56,9 +56,9 @@ endfunction
 "}}}2
 
 if vlutils#IsWindowsOS()
-    call s:InitVariable("g:VimLiteDir", fnamemodify($VIM . '\vimlite', ":p"))
+    call s:InitVariable("g:VimLiteDir", fnamemodify($VIM . '\videm', ":p"))
 else
-    call s:InitVariable("g:VimLiteDir", fnamemodify("~/.vimlite", ":p"))
+    call s:InitVariable("g:VimLiteDir", fnamemodify("~/.videm", ":p"))
 endif
 
 call s:InitVariable("g:VLWorkspaceWinSize", 30)
@@ -102,7 +102,7 @@ call s:InitVariable("g:VLWorkspaceParseFileAfterSave", 1)
 " 补全引擎选择，'none', 'omnicpp', 'vimccc'
 call s:InitVariable("g:VLWorkspaceCodeCompleteEngine", 'omnicpp')
 
-" 保存调试器信息, 默认不保存, 因为暂时无法具体控制
+" 保存调试器信息
 call s:InitVariable("g:VLWDbgSaveBreakpointsInfo", 1)
 
 " 禁用不必要的工具图标
@@ -152,9 +152,96 @@ call s:InitVariable("g:VLWorkspacePrjFileSuffix", "vlproject")
 
 " ============================================================================
 " 后向兼容选项处理
+"{{{
 if exists('g:VLWorkspaceUseVIMCCC') && g:VLWorkspaceUseVIMCCC
     let g:VLWorkspaceCodeCompleteEngine = 'vimccc'
 endif
+if      g:VLWorkspaceCodeCompleteEngine == 'omnicpp'
+    call videm#settings#Set('.videm.cc.omnicpp.Enable', 1)
+elseif  g:VLWorkspaceCodeCompleteEngine == 'vimccc'
+    call videm#settings#Set('.videm.cc.vimccc.Enable', 1)
+endif
+
+if type(g:VLWorkspaceSymbolDatabase) == type('')
+    if g:VLWorkspaceSymbolDatabase ==? 'cscope'
+        call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
+    elseif g:VLWorkspaceSymbolDatabase ==? 'gtags'
+        call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+    endif
+else
+    if g:VLWorkspaceSymbolDatabase == 1
+        call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
+    elseif g:VLWorkspaceSymbolDatabase == 2
+        call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+    endif
+endif
+"}}}
+
+let s:DefaultSettings = {
+    \ '.videm.wsp.WinSize'          : 30,
+    \ '.videm.wsp.WinPos'           : 'left',
+    \ '.videm.wsp.BufName'          : '== VidemWorkspace ==',
+    \ '.videm.wsp.ShowLineNum'      : 0,
+    \ '.videm.wsp.HlCursorLine'     : 1,
+    \ '.videm.wsp.LinkToEditor'     : 1,
+    \ '.videm.wsp.EnableMenuBar'    : 1,
+    \ '.videm.wsp.EnableToolBar'    : 1,
+    \ '.videm.wsp.DispWspName'      : 1,
+    \ '.videm.wsp.SaveBeforeBuild'  : 1,
+    \ '.videm.wsp.HlSourceFile'     : 1,
+    \ '.videm.wsp.ActProjHlGroup'   : 'SpecialKey',
+    \
+    \ '.videm.wsp.keybind.ShowMenu'         : '.',
+    \ '.videm.wsp.keybind.PopupMenu'        : ',',
+    \ '.videm.wsp.keybind.OpenNode'         : 'o',
+    \ '.videm.wsp.keybind.OpenNode2'        : 'go',
+    \ '.videm.wsp.keybind.OpenNodeNewTab'   : 't',
+    \ '.videm.wsp.keybind.OpenNodeNewTab2'  : 'T',
+    \ '.videm.wsp.keybind.OpenNodeSplit'    : 'i',
+    \ '.videm.wsp.keybind.OpenNodeSplit2'   : 'gi',
+    \ '.videm.wsp.keybind.OpenNodeVSplit'   : 's',
+    \ '.videm.wsp.keybind.OpenNodeVSplit2'  : 'gs',
+    \ '.videm.wsp.keybind.GotoParent'       : 'p',
+    \ '.videm.wsp.keybind.GotoRoot'         : 'P',
+    \ '.videm.wsp.keybind.GotoNextSibling'  : '<C-n>',
+    \ '.videm.wsp.keybind.GotoPrevSibling'  : '<C-p>',
+    \ '.videm.wsp.keybind.RefreshBuffer'    : 'R',
+    \ '.videm.wsp.keybind.ToggleHelpInfo'   : '<F1>',
+\ }
+
+let s:CompatSettings = {
+    \ 'g:VLWorkspaceWinSize'                : '.videm.wsp.WinSize',
+    \ 'g:VLWorkspaceWinPos'                 : '.videm.wsp.WinPos',
+    \ 'g:VLWorkspaceBufName'                : '.videm.wsp.BufName',
+    \ 'g:VLWorkspaceShowLineNumbers'        : '.videm.wsp.ShowLineNum',
+    \ 'g:VLWorkspaceHighlightCursorline'    : '.videm.wsp.HlCursorLine',
+    \ 'g:VLWorkspaceLinkToEidtor'           : '.videm.wsp.LinkToEditor',
+    \ 'g:VLWorkspaceEnableMenuBarMenu'      : '.videm.wsp.EnableMenuBar',
+    \ 'g:VLWorkspaceEnableToolBarMenu'      : '.videm.wsp.EnableToolBar',
+    \ 'g:VLWorkspaceDispWspNameInTitle'     : '.videm.wsp.DispWspName',
+    \ 'g:VLWorkspaceSaveAllBeforeBuild'     : '.videm.wsp.SaveBeforeBuild',
+    \ 'g:VLWorkspaceHighlightSourceFile'    : '.videm.wsp.HlSourceFile',
+    \ 'g:VLWorkspaceActiveProjectHlGroup'   : '.videm.wsp.ActProjHlGroup',
+\ }
+
+function! s:InitCompatSettings() "{{{2
+    for item in items(s:CompatSettings)
+        call videm#settings#Set(item[1], {item[0]})
+    endfor
+endfunction
+"}}}2
+function! s:InitSettings() "{{{2
+    call videm#settings#Init(s:DefaultSettings)
+endfunction
+"}}}2
+
+let s:PyclewnSettings = {
+    \ '.videm.dbg.pyclewn.SaveBpInfo'           : 1,
+    \ '.videm.dbg.pyclewn.DisableNeedlessTools' : 1,
+    \ '.videm.dbg.pyclewn.WatchVarKey'          : '<C-w>',
+    \ '.videm.dbg.pyclewn.PrintVarKey'          : '<C-p>',
+\ }
+
 
 " ============================================================================
 " 全部可配置的信息 {{{2
@@ -231,22 +318,6 @@ PYTHON_EOF
 "}}}
 " ============================================================================
 
-function! s:IsEnableCscope() "{{{2
-    if type(g:VLWorkspaceSymbolDatabase) == type('')
-        return g:VLWorkspaceSymbolDatabase ==? 'cscope'
-    else
-        return g:VLWorkspaceSymbolDatabase == 1
-    endif
-endfunction
-"}}}
-function! s:IsEnableGtags() "{{{2
-    if type(g:VLWorkspaceSymbolDatabase) == type('')
-        return g:VLWorkspaceSymbolDatabase ==? 'gtags'
-    else
-        return g:VLWorkspaceSymbolDatabase == 2
-    endif
-endfunction
-"}}}
 " 标识是否第一次初始化
 let s:bHadInited = 0
 
@@ -401,7 +472,9 @@ function! s:InitVIMCCCFacilities() "{{{2
     call VIMClangCodeCompletionInit(1) " 先初始化默认的 clang index
     py OrigVIMCCCIndex = VIMCCCIndex
     "let g:VIMCCC_Enable = 0 " 再禁用 VIMCCC
-    autocmd! FileType c,cpp call g:InitVIMClangCodeCompletionExt()
+    augroup VidemCCVIMCCC
+        autocmd! FileType c,cpp call g:InitVIMClangCodeCompletionExt()
+    augroup END
 
 python << PYTHON_EOF
 '''定义一些 VIMCCC 专用的 python 函数'''
@@ -484,7 +557,9 @@ PYTHON_EOF
         " 稳当起见，先调用一次，这个函数对于多余的调用开销不大
         call s:UpdateClangCodeCompletion()
         " 同时安装 BufEnter 自动命令，以保持持续更新
-        autocmd BufEnter <buffer> call <SID>UpdateClangCodeCompletion()
+        augroup VidemCCVIMCCC
+            autocmd BufEnter <buffer> call <SID>UpdateClangCodeCompletion()
+        augroup END
     else
         " 文件不属于工作空间，不操作
         " 使用默认的 clang.cindex.Index
@@ -526,29 +601,7 @@ endfunction
 "===============================================================================
 "{{{1
 " 各种检查，返回 0 表示失败，否则返回 1
-function s:SanityCheck() "{{{2
-    " gtags 的版本至少需要 5.7.6
-    if s:IsEnableGtags()
-        let minver = 5.8
-        let cmd = printf("%s --version", g:VLWorkspaceGtagsProgram)
-        let output = system(cmd)
-        let sVersion = get(split(get(split(output, '\n'), 0, '')), -1)
-        if empty(output) || empty(sVersion)
-            call s:echow('failed to run gtags')
-            return 0
-        endif
-        " 取前面两位
-        let ver = str2float(sVersion)
-        if ver < minver
-            let sErr = printf("Required gtags %.1f or later, "
-                        \     . "please update it. ", minver)
-            let sErr .= "Or you should set g:VLWorkspaceSymbolDatabase"
-                    \    . " to 1 or 0 to disable gtags."
-            call s:echow(sErr)
-            return 0
-        endif
-    endif
-
+function! s:SanityCheck() "{{{2
     " 这个特性在有些环境比较难实现
     "if g:VLWorkspaceCodeCompleteEngine ==? 'vimccc' && empty(v:servername)
         "call s:echow("Please start vim as server")
@@ -616,6 +669,10 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     " 初始化所有 python 接口
     call s:InitPythonInterfaces()
 
+    " 初始化设置
+    call s:InitSettings()
+    call s:InitCompatSettings()
+
     if bNeedConvertWspFileFormat
         " 老格式的 workspace, 提示转换格式
         echo "This workspace file is an old format file!"
@@ -644,35 +701,41 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
         autocmd!
     augroup END
 
+    " 载入插件，应该在初始化所有公共设施后、初始化任何工作区实例前执行
+    call s:LoadPlugin()
+
     " 打开工作区文件，初始化全局变量
-    py ws = VimLiteWorkspace(vim.eval('sFile'))
+    "py ws = VimLiteWorkspace(vim.eval('sFile'))
+    py ws = VimLiteWorkspace()
+    py ws.OpenWorkspace(vim.eval('sFile'))
+    py ws.RefreshBuffer()
 
     " 文件类型自动命令
-    if g:VLWorkspaceCodeCompleteEngine ==? 'vimccc'
-        " 使用 VIMCCC，算法复杂，分治处理
-        call s:InitVIMCCCFacilities()
-    elseif g:VLWorkspaceCodeCompleteEngine ==? 'omnicpp'
-        augroup VLWorkspace
-            autocmd! FileType c,cpp call omnicpp#complete#Init()
-        augroup END
-        if g:VLWorkspaceParseFileAfterSave
-            augroup VLWorkspace
-                autocmd! BufWritePost * call <SID>AsyncParseCurrentFile(1, 1)
-            augroup END
-        endif
-    else
-        " 啥都没有
-    endif
+    "if g:VLWorkspaceCodeCompleteEngine ==? 'vimccc'
+        "" 使用 VIMCCC，算法复杂，分治处理
+        "call s:InitVIMCCCFacilities()
+    "elseif g:VLWorkspaceCodeCompleteEngine ==? 'omnicpp'
+        "augroup VidemCCOmnicpp
+            "autocmd! FileType c,cpp call omnicpp#complete#Init()
+        "augroup END
+        "if g:VLWorkspaceParseFileAfterSave
+            "augroup VidemCCOmnicpp
+                "autocmd! BufWritePost * call <SID>AsyncParseCurrentFile(1, 1)
+            "augroup END
+        "endif
+    "else
+        "" 啥都没有
+    "endif
 
     " 安装命令
     call s:InstallCommands()
 
-    if g:VLWorkspaceEnableMenuBarMenu
+    if videm#settings#Get('.videm.wsp.EnableMenuBar')
         " 添加菜单栏菜单
         call s:InstallMenuBarMenu()
     endif
 
-    if g:VLWorkspaceEnableToolBarMenu
+    if videm#settings#Get('.videm.wsp.EnableToolBar')
         " 添加工具栏菜单
         call s:InstallToolBarMenu()
     endif
@@ -697,25 +760,10 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
         autocmd VimLeave    * call <SID>Autocmd_Quit()
     augroup END
 
-    if s:IsEnableCscope()
-        "call s:InitVLWCscopeDatabase()
-        call s:ConnectCscopeDatabase()
-    endif
-
-    if s:IsEnableGtags()
-        call s:ConnectGtagsDatabase()
-        if g:VLWorkspaceUpdateGtagsAfterSave
-            augroup VLWorkspace
-                autocmd BufWritePost * call <SID>Autocmd_UpdateGtagsDatabase(
-                            \                                   expand('%:p'))
-            augroup END
-        endif
-    endif
-
     " 设置标题栏
-    if g:VLWorkspaceDispWspNameInTitle
+    if videm#settings#Get('.videm.wsp.DispWspName')
         set titlestring=%(<%{GetWspName()}>\ %)%t%(\ %M%)
-                    \%(\ (%{expand(\"%:~:h\")})%)%(\ %a%)%(\ -\ %{v:servername}%)
+                \%(\ (%{expand(\"%:~:h\")})%)%(\ %a%)%(\ -\ %{v:servername}%)
     endif
 
     " 用于项目设置的全局变量
@@ -730,9 +778,6 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     setlocal nomodifiable
 
     let s:bHadInited = 1
-
-    " 载入插件
-    call s:LoadPlugin()
 endfunction
 "}}}
 function! GetWspName() "{{{2
@@ -741,101 +786,6 @@ endfunction
 "}}}
 function! GetWspConfName() "{{{2
     py vim.command("return %s" % ToVimEval(ws.cache_confName))
-endfunction
-"}}}
-" 这个函数做的工作比较自动化
-function! s:AsyncParseCurrentFile(bFilterNotNeed, bIncHdr) "{{{2
-    if !exists("s:AsyncParseCurrentFile_FirstEnter")
-        let s:AsyncParseCurrentFile_FirstEnter = 1
-python << PYTHON_EOF
-import threading
-class ParseCurrentFileThread(threading.Thread):
-    '''同时只允许单个线程工作'''
-    lock = threading.Lock()
-
-    def __init__(self, fileName, filterNotNeed = True, incHdr = True):
-        threading.Thread.__init__(self)
-        self.fileName = fileName
-        self.filterNotNeed = filterNotNeed
-        self.incHdr = incHdr
-
-    def run(self):
-        ParseCurrentFileThread.lock.acquire()
-        try:
-            project = ws.VLWIns.GetProjectByFileName(self.fileName)
-            if project:
-                searchPaths = ws.GetTagsSearchPaths()
-                searchPaths += ws.GetProjectIncludePaths(project.GetName())
-                extraMacros = ws.GetWorkspacePredefineMacros()
-                # 这里必须使用这个函数，因为 sqlite3 的连接实例不能跨线程
-                if self.incHdr:
-                    ws.AsyncParseFiles([self.fileName] 
-                                            + IncludeParser.GetIncludeFiles(
-                                                    self.fileName, searchPaths),
-                                       extraMacros, self.filterNotNeed)
-                else: # 不包括 self.fileName 包含的头文件
-                    ws.AsyncParseFiles([self.fileName],
-                                       extraMacros, self.filterNotNeed)
-        except:
-            print 'ParseCurrentFileThread() failed'
-        ParseCurrentFileThread.lock.release()
-PYTHON_EOF
-    endif
-
-    " NOTE: 不是c或c++类型的文件，不继续，这个判断可能和VimLite的py模块不一致
-    if &filetype !=# 'c' && &filetype !=# 'cpp'
-        return
-    endif
-
-    let bFilterNotNeed = a:bFilterNotNeed
-    let bIncHdr = a:bIncHdr
-    let sFile = expand('%:p')
-    " 不是工作区的文件的话就返回
-    py if not ws.VLWIns.IsWorkspaceFile(vim.eval("sFile")):
-                \vim.command("return")
-
-    if bFilterNotNeed
-        if bIncHdr
-            py ParseCurrentFileThread(vim.eval("sFile"), True, True).start()
-        else
-            py ParseCurrentFileThread(vim.eval("sFile"), True, False).start()
-        endif
-    else
-        if bIncHdr
-            py ParseCurrentFileThread(vim.eval("sFile"), False, True).start()
-        else
-            py ParseCurrentFileThread(vim.eval("sFile"), False, False).start()
-        endif
-    endif
-endfunction
-"}}}
-function! s:GetCurBufIncList() "{{{2
-    let origCursor = getpos('.')
-    let results = []
-
-    call setpos('.', [0, 1, 1, 0])
-    let firstEnter = 1
-    while 1
-        if firstEnter
-            let flags = 'Wc'
-            let firstEnter = 0
-        else
-            let flags = 'W'
-        endif
-        let ret = search('\C^\s*#include\>', flags)
-        if ret == 0
-            break
-        endif
-
-        let inc = matchstr(getline('.'), 
-                    \'\C^\s*#include\s*\zs\(<\|"\)\f\+\(>\|"\)')
-        if inc !=# ''
-            call add(results, inc)
-        endif
-    endwhile
-
-    call setpos('.', origCursor)
-    return results
 endfunction
 "}}}
 function! s:CreateVLWorkspaceWin() "创建窗口 {{{2
@@ -1045,22 +995,6 @@ function! s:InstallCommands() "{{{2
         return
     endif
     " 初始化可用的命令
-
-    if s:IsEnableCscope() " 禁用的话直接禁用掉命令
-        "command! -nargs=? VLWInitCscopeDatabase 
-                    "\               call <SID>InitVLWCscopeDatabase(<f-args>)
-        command! -nargs=0 VLWInitCscopeDatabase 
-                    \               call <SID>InitVLWCscopeDatabase(1)
-        command! -nargs=0 VLWUpdateCscopeDatabase 
-                    \               call <SID>UpdateVLWCscopeDatabase(1)
-    endif
-
-    if s:IsEnableGtags() " 禁用的话直接禁用掉命令
-        command! -nargs=0 VLWInitGtagsDatabase
-                    \               call <SID>InitVLWGtagsDatabase(0)
-        command! -nargs=0 VLWUpdateGtagsDatabase
-                    \               call <SID>UpdateVLWGtagsDatabase()
-    endif
 
     command! -nargs=0 -bar VLWBuildActiveProject    
                 \                           call <SID>BuildActiveProject()
@@ -2411,313 +2345,6 @@ endfunction
 "}}}1
 " =================== 其他组件 ===================
 "{{{1
-" ========== Cscope =========
-function! s:InitVLWCscopeDatabase(...) "{{{2
-    " 初始化 cscope 数据库。文件的更新采用粗略算法，
-    " 只比较记录文件与 cscope.files 的时间戳而不是很详细的记录每次增删条目
-    " 如果 cscope.files 比工作空间和包含的所有项目都要新，无须刷新 cscope.files
-
-    " 如果传进来的第一个参数非零，强制全部初始化并刷新全部
-
-    if !g:VLWorkspaceHasStarted || !s:IsEnableCscope()
-        return
-    endif
-
-    py l_ds = DirSaver()
-    py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
-
-    let lFiles = []
-    let sWspName = GetWspName()
-    let sCsFilesFile = sWspName . g:VLWorkspaceCscpoeFilesFile
-    let sCsOutFile = sWspName . g:VLWorkspaceCscpoeOutFile
-
-    let l:force = 0
-    if exists('a:1') && a:1 != 0
-        let l:force = 1
-    endif
-
-python << PYTHON_EOF
-def InitVLWCscopeDatabase():
-    # 检查是否需要更新 cscope.files 文件
-    csFilesMt = GetMTime(vim.eval('sCsFilesFile'))
-    wspFileMt = ws.VLWIns.GetWorkspaceFileLastModifiedTime()
-    needUpdateCsNameFile = False
-    # FIXME: codelite 每次退出都会更新工作空间文件的时间戳
-    if wspFileMt > csFilesMt:
-        needUpdateCsNameFile = True
-    else:
-        for project in ws.VLWIns.projects.itervalues():
-            if project.GetProjFileLastModifiedTime() > csFilesMt:
-                needUpdateCsNameFile = True
-                break
-    if needUpdateCsNameFile or vim.eval('l:force') == '1':
-        #vim.command('let lFiles = %s' 
-            #% [i.encode('utf-8') for i in ws.VLWIns.GetAllFiles(True)])
-        # 直接 GetAllFiles 可能会出现重复的情况，直接用 filesIndex 字典键值即可
-        ws.VLWIns.GenerateFilesIndex() # 重建，以免任何特殊情况
-        files = ws.VLWIns.filesIndex.keys()
-        files.sort()
-        vim.command('let lFiles = %s' % json.dumps(files, ensure_ascii=False))
-
-    # TODO: 添加激活的项目的包含头文件路径选项
-    # 这只关系到跳到定义处，如果实现了 ctags 数据库，就不需要
-    # 比较麻烦，暂不实现
-    incPaths = []
-    if vim.eval('g:VLWorkspaceCscopeContainExternalHeader') != '0':
-        incPaths = ws.GetWorkspaceIncludePaths()
-    vim.command('let lIncludePaths = %s"' % ToVimEval(incPaths))
-
-InitVLWCscopeDatabase()
-PYTHON_EOF
-
-    "echom string(lFiles)
-    if !empty(lFiles)
-        if vlutils#IsWindowsOS()
-            " Windows 的 cscope 不能处理 \ 分割的路径，转为 posix 路径
-            call map(lFiles, 'vlutils#PosixPath(v:val)')
-        endif
-        call writefile(lFiles, sCsFilesFile)
-    endif
-
-    let sIncludeOpts = ''
-    if !empty(lIncludePaths)
-        call map(lIncludePaths, 'shellescape(v:val)')
-        let sIncludeOpts = '-I' . join(lIncludePaths, ' -I')
-    endif
-
-    " Windows 下必须先断开链接，否则无法更新
-    exec 'silent! cs kill '. sCsOutFile
-
-    let retval = 0
-    if filereadable(sCsOutFile)
-        " 已存在，但不更新，应该由用户调用 s:UpdateVLWCscopeDatabase 来更新
-        " 除非为强制初始化全部
-        if l:force
-            if g:VLWorkspaceCreateCscopeInvertedIndex
-                let sFirstOpts = '-bqkU'
-            else
-                let sFirstOpts = '-bkU'
-            endif
-            let sCmd = printf('%s %s %s -i %s -f %s', 
-                        \shellescape(g:VLWorkspaceCscopeProgram), 
-                        \sFirstOpts, sIncludeOpts, 
-                        \shellescape(sCsFilesFile), shellescape(sCsOutFile))
-            "call system(sCmd)
-            py vim.command('let retval = %d' % System(vim.eval('sCmd'))[0])
-        endif
-    else
-        if g:VLWorkspaceCreateCscopeInvertedIndex
-            let sFirstOpts = '-bqk'
-        else
-            let sFirstOpts = '-bk'
-        endif
-        let sCmd = printf('%s %s %s -i %s -f %s', 
-                    \shellescape(g:VLWorkspaceCscopeProgram), 
-                    \sFirstOpts, sIncludeOpts, 
-                    \shellescape(sCsFilesFile), shellescape(sCsOutFile))
-        "call system(sCmd)
-        py vim.command('let retval = %d' % System(vim.eval('sCmd'))[0])
-    endif
-
-    if retval
-        echom printf("cscope occur error: %d", retval)
-        echom sCmd
-        py del l_ds
-        return
-    endif
-
-    set cscopetagorder=0
-    set cscopetag
-    "set nocsverb
-    exec 'silent! cs kill '. sCsOutFile
-    exec 'cs add '. sCsOutFile
-    "set csverb
-
-    py del l_ds
-endfunction
-
-
-function! s:UpdateVLWCscopeDatabase(...) "{{{2
-    " 默认仅仅更新 .out 文件，如果有参数传进来且为 1，也更新 .files 文件
-    " 仅在已经存在能用的 .files 文件时才会更新
-
-    if !g:VLWorkspaceHasStarted || !s:IsEnableCscope()
-        return
-    endif
-
-    py l_ds = DirSaver()
-    py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
-
-    let sWspName = GetWspName()
-    let sCsFilesFile = sWspName . g:VLWorkspaceCscpoeFilesFile
-    let sCsOutFile = sWspName . g:VLWorkspaceCscpoeOutFile
-
-    if !filereadable(sCsFilesFile)
-        " 没有必要文件，自动忽略
-        py del l_ds
-        return
-    endif
-
-    if exists('a:1') && a:1 != 0
-        " 如果传入参数且非零，强制刷新文件列表
-        py vim.command('let lFiles = %s' % json.dumps(
-                    \ws.VLWIns.GetAllFiles(True), ensure_ascii=False))
-        if vlutils#IsWindowsOS()
-            " Windows 的 cscope 不能处理 \ 分割的路径
-            call map(lFiles, 'vlutils#PosixPath(v:val)')
-        endif
-        call writefile(lFiles, sCsFilesFile)
-    endif
-
-    let lIncludePaths = []
-    if g:VLWorkspaceCscopeContainExternalHeader
-        py vim.command("let lIncludePaths = %s" % json.dumps(
-                    \ws.GetWorkspaceIncludePaths(), ensure_ascii=False))
-    endif
-    let sIncludeOpts = ''
-    if !empty(lIncludePaths)
-        call map(lIncludePaths, 'shellescape(v:val)')
-        let sIncludeOpts = '-I' . join(lIncludePaths, ' -I')
-    endif
-
-    let sFirstOpts = '-bkU'
-    if g:VLWorkspaceCreateCscopeInvertedIndex
-        let sFirstOpts .= 'q'
-    endif
-    let sCmd = printf('%s %s %s -i %s -f %s', 
-                \shellescape(g:VLWorkspaceCscopeProgram), sFirstOpts, 
-                \sIncludeOpts, 
-                \shellescape(sCsFilesFile), shellescape(sCsOutFile))
-
-    " Windows 下必须先断开链接，否则无法更新
-    exec 'silent! cs kill '. sCsOutFile
-
-    "call system(sCmd)
-    py vim.command('let retval = %d' % System(vim.eval('sCmd'))[0])
-
-    if retval
-        echom printf("cscope occur error: %d", retval)
-        echom sCmd
-        "py del l_ds
-        "return
-    endif
-
-    exec 'cs add '. sCsOutFile
-
-    py del l_ds
-endfunction
-"}}}
-" 可选参数为 cscope.out 文件
-function! s:ConnectCscopeDatabase(...) "{{{2
-    " 默认的文件名...
-    py l_ds = DirSaver()
-    py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
-    let sWspName = GetWspName()
-    let sCsOutFile = sWspName . g:VLWorkspaceCscpoeOutFile
-
-    let sCsOutFile = a:0 > 0 ? a:1 : sCsOutFile
-    if filereadable(sCsOutFile)
-        let &cscopeprg = g:VLWorkspaceCscopeProgram
-        set cscopetagorder=0
-        set cscopetag
-        exec 'silent! cs kill '. sCsOutFile
-        exec 'cs add '. sCsOutFile
-    endif
-    py del l_ds
-endfunction
-"}}}
-" ========== GNU Global Tags =========
-function! s:InitVLWGtagsDatabase(bIncremental) "{{{2
-    " 求简单，调用这个函数就表示强制新建数据库
-    py l_ds = DirSaver()
-    py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
-
-    let lFiles = []
-    py ws.VLWIns.GenerateFilesIndex() # 重建，以免任何特殊情况
-    py l_files = ws.VLWIns.filesIndex.keys()
-    py l_files.sort()
-    py vim.command('let lFiles = %s' % json.dumps(l_files, ensure_ascii=False))
-    py del l_files
-
-    let sWspName = GetWspName()
-    let sGlbFilesFile = sWspName . g:VLWorkspaceGtagsFilesFile
-    let sGlbOutFile = 'GTAGS'
-    let sGtagsProgram = g:VLWorkspaceGtagsProgram
-
-    if !empty(lFiles)
-        if vlutils#IsWindowsOS()
-            " Windows 的 cscope 不能处理 \ 分割的路径
-            call map(lFiles, 'vlutils#PosixPath(v:val)')
-        endif
-        call writefile(lFiles, sGlbFilesFile)
-    endif
-
-    exec 'silent! cs kill '. sGlbOutFile
-    let sCmd = printf('%s -f %s', 
-                \     shellescape(sGtagsProgram), shellescape(sGlbFilesFile))
-    if a:bIncremental && filereadable(sGlbOutFile)
-        " 增量更新
-        let sCmd .= ' -i'
-    endif
-    "call system(sCmd)
-    py vim.command('let retval = %d' % System(vim.eval('sCmd'))[0])
-    if retval
-        echom printf("gtags occur error: %d", retval)
-        echom sCmd
-        "py del l_ds
-        "return
-    endif
-
-    call s:ConnectGtagsDatabase(sGlbOutFile)
-
-    py del l_ds
-endfunction
-"}}}
-function! s:UpdateVLWGtagsDatabase() "{{{2
-    " 仅在已经初始化过了才可以更新
-    if exists('s:bHadConnGtagsDb') && s:bHadConnGtagsDb
-        call s:InitVLWGtagsDatabase(1)
-    endif
-endfunction
-"}}}
-" 可选参数为 GTAGS 文件
-function! s:ConnectGtagsDatabase(...) "{{{2
-    let sGlbOutFile = a:0 > 0 ? a:1 : 'GTAGS'
-    if filereadable(sGlbOutFile)
-        let sDir = fnamemodify(sGlbOutFile, ':h')
-        if sDir ==# '.' || empty(sDir)
-            let sDir = getcwd()
-        endif
-        let &cscopeprg = g:VLWorkspaceGtagsCscopeProgram
-        set cscopetagorder=0
-        set cscopetag
-        exec 'silent! cs kill' fnameescape(sGlbOutFile)
-        exec 'cs add' fnameescape(sGlbOutFile) fnameescape(sDir)
-        let s:bHadConnGtagsDb = 1
-    endif
-endfunction
-"}}}
-" 假定 sFile 是绝对路径的文件名
-function! s:Autocmd_UpdateGtagsDatabase(sFile) "{{{2
-    py if not ws.VLWIns.IsWorkspaceFile(vim.eval("a:sFile")):
-                \vim.command('return')
-
-    if exists('s:bHadConnGtagsDb') && s:bHadConnGtagsDb
-        let sGlbFilesFile = GetWspName() . g:VLWorkspaceGtagsFilesFile
-        py vim.command("let sWspDir = %s" % ToVimEval(ws.VLWIns.dirName))
-        let sGlbFilesFile = g:vlutils#os.path.join(sWspDir, sGlbFilesFile)
-        let sCmd = printf("cd %s && %s -f %s --single-update %s &", 
-                    \     shellescape(sWspDir),
-                    \     shellescape(g:VLWorkspaceGtagsProgram),
-                    \     shellescape(sGlbFilesFile),
-                    \     shellescape(a:sFile))
-        "echo sCmd
-        "exec sCmd
-        call system(sCmd)
-        "echom 'enter s:Autocmd_UpdateGtagsDatabase()'
-    endif
-endfunction
-"}}}
 "}}}
 " ========== Swap Source / Header =========
 function! s:SwapSourceHeader() "{{{2
@@ -5829,7 +5456,7 @@ function! s:InitPythonInterfaces() "{{{2
     py from Macros import VIMLITE_VER
 endfunction
 "}}}2
-function! s:LoadPlugin()
+function! s:LoadPlugin() "{{{2
     let sPluginPath = expand('~/.vim/autoload/videm/plugin')
     let lPlugin = split(globpath(sPluginPath, "*.vim"), '\n')
     for sFile in lPlugin
@@ -5837,5 +5464,6 @@ function! s:LoadPlugin()
         exec printf('call videm#plugin#%s#Init()', sName)
     endfor
 endfunction
+"}}}2
 
 " vim:fdm=marker:fen:et:sts=4:fdl=1:

@@ -124,14 +124,15 @@ function! VimTagsManagerInit() "{{{1
 
 python << PYTHON_EOF
 # -*- encoding:utf-8 -*-
-import sys, os, os.path
+import sys
+import os
+import os.path
 import vim
-import json # 用来转字典
 
-sys.path.extend([os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir'))])
+sys.path.append(os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir')))
 from VimTagsManager import VimTagsManager
 from VimTagsManager import AppendCtagsOpt
-from VimUtils import ToVimEval
+from Misc import ToVimEval
 
 # 添加选项
 if vim.eval('g:VimTagsManager_InclAllCondCmplBrch') != '0':

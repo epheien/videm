@@ -346,6 +346,30 @@ function! vlutils#IsWindowsOS() "{{{2
     return has('win32') || has('win64') || has('win32unix')
 endfunction
 "}}}
+function! vlutils#EchoWarnMsg(msg) "{{{2
+    if empty(a:msg)
+        return
+    endif
+    echohl WarningMsg
+    for sLine in split(a:msg, '\n')
+        echomsg sLine
+    endfor
+    "echomsg '!!!Catch an exception!!!'
+    echohl None
+endfunction
+"}}}
+function! vlutils#EchoErrMsg(msg) "{{{2
+    if empty(a:msg)
+        return
+    endif
+    echohl ErrorMsg
+    for sLine in split(a:msg, '\n')
+        echomsg sLine
+    endfor
+    "echomsg '!!!Catch an exception!!!'
+    echohl None
+endfunction
+"}}}
 " 支持重复input的接口
 function! vlutils#Inputs(prompt, ...) "{{{2
     let sPrompt = a:prompt
@@ -594,6 +618,13 @@ let s:os.pathsep = s:os.path.pathsep
 let s:os.defpath = s:os.path.defpath
 let s:os.extsep = s:os.path.extsep
 let s:os.altsep = s:os.path.altsep
+
+" 导出全局变量
+let g:vlutils#os = s:os
+let g:vlutils#posixpath = s:posixpath
+let g:vlutils#ntpath = s:ntpath
+" 这个变量在函数中无论如何都用不了的，没办法，只能用上面那个变量
+"let vlutils#os = os
 "}}}1
 
 " vim:fdm=marker:fen:fdl=1:et:ts=4:sw=4:sts=4:

@@ -1313,7 +1313,9 @@ class TagsStorageSQLite(ITagsStorage):
             self.cache.Clear()
 
 
-VIMLITE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#VIMLITE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# FIXME
+VIMLITE_DIR = os.path.expanduser('~/.videm')
 
 #CTAGS = 'ctags'
 #CTAGS = os.path.expanduser('~/bin/vlctags2')

@@ -2,7 +2,14 @@
 # -*- coding: utf-8 -*-
 '''工具集。多数为和Macros.py关联的常数的例程'''
 
+import sys
+import os
+import os.path
+import time
 import re
+import getpass
+import subprocess
+import shlex
 from Macros import *
 
 def CSrcExtReset():
@@ -320,7 +327,6 @@ def ExpandCallback(m):
 
 if __name__ == '__main__':
     import unittest
-    import shlex
     import getopt
 
     class test(unittest.TestCase):

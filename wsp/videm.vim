@@ -10,7 +10,7 @@ endif
 let g:loaded_videm = 1
 
 " 命令导出
-command! -nargs=? -complete=file VLWorkspaceOpen 
+command! -nargs=? -complete=file VidemOpen 
             \                           call videm#wsp#InitWorkspace('<args>')
 
 

@@ -13,7 +13,7 @@ import shlex
 import json
 import vim
 
-sys.path.append(os.path.join(vim.eval('g:VimLiteDir'), 'VimLite'))
+sys.path.append(os.path.join(vim.eval('g:VimLiteDir'), 'core'))
 import VLWorkspace
 from VLWorkspace import VLWorkspaceST
 from TagsSettings import TagsSettings
@@ -30,12 +30,12 @@ import IncludeParser
 
 from GetTemplateDict import GetTemplateDict
 
-from VimUtils import ToVimEval
 from Misc import SplitSmclStr, JoinToSmclStr, EscStr4DQ, IsWindowsOS, CmpIC
-from Misc import DirSaver, PosixPath
+from Misc import DirSaver, PosixPath, ToVimEval
 from Utils import IsCCppSourceFile, IsCppHeaderFile, ExpandAllVariables
 from Utils import IsCppSourceFile, GetIncludesFromArgs, GetMacrosFromArgs
 from Macros import CPP_HEADER_EXT, C_SOURCE_EXT, CPP_SOURCE_EXT
+from Notifier import Notifier
 
 VimLiteDir = vim.eval('g:VimLiteDir')
 
@@ -47,10 +47,6 @@ def GenerateMenuList(li):
                 [ str('%*d. %s' % (l, i, li[i])) for i in range(1, liLen) ]
     else:
         return []
-
-def IndicateProgress(n, m):
-    vim.command("echon 'Parsing files: '")
-    vim.command("call g:Progress(%d, %d)" % (n, m))
 
 def Executable(cmd):
     '''检查命令是否存在'''
@@ -67,12 +63,6 @@ def ToVimStr(s):
     NOTE: vim.command 里面必须是 '%s' 的形式
     DEPRECATED: 用 ToVimEval() 代替，只须用 %s 形式即可'''
     return s.replace("'", "''")
-
-def UseOmniCpp():
-    '''辅助函数
-    
-    判断是否使用 tags 数据库补全引擎'''
-    return vim.eval("g:VLWorkspaceCodeCompleteEngine").lower() == 'omnicpp'
 
 def System(cmd):
     '''更完备的 system，不会调用 shell，会比较快
@@ -124,6 +114,60 @@ class VimLiteWorkspace:
     ProjCmplOpts_ExpdCPrepdefMacros = 64 # 从编译选项里面提取，因为需要解析，慢
     ProjCmplOpts_ExpdCppPrepdefMacros = 128
 
+    ### 各种通知链 ###
+    # 事件包括：'open_pre', 'open_post', 'close_pre', 'close_post',
+    #           'reload_pre', 'reload_post'
+    wsp_ntf = Notifier('Workspace')
+
+    # 工作空间右键菜单列表
+    # menu_hook(wsp, data)
+    popupMenuW = [ 'Please select an operation:', 
+        'Create a New Project...', 
+        'Add an Existing Project...', 
+        '-Sep_Workspace-', 
+        'New Workspace...', 
+        'Open Workspace...', 
+        'Close Workspace', 
+        'Reload Workspace', 
+        '-Sep_BatchBuilds-', 
+        'Batch Builds', 
+        '-Sep_Settings-', 
+        'Workspace Build Configuration...', 
+        'Workspace Batch Build Settings...', 
+        'Workspace Settings...' ]
+
+    # 'menu': [hook, priv]
+    # hook(wsp, item, priv)
+    __popupMenuW_mapping = {}
+
+    @staticmethod
+    def __InsertMenuItem(menu, item, index, mapping, hook, priv):
+        if mapping.has_key(item):
+            return -1
+        menu.insert(index, item)
+        mapping[item] = [hook, priv]
+        return 0
+
+    @staticmethod
+    def __RemoveMenuItem(menu, item, mapping):
+        if not mapping.has_key(item):
+            return -1
+        menu.remove(item)
+        del mapping[item]
+        return 0
+
+    @staticmethod
+    def InsertWMenu(index, item, hook, priv):
+        return VidemWorkspace.__InsertMenuItem(
+            VidemWorkspace.popupMenuW, item, index,
+            VidemWorkspace.__popupMenuW_mapping, hook, priv)
+
+    @staticmethod
+    def RemoveWMenu(item):
+        return VidemWorkspace.__RemoveMenuItem(
+            VidemWorkspace.popupMenuW, item,
+            VidemWorkspace.__popupMenuW_mapping)
+
     def __init__(self, fileName = ''):
         self.VLWIns = VLWorkspaceST.Get() # python VLWorkspace 对象实例
         # 构建器实例
@@ -132,8 +176,8 @@ class VimLiteWorkspace:
 
         self.clangIndices = {} # 项目名字到 clang.cindex.Index 实例的字典
 
-        vim.command("call VimTagsManagerInit()")
-        self.tagsManager = vtm # 标签管理器
+        #vim.command("call VimTagsManagerInit()")
+        #self.tagsManager = vtm # 标签管理器
 
         # 标识任何跟构建相关的设置的最后修改时间，粗略算法，可能更新的场合有:
         # (1) 选择工作区构建设置
@@ -141,27 +185,6 @@ class VimLiteWorkspace:
         # (3) 修改了项目的构建设置
         # (4) 修改了全局的头文件搜索路径
         self.buildMTime = time.time()
-
-        # 工作空间右键菜单列表
-        self.popupMenuW = [ 'Please select an operation:', 
-            'Create a New Project...', 
-            'Add an Existing Project...', 
-            '-Sep1-', 
-            'New Workspace...', 
-            'Open Workspace...', 
-            'Close Workspace', 
-            'Reload Workspace', 
-            '-Sep2-', 
-            'Batch Builds', 
-            '-Sep3-', 
-            'Parse Workspace (Full, Async)', 
-            'Parse Workspace (Quick, Async)', 
-            'Parse Workspace (Full)', 
-            'Parse Workspace (Quick)', 
-            '-Sep4-', 
-            'Workspace Build Configuration...', 
-            'Workspace Batch Build Settings...', 
-            'Workspace Settings...' ]
 
         if UseVIMCCC():
             self.popupMenuW.remove('Parse Workspace (Full)')
@@ -282,29 +305,34 @@ class VimLiteWorkspace:
 
     def OpenWorkspace(self, fileName):
         if fileName:
+            VidemWorkspace.wsp_ntf.CallChain('open_pre', self)
             self.VLWIns.OpenWorkspace(fileName)
             self.LoadWspSettings()
-            self.OpenTagsDatabase()
             self.HlActiveProject()
+            VidemWorkspace.wsp_ntf.CallChain('open_post', self)
 
     def CloseWorkspace(self):
+        VidemWorkspace.wsp_ntf.CallChain('close_pre', self)
         vim.command('doautocmd VLWorkspace VimLeave *')
         vim.command('redraw | echo ""') # 清理输出...
         self.VLWIns.CloseWorkspace()
-        self.tagsManager.CloseDatabase()
         # 还原配置
         VLWRestoreConfigToGlobal()
+        VidemWorkspace.wsp_ntf.CallChain('close_post', self)
 
     def ReloadWorkspace(self):
+        VidemWorkspace.wsp_ntf.CallChain('reload_pre', self)
         fileName = self.VLWIns.fileName
         self.CloseWorkspace()
         self.OpenWorkspace(fileName)
         self.RefreshBuffer()
+        VidemWorkspace.wsp_ntf.CallChain('reload_post', self)
 
     def UpdateBuildMTime(self):
         self.buildMTime = time.time()
 
     def LoadWspSettings(self):
+        # TODO
         if self.VLWIns.fileName:
             # 读取配置文件
             settingsFile = os.path.splitext(self.VLWIns.fileName)[0] \
@@ -312,20 +340,20 @@ class VimLiteWorkspace:
             self.VLWSettings.SetFileName(settingsFile)
             self.VLWSettings.Load()
             # 初始化 Omnicpp 类型替换字典
-            self.InitOmnicppTypesVar()
+            #self.InitOmnicppTypesVar()
             # 通知全局环境变量设置当前选择的组别名字
             EnvVarSettingsST.Get().SetActiveSetName(
                 self.VLWSettings.GetEnvVarSetName())
             # 设置 OmniCpp 的 g:VLOmniCpp_PrependSearchScopes
-            vim.command("let g:VLOmniCpp_PrependSearchScopes = %s" % \
-                self.VLWSettings.GetUsingNamespace())
+            #vim.command("let g:VLOmniCpp_PrependSearchScopes = %s" % \
+                #self.VLWSettings.GetUsingNamespace())
             # 设置全局源文件判断
-            Utils.CSrcExtReset()
-            Utils.CppSrcExtReset()
-            for i in self.VLWSettings.cSrcExts:
-                C_SOURCE_EXT.add(i)
-            for i in self.VLWSettings.cppSrcExts:
-                CPP_SOURCE_EXT.add(i)
+            #Utils.CSrcExtReset()
+            #Utils.CppSrcExtReset()
+            #for i in self.VLWSettings.cSrcExts:
+                #C_SOURCE_EXT.add(i)
+            #for i in self.VLWSettings.cppSrcExts:
+                #CPP_SOURCE_EXT.add(i)
             # 根据载入的工作区配置刷新全局的配置
             if self.VLWSettings.enableLocalConfig:
                 VLWSetCurrentConfig(self.VLWSettings.localConfig, force=True)
@@ -333,11 +361,6 @@ class VimLiteWorkspace:
     def SaveWspSettings(self):
         if self.VLWSettings.Save():
             self.LoadWspSettings()
-
-    def OpenTagsDatabase(self):
-        if self.VLWIns.fileName and UseOmniCpp():
-            dbFileName = os.path.splitext(self.VLWIns.fileName)[0] + '.vltags'
-            self.tagsManager.OpenDatabase(dbFileName)
 
     def InstallPopupMenu(self):
         for idx, value in enumerate(self.popupMenuW):
@@ -1230,107 +1253,6 @@ class VimLiteWorkspace:
         extraMacros.extend(self.GetProjectPredefineMacros(actProjName))
         return extraMacros
 
-    def ParseWorkspace(self, async = True, full = False):
-        '''
-        async:  是否异步
-        full:   是否解析工作区的所有文件'''
-        vim.command("redraw")
-        vim.command("echo 'Preparing...'")
-
-        if full:
-            self.tagsManager.RecreateDatabase()
-
-        files = self.VLWIns.GetAllFiles(True)
-        parseFiles = files[:]
-        extraMacros = []
-
-        searchPaths = self.GetTagsSearchPaths()
-
-        if True:
-            '添加编译选项指定的搜索路径'
-            projIncludePaths = set()
-            matrix = self.VLWIns.GetBuildMatrix()
-            wspSelConfName = matrix.GetSelectedConfigurationName()
-            for project in self.VLWIns.projects.itervalues():
-                # 保证激活的项目的预定义宏放到最后
-                if project.GetName() != self.VLWIns.GetActiveProjectName():
-                    extraMacros.extend(
-                        self.GetProjectPredefineMacros(project.GetName()))
-                for tmpPath in self.GetProjectIncludePaths(project.GetName()):
-                    projIncludePaths.add(tmpPath)
-
-            projIncludePaths = list(projIncludePaths)
-            projIncludePaths.sort()
-            searchPaths += projIncludePaths
-
-        vim.command("redraw")
-        vim.command("echo 'Scanning header files need to be parsed...'")
-
-        # 从工作区获取的全部文件，先过滤不是c++的文件
-        files = [f for f in files if IsCppHeaderFile(f) or
-                                     IsCppSourceFile(f)]
-
-        for f in files:
-            parseFiles += IncludeParser.GetIncludeFiles(f, searchPaths)
-
-        # 当前激活状态的项目的预定义宏最优先
-        extraMacros.extend(
-            self.GetProjectPredefineMacros(self.VLWIns.GetActiveProjectName()))
-
-        for i in range(len(extraMacros)):
-            extraMacros[i] = '#define %s' % extraMacros[i]
-
-        parseFiles = list(set(parseFiles))
-        parseFiles.sort()
-        if async:
-            vim.command("redraw | echo 'Start asynchronous parsing...'")
-            self.AsyncParseFiles(parseFiles, extraMacros=extraMacros)
-        else:
-            self.ParseFiles(parseFiles, extraMacros=extraMacros)
-
-    def ParseFiles(self, files, indicate = True, extraMacros = []):
-        ds = DirSaver()
-        try:
-            # 为了 macroFiles 中的相对路径有效
-            os.chdir(self.VLWIns.dirName)
-        except:
-            pass
-
-        macros = \
-            TagsSettingsST.Get().tagsTokens + self.VLWSettings.tagsTokens
-        macros.extend(extraMacros)
-        #print '\n'.join(macros)
-        tmpfd, tmpf = tempfile.mkstemp()
-        macroFiles = [tmpf]
-        macroFiles.extend(self.VLWSettings.GetMacroFiles())
-        #print macroFiles
-        with open(tmpf, 'wb') as f:
-            f.write('\n'.join(macros))
-        if indicate:
-            vim.command("redraw")
-            self.tagsManager.ParseFiles(files, macroFiles, IndicateProgress)
-            vim.command("redraw | echo 'Done.'")
-        else:
-            self.tagsManager.ParseFiles(files, macroFiles, None)
-        try:
-            os.close(tmpfd)
-            os.remove(tmpf)
-        except:
-            pass
-
-    def AsyncParseFiles(self, files, extraMacros = [], filterNotNeed = True):
-        def RemoveTmp(arg):
-            os.close(arg[0])
-            os.remove(arg[1])
-        macros = \
-            TagsSettingsST.Get().tagsTokens + self.VLWSettings.tagsTokens
-        macros.extend(extraMacros)
-        tmpfd, tmpf = tempfile.mkstemp() # 在异步进程完成后才删除，使用回调机制
-        with open(tmpf, 'wb') as f:
-            f.write('\n'.join(macros))
-        self.tagsManager.AsyncParseFiles(files, [tmpf], RemoveTmp,
-                                         [tmpfd, tmpf], filterNotNeed)
-
     def GetTagsSearchPaths(self):
         '''获取 tags 包含文件的搜索路径'''
         # 获取的必须是副本，不然可能会被修改
@@ -1659,6 +1581,19 @@ class VimLiteWorkspace:
         if not choice:
             return
 
+        # 先处理插件的菜单
+        elem = None
+        if   nodeType == VLWorkspace.TYPE_WORKSPACE:
+            elem = VidemWorkspace.__popupMenuW_mapping.get(choice)
+        elif nodeType == VLWorkspace.TYPE_PROJECT:
+            pass
+        elif nodeType == VLWorkspace.TYPE_VIRTUALDIRECTORY:
+            pass
+        elif nodeType == VLWorkspace.TYPE_FILE:
+            pass
+        if elem:
+            return elem[0](self, choice, elem[1])
+
         if nodeType == VLWorkspace.TYPE_WORKSPACE: #工作空间右键菜单
             if choice == 'Create a New Project...':
                 if self.VLWIns.name == 'DEFAULT_WORKSPACE':
@@ -1700,14 +1635,6 @@ class VimLiteWorkspace:
                 self.RefreshBuffer()
             elif choice == 'Reload Workspace':
                 self.ReloadWorkspace()
-            elif choice == 'Parse Workspace (Full, Async)':
-                self.ParseWorkspace(async=True, full=True)
-            elif choice == 'Parse Workspace (Quick, Async)':
-                self.ParseWorkspace(async=True, full=False)
-            elif choice == 'Parse Workspace (Full)':
-                self.ParseWorkspace(async=False, full=True)
-            elif choice == 'Parse Workspace (Quick)':
-                self.ParseWorkspace(async=False, full=False)
             elif choice == 'Workspace Build Configuration...':
                 vim.command("call s:WspBuildConfigManager()")
             elif choice == 'Workspace Batch Build Settings...':
@@ -2024,6 +1951,30 @@ class VimLiteWorkspace:
         item = {'hook': hook, 'priority': priority, 'data': data}
         VidemWorkspace.__rnmNodePostHooks.append(item)
         return 0
+
+    @staticmethod
+    def UnregAddNodePostHook(hook, priority):
+        for idx, d in enumerate(VidemWorkspace.__addNodePostHooks):
+            if d['hook'] is hook and d['priority'] == priority:
+                VidemWorkspace.__addNodePostHooks.pop(idx)
+                return 0
+        return -1
+
+    @staticmethod
+    def UnregDelNodePostHook(hook, priority):
+        for idx, d in enumerate(VidemWorkspace.__delNodePostHooks):
+            if d['hook'] is hook and d['priority'] == priority:
+                VidemWorkspace.__delNodePostHooks.pop(idx)
+                return 0
+        return -1
+
+    @staticmethod
+    def UnregRnmNodePostHook(hook, priority):
+        for idx, d in enumerate(VidemWorkspace.__rnmNodePostHooks):
+            if d['hook'] is hook and d['priority'] == priority:
+                VidemWorkspace.__rnmNodePostHooks.pop(idx)
+                return 0
+        return -1
 
     def GetNodePathByFileName(self, fileName):
         '''

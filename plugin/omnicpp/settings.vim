@@ -13,6 +13,8 @@ function! s:InitVariable(var, value) "{{{2
 endfunction
 "}}}2
 
+let s:sfile = expand('<sfile>')
+
 function! omnicpp#settings#Init() "{{{1
     " Show all class members (static, public, protected and private)
     call s:InitVariable('g:VLOmniCpp_ShowAllClassMember', 0)
@@ -68,6 +70,10 @@ function! omnicpp#settings#Init() "{{{1
 
     " 跳转至符号实现处的快捷键
     call s:InitVariable('g:VLOmniCpp_GotoImplementationKey', '<C-]>')
-endfunc
+endfunction
+
+function! omnicpp#settings#GetSfile()
+    return s:sfile
+endfunction
 
 " vim:fdm=marker:fen:et:sts=4:fdl=1:

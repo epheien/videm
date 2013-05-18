@@ -13,8 +13,22 @@ import tempfile
 import threading
 import shlex
 import platform
+import json
 
 # TODO: 现在的变量展开是不支持递归的，例如 $(a$(b))
+
+def ToVimEval(o):
+    '''把 python 字符串列表和字典转为健全的能被 vim 解析的数据结构
+    对于整个字符串的引用必须使用双引号，例如:
+        vim.command("echo %s" % ToVimEval(expr))'''
+    if isinstance(o, str):
+        return "'%s'" % o.replace("'", "''")
+    elif isinstance(o, unicode):
+        return "'%s'" % o.encode('utf-8').replace("'", "''")
+    elif isinstance(o, (list, dict)):
+        return json.dumps(o, ensure_ascii=False)
+    else:
+        return repr(o)
 
 def CmpIC(s1, s2):
     '''忽略大小写比较两个字符串'''
@@ -156,7 +170,7 @@ def Touch(lFiles):
 
 def PosixPath(p):
     '''把路径分割符全部转换为 posix 标准的分割符'''
-    return string.replace('\\', '/')
+    return p.replace('\\', '/')
 
 class DirSaver:
     '''用于在保持当前工作目录下，跳至其他目录工作，

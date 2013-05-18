@@ -5,7 +5,7 @@ import time
 import threading
 import TagsStorageSQLite as TagsStorage
 from TagEntry import ToFullKind, ToFullKinds
-from Globals import RunSimpleThread
+from Misc import RunSimpleThread
 
 
 def TagEntry2Tag(tagEntry):
