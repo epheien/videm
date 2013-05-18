@@ -11,6 +11,7 @@ import getpass
 import shutil
 
 import Compiler
+import Utils
 
 from Utils import ExpandAllInterVariables
 from Builder import Builder

@@ -1,8 +1,8 @@
 " Vim interactive dialog and control library.
 " Author: 	fanhe <fanhed@163.com>
 " License:	This file is placed in the public domain.
-" Create: 	2011 Mar 21
-" Change:	2011 Jun 13
+" Create: 	2011-05-21
+" Change:	2013-05-38
 
 if exists('g:loaded_vimdialog')
 	finish
@@ -2011,27 +2011,27 @@ function! g:VimDialog._CreateWin() "{{{2
         let self.bufName = self.name
 		"NOTE: 处理空格。凡是用于命令行的，都要注意空格！
 		let l:bufName = substitute(self.bufName, ' ', '\\ ', "g")
-		let winNum = g:GetFirstUsableWindow()
+		let winNum = vlutils#GetFirstUsableWinNr()
 
 		"先跳至将要编辑的窗口
 		if self.isPopup
 			"Popup 类型的窗口为无名缓冲
 			exec (winheight(0)-2).'new'
 		elseif self.splitOpen
-			let maxWidthWinNr = g:GetMaxWidthWinNr()
-			call g:Exec(maxWidthWinNr . ' wincmd w')
+			let maxWidthWinNr = vlutils#GetMaxWidthWinNr()
+			call vlutils#ExecNoau(maxWidthWinNr . ' wincmd w')
 			new
 			"求好方案更改缓冲区的名称，这样的实现会关联本地的文件...
 			silent! exec "edit " . l:bufName
 		elseif winNum == -1 || (winnr('$') == 1 && winNum == -1)
 			if bufwinnr(self.bufName) != -1
 				"存在与要创建的缓冲同名的缓冲, 跳至那个缓冲然后结束
-				call g:Exec(bufwinnr(self.bufName) . ' wincmd w')
+				call vlutils#ExecNoau(bufwinnr(self.bufName) . ' wincmd w')
 				return 1
 			endif
 
-			let maxWidthWinNr = g:GetMaxWidthWinNr()
-			call g:Exec(maxWidthWinNr . ' wincmd w')
+			let maxWidthWinNr = vlutils#GetMaxWidthWinNr()
+			call vlutils#ExecNoau(maxWidthWinNr . ' wincmd w')
 			new
 			"求好方案更改缓冲区的名称，这样的实现会关联本地的文件...
 			silent! exec "edit " . l:bufName
@@ -2039,12 +2039,12 @@ function! g:VimDialog._CreateWin() "{{{2
 			"替换缓冲区
 			if bufwinnr(self.bufName) != -1
 				"存在与要创建的缓冲同名的缓冲, 跳至那个缓冲然后结束
-				call g:Exec(bufwinnr(self.bufName) . ' wincmd w')
+				call vlutils#ExecNoau(bufwinnr(self.bufName) . ' wincmd w')
 				return 1
 			endif
 
 			"NOTE: 当仅有一个无名缓冲区时，会把无名缓冲区完全替换掉
-			call g:Exec(winNum . ' wincmd w')
+			call vlutils#ExecNoau(winNum . ' wincmd w')
 			let self.rpmBufNum = bufnr('%')		"用于关闭时切换回来
 			"求好方案更改缓冲区的名称，这样的实现会关联本地的文件...
 			silent! exec "edit " . l:bufName
@@ -2059,12 +2059,12 @@ function! g:VimDialog._CreateWin() "{{{2
 		else
 			"已在 buffer 列表中，但是没有打开，则切换
 			let l:bufName = substitute(self.bufName, ' ', '\\ ', "g")
-			let winNum = g:GetFirstUsableWindow()
+			let winNum = vlutils#GetFirstUsableWinNr()
 			if self.splitOpen || winNum == -1 
 						\|| (winnr('$') == 1 && winNum == -1)
 				silent! exec 'sbuffer ' . l:bufName
 			else
-				call g:Exec(winNum . ' wincmd w')
+				call vlutils#ExecNoau(winNum . ' wincmd w')
 				let self.rpmBufNum = bufnr('%')		"用于关闭时切换回来
 				silent! exec "buffer " . l:bufName
 			endif

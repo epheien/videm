@@ -13,7 +13,7 @@ import shlex
 import json
 import vim
 
-sys.path.append(os.path.join(vim.eval('g:VimLiteDir'), 'core'))
+sys.path.append(os.path.join(vim.eval('g:VidemDir'), 'core'))
 import VLWorkspace
 from VLWorkspace import VLWorkspaceST
 from TagsSettings import TagsSettings
@@ -37,7 +37,7 @@ from Utils import IsCppSourceFile, GetIncludesFromArgs, GetMacrosFromArgs
 from Macros import CPP_HEADER_EXT, C_SOURCE_EXT, CPP_SOURCE_EXT
 from Notifier import Notifier
 
-VimLiteDir = vim.eval('g:VimLiteDir')
+VimLiteDir = vim.eval('g:VidemDir')
 
 def GenerateMenuList(li):
     liLen = len(li)
