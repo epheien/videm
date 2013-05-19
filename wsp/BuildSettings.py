@@ -122,7 +122,7 @@ class BuildSettings:
             f = open(fileName, "wb")
         except IOError:
             print "IOError:", fileName
-            raise IOError
+            raise
         json.dump(self.ToDict(), f, indent=4, sort_keys=True, ensure_ascii=True)
         f.close()
         return True

@@ -400,6 +400,111 @@ function! vlutils#Inputs(prompt, ...) "{{{2
     return lResult
 endfunction
 "}}}
+" 供 vimdialog 使用的一个共用回调函数，一般情况下请不要使用
+" eg. call ctl.ConnectButtonCallback(function('vlutils#EditTextBtnCbk'), &ft)
+function! vlutils#EditTextBtnCbk(ctl, data) "{{{2
+    let ft = a:data " data 需要设置的文件类型
+    let editDialog = g:VimDialog.New('Edit', a:ctl.owner)
+    let content = a:ctl.GetValue()
+    call editDialog.SetIsPopup(1)
+    call editDialog.SetAsTextCtrl(1)
+    call editDialog.SetTextContent(content)
+    call editDialog.ConnectSaveCallback(function('vlutils#EditTextSaveCbk'),
+            \                           a:ctl)
+    call editDialog.Display()
+    if ft !=# ''
+        let &filetype = ft
+    endif
+endfunction
+"}}}
+" 配合 vlutils#EditTextBtnCbk() 使用
+function! vlutils#EditTextSaveCbk(dlg, data) "{{{2
+    let textsList = getline(1, '$')
+    call filter(textsList, 'v:val !~ "^\\s\\+$\\|^$"')
+    call a:data.SetValue(textsList)
+    call a:data.owner.RefreshCtl(a:data)
+endfunction
+"}}}
+" linux 内核通知链的 vim 版本
+let vlutils#Notifier = {}
+let vlutils#Notifier.DONE = 0
+let vlutils#Notifier.OK = 1
+let vlutils#Notifier.BAD = 2
+let vlutils#Notifier.STOP = 4
+" ... -> data = 0
+function! vlutils#Notifier.New(name, ...) "{{{2
+    let inst = copy(self)
+    let inst.name = a:name
+    let inst.data = get(a:000, 0, 0)
+    " {'callback': callback, 'priority': priority, 'private': private}
+    let inst.callbacks = []
+    return inst
+endfunction
+"}}}
+" ... -> private = 0
+function! vlutils#Notifier.Register(callback, priority, ...) "{{{2
+    let d = {}
+    let d['callback'] =
+            \ type(a:callback) == type('') ? function(a:callback) : a:callback
+    let d['priority'] = a:priority
+    let d['private'] = get(a:000, 0, 0)
+    let idx = 0
+    for item in self.callbacks
+        if a:priority > item['priority']
+            let idx += 1
+            break
+        endif
+        let idx += 1
+    endfor
+    call insert(self.callbacks, d, idx)
+    return 0
+endfunction
+"}}}
+function! vlutils#Notifier.Unregister(callback, priority) "{{{2
+    let cbk = a:callback
+    if type(cbk) == type('')
+        unlet cbk
+        let cbk = function(a:callback)
+    endif
+    let idx = 0
+    for item in self.callbacks
+        if item['callback'] is cbk && item['priority'] == a:priority
+            call remove(self.callbacks, idx)
+            return 0
+        endif
+        let idx += 1
+    endfor
+    return -1
+endfunction
+"}}}
+" ... -> data = 0, nr_to_call = -1
+function! vlutils#Notifier.CallChain(val, ...) "{{{2
+    let ret = self.DONE
+    let nr_call = 0
+    let data = get(a:000, 0, 0)
+    let nr_to_call = get(a:000, 1, -1)
+    if empty(data)
+        unlet data
+        let data = self.data
+    endif
+
+    for item in self.callbacks
+        if !nr_to_call
+            break
+        endif
+
+        let priv = item['private']
+        let ret = item['callback'](a:val, data, priv)
+        let nr_call += 1
+
+        if ret == self.BAD || ret == self.STOP
+            break
+        endif
+        let nr_to_call -= 1
+    endfor
+    return ret
+endfunction
+"}}}
 " 简单的计时器静态类
 let s:TimerData = {'t1': 0, 't2': 0} "{{{1
 function! vlutils#TimerStart() "{{{2

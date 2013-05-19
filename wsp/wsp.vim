@@ -63,7 +63,7 @@ endif
 
 call s:InitVariable("g:VLWorkspaceWinSize", 30)
 call s:InitVariable("g:VLWorkspaceWinPos", "left")
-call s:InitVariable("g:VLWorkspaceBufName", '== VLWorkspace ==')
+call s:InitVariable("g:VLWorkspaceBufName", '== VidemWorkspace ==')
 call s:InitVariable("g:VLWorkspaceShowLineNumbers", 0)
 call s:InitVariable("g:VLWorkspaceHighlightCursorline", 1)
 " 若为 1，编辑项目文件时，在工作空间的光标会自动定位到对应的文件所在的行
@@ -2032,25 +2032,6 @@ function! s:CreateTagsSettingsDialog() "{{{2
     "call dlg.AddControl(ctl)
     "call dlg.AddBlankLine()
 
-    " 老的使用表格的设置，不需要了，先留着
-"   let ctl = g:VCTable.New(
-"               \'Add search paths for the vlctags and libclang parser', 1)
-"   call ctl.SetId(s:ID_TagsSettingsIncludePaths)
-"   call ctl.SetIndent(4)
-"   call ctl.SetDispHeader(0)
-"   py vim.command("let includePaths = %s" % ToVimEval(ins.includePaths))
-"   for includePath in includePaths
-"       if vlutils#IsWindowsOS()
-"           call ctl.AddLineByValues(s:StripMultiPathSep(includePath))
-"       else
-"           call ctl.AddLineByValues(includePath)
-"       endif
-"   endfor
-"   call ctl.ConnectBtnCallback(0, s:GetSFuncRef('s:AddSearchPathCbk'), '')
-"   call ctl.ConnectBtnCallback(2, s:GetSFuncRef('s:EditSearchPathCbk'), '')
-"   call dlg.AddControl(ctl)
-"   call dlg.AddBlankLine()
-
     " 头文件搜索路径
     let ctl = g:VCMultiText.New(
                 \"Add search paths for the vlctags and libclang parser:")
@@ -3441,7 +3422,18 @@ let s:ID_WspSettingsCppSourceExtensions = 18
 let s:ID_WspSettingsEnableLocalConfig = 19
 let s:ID_WspSettingsLocalConfig = 20
 
+let Notifier = vlutils#Notifier
+let s:WspSetNotf = Notifier.New('WspSet')
+let g:WspSetNotf = s:WspSetNotf
 
+function! VidemWspSetCreateHookRegister(hook, prio, data) "{{{2
+    return s:WspSetNotf.Register(a:hook, a:prio, a:data)
+endfunction
+"}}}
+function! VidemWspSetCreateHookUnregister(hook, prio) "{{{2
+    return s:WspSetNotf.Unregister(a:hook, a:prio)
+endfunction
+"}}}
 function! s:WspSettings() "{{{2
     let dlg = s:CreateWspSettingsDialog()
     call dlg.Display()
@@ -3472,39 +3464,22 @@ endfunction
 function! s:SaveWspSettingsCbk(dlg, data) "{{{2
     for ctl in a:dlg.controls
         if ctl.GetId() == s:ID_WspSettingsEnvironment
-            py vim.command('let sOldName = %s' 
-                        \% ToVimEval(ws.VLWSettings.GetEnvVarSetName()))
+            py vim.command('let sOldName = %s'
+                    \ % ToVimEval(ws.VLWSettings.GetEnvVarSetName()))
             let sNewName = ctl.GetValue()
             py ws.VLWSettings.SetEnvVarSetName(vim.eval("sNewName"))
             if sOldName !=# sNewName
                 " 下面固定调用这个了
                 "py ws.VLWIns.TouchAllProjectFiles()
             endif
-        elseif ctl.GetId() == s:ID_WspSettingsIncludePaths
-"           let table = ctl.table
-"           py del ws.VLWSettings.includePaths[:]
-"           for line in table
-"               py ws.VLWSettings.includePaths.append(vim.eval("line[0]"))
-"           endfor
-            py ws.VLWSettings.includePaths = vim.eval("ctl.values")
-        elseif ctl.GetId() == s:ID_WspSettingsPrependNSInfo
-            py ws.VLWSettings.SetUsingNamespace(vim.eval("ctl.values"))
-        elseif ctl.GetId() == s:ID_WspSettingsMacroFiles
-            py ws.VLWSettings.SetMacroFiles(vim.eval("ctl.values"))
-        elseif ctl.GetId() == s:ID_WspSettingsTagsTokens
-            py ws.VLWSettings.tagsTokens = vim.eval("ctl.values")
-        elseif ctl.GetId() == s:ID_WspSettingsTagsTypes
-            py ws.VLWSettings.tagsTypes = vim.eval("ctl.values")
-        elseif ctl.GetId() == s:ID_WspSettingsIncPathFlag
-            py ws.VLWSettings.SetIncPathFlag(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsEditorOptions
             py ws.VLWSettings.SetEditorOptions(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsCSourceExtensions
-            py ws.VLWSettings.cSrcExts = 
-                        \SplitSmclStr(vim.eval("ctl.GetValue()"))
+            py ws.VLWSettings.cSrcExts =
+                    \ SplitSmclStr(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsCppSourceExtensions
-            py ws.VLWSettings.cppSrcExts = 
-                        \SplitSmclStr(vim.eval("ctl.GetValue()"))
+            py ws.VLWSettings.cppSrcExts =
+                    \ SplitSmclStr(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsEnableLocalConfig
             py ws.VLWSettings.enableLocalConfig = int(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsLocalConfig
@@ -3516,6 +3491,8 @@ function! s:SaveWspSettingsCbk(dlg, data) "{{{2
             py VLWSaveCurrentConfig(ws.VLWSettings.localConfig)
         endif
     endfor
+    " 回调
+    call s:WspSetNotf.CallChain('save', a:dlg)
     " 保存
     py ws.SaveWspSettings()
     " Extension Options 关系到项目 Makefile
@@ -3525,25 +3502,6 @@ function! s:SaveWspSettingsCbk(dlg, data) "{{{2
     " NOTE: 基本上不支持正在运行的时候设置变量，需要重启，现在还没实现...
     py if ws.VLWSettings.enableLocalConfig:
             \ VLWSetCurrentConfig(ws.VLWSettings.localConfig, force=True)
-endfunction
-
-function! s:AddSearchPathCbk(ctl, data) "{{{2
-    echohl Question
-    let input = input("Add Parser Search Path:\n")
-    echohl None
-    if input !=# ''
-        call a:ctl.AddLineByValues(input)
-    endif
-endfunction
-
-function! s:EditSearchPathCbk(ctl, data) "{{{2
-    let value = a:ctl.GetSelectedLine()[0]
-    echohl Question
-    let input = input("Edit Search Path:\n", value)
-    echohl None
-    if input !=# '' && input !=# value
-        call a:ctl.SetCellValue(a:ctl.selection, 1, input)
-    endif
 endfunction
 "}}}
 " 工作区设置的帮助信息
@@ -3696,85 +3654,9 @@ function! s:CreateWspSettingsDialog() "{{{2
     call dlg.AddBlankLine()
 
 "===============================================================================
-    " TODO: 如果不需要，隐藏这个设置
-    " 4.Include Files
-    let ctl = g:VCStaticText.New("Tags And Clang Settings")
-    call ctl.SetHighlight("Special")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
+    call dlg.ConnectSaveCallback(s:GetSFuncRef("s:SaveWspSettingsCbk"), "")
 
-"===
-    " 头文件搜索路径
-    let ctl = g:VCMultiText.New(
-                \"Add search paths for the vlctags and libclang parser:")
-    call ctl.SetId(s:ID_WspSettingsIncludePaths)
-    call ctl.SetIndent(4)
-    py vim.command("let includePaths = %s" % ws.VLWSettings.includePaths)
-    call ctl.SetValue(includePaths)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "")
-    call dlg.AddControl(ctl)
-    "call dlg.AddBlankLine()
-
-    let ctl = g:VCComboBox.New(
-                \"Use with Global Settings (Only For Search Paths):")
-    call ctl.SetId(s:ID_WspSettingsIncPathFlag)
-    call ctl.SetIndent(4)
-    py vim.command("let lItems = %s" % ws.VLWSettings.GetIncPathFlagWords())
-    for sI in lItems
-        call ctl.AddItem(sI)
-    endfor
-    py vim.command("call ctl.SetValue('%s')" % 
-                \ToVimStr(ws.VLWSettings.GetCurIncPathFlagWord()))
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
-"===
-
-    call dlg.AddBlankLine()
-    call dlg.AddSeparator(4) " 分割线
-    let ctl = g:VCStaticText.New('The followings are only for vlctags parser')
-    call ctl.SetIndent(4)
-    call ctl.SetHighlight('WarningMsg')
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
-
-    let ctl = g:VCMultiText.New("Prepend Search Scopes (For OmniCpp):")
-    call ctl.SetId(s:ID_WspSettingsPrependNSInfo)
-    call ctl.SetIndent(4)
-    py vim.command("let prependNSInfo = %s" % ws.VLWSettings.GetUsingNamespace())
-    call ctl.SetValue(prependNSInfo)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
-
-    let ctl = g:VCMultiText.New("Macro Files:")
-    call ctl.SetId(s:ID_WspSettingsMacroFiles)
-    call ctl.SetIndent(4)
-    py vim.command("let macroFiles = %s" % ws.VLWSettings.GetMacroFiles())
-    call ctl.SetValue(macroFiles)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
-
-    let ctl = g:VCMultiText.New("Macros:")
-    call ctl.SetId(s:ID_WspSettingsTagsTokens)
-    call ctl.SetIndent(4)
-    py vim.command("let tagsTokens = %s" % ws.VLWSettings.tagsTokens)
-    call ctl.SetValue(tagsTokens)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "cpp")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
-
-    let ctl = g:VCMultiText.New("Types:")
-    call ctl.SetId(s:ID_WspSettingsTagsTypes)
-    call ctl.SetIndent(4)
-    py vim.command("let tagsTypes = %s" % ws.VLWSettings.tagsTypes)
-    call ctl.SetValue(tagsTypes)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
-
-    call dlg.ConnectSaveCallback(
-                \s:GetSFuncRef("s:SaveWspSettingsCbk"), "")
+    call s:WspSetNotf.CallChain('create', dlg)
 
     call dlg.AddFooterButtons()
     return dlg

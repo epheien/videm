@@ -3,6 +3,7 @@
 
 import pickle
 import os.path
+from Misc import ConfTree
 
 class VLWorkspaceSettings:
     '''工作空间设置'''
@@ -68,6 +69,9 @@ class VLWorkspaceSettings:
             'OmniCpp'   : {},
             'Debugger'  : {},
         }
+
+        # 统一的配置视图 on 2013-05-19
+        self.conf = ConfTree()
 
         # 如果指定了 fileName, 从文件载入, 不论成功与否
         self.Load()
@@ -208,6 +212,7 @@ class VLWorkspaceSettings:
                 self.cppSrcExts = obj.cppSrcExts
                 self.enableLocalConfig = obj.enableLocalConfig
                 self.localConfig = obj.localConfig
+                self.conf = obj.conf
             except:
                 pass
             del obj

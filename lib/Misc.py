@@ -147,16 +147,11 @@ def TempFile():
     os.close(fd)
     return fn
 
-def GetFileModificationTime(fileName):
+def GetFileModificationTime(filename):
     '''获取文件最后修改时间
     
     返回自 1970-01-01 以来的秒数'''
-    try:
-        ret = int(os.path.getmtime(fileName))
-    except OSError:
-        ret = 0
-    finally:
-        return ret
+    return GetMTime(filename)
 
 def Touch(lFiles):
     '''lFiles可以是列表或字符串'''
@@ -244,6 +239,72 @@ def RunSimpleThread(callback, prvtData):
 def GetBgThdCnt():
     return threading.active_count() - 1
 
+class ConfTree:
+    '''一种抽象的树状结构，路径表示方式为 ".videm.wsp.conf"
+    叶子结点只支持保存四种类型：字典、列表、数字、字符串'''
+    def __init__(self):
+        self.tree = {}
+
+    def Set(self, opt, val):
+        li = [i for i in opt.split('.') if i]
+        if not li:
+            return
+
+        d = self.tree
+        for key in li[:-1]:
+            if not d.has_key(key):
+                d[key] = {}
+            if not isinstance(d[key], dict):
+                # 非页结点必须是字典，否则退出
+                return
+            d = d[key]
+        d[li[-1]] = val
+        return 0
+
+    def Get(self, opt, val=0):
+        li = [i for i in opt.split('.') if i]
+        if not li:
+            return self.tree
+
+        d = self.tree
+        for key in li[:-1]:
+            if not d.has_key(key):
+                return val
+            if not isinstance(d[key], dict):
+                return val
+            d = d[key]
+        return d.get(li[-1], val)
+
+    def Has(self, opt):
+        li = [i for i in opt.split('.') if i]
+        if not li:
+            return False
+
+        d = self.tree
+        for key in li[:-1]:
+            if not d.has_key(key):
+                return False
+            if not isinstance(d[key], dict):
+                return False
+            d = d[key]
+        return d.has_key(li[-1])
+
+    def Save(self, filename):
+        dirname = os.path.dirname(filename)
+        if dirname and not os.path.exists(dirname):
+            os.makedirs(dirname)
+        f = open(filename, 'wb')
+        json.dump(self.tree, f, indent=4, sort_keys=True, ensure_ascii=True)
+        f.close()
+        return 0
+
+    def Load(self, filename):
+        f = open(filename, 'rb')
+        d = json.load(f)
+        f.close()
+        self.tree = d
+        return 0
+
 #===============================================================================
 
 if __name__ == '__main__':
@@ -282,6 +343,14 @@ if __name__ == '__main__':
     assert l == SplitSmclStr(s)
     assert 'abc;;d;efg' == JoinToSmclStr(l)
     assert l == SplitSmclStr(JoinToSmclStr(l))
+
+    conftree = ConfTree()
+    conftree.Set('.videm.wsp.conf', 'hello')
+    assert conftree.Get('.videm.wsp.conf') == 'hello'
+    assert not conftree.Has('.abc')
+    assert conftree.Has('.videm.wsp')
+    assert conftree.Get('.videm.wsp.xxx', 123) == 123
+    print conftree.Save('x.json')
 
     print GetFileModificationTime(sys.argv[0])
 

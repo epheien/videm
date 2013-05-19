@@ -2088,7 +2088,7 @@ function! g:VimDialog._CreateWin() "{{{2
 
 	setlocal bufhidden=wipe "关闭窗口后直接删除缓冲
 	"关闭窗口后自删
-	exec 'autocmd BufWinLeave <buffer> call '.self.interInsName.'._ForceQuit()'
+	exec 'autocmd BufWinLeave <buffer> call '.self.interInsName.'._ForceQuit(1)'
 	"if self.isPopup
 		"setlocal bufhidden=wipe "关闭窗口后直接删除缓冲
 		""关闭窗口后自删
@@ -2595,7 +2595,8 @@ function! g:VimDialog.SetupKeyMappings()
 	endif
 endfunction
 
-function! g:VimDialog.Close() "{{{2
+function! g:VimDialog.Close(...) "{{{2
+    let inau = get(a:000, 0, 0)
     "let bak = &ei
     "set eventignore+=BufWinLeave "暂时屏蔽自删动作的自动命令
 	let l:winnr = bufwinnr(self.bufNum)
@@ -2608,9 +2609,10 @@ function! g:VimDialog.Close() "{{{2
 			"用的是分割出来的窗口
 			silent! close
 		endif
-		if bufexists(self.bufNum)
-			"当是替换模式，且替换了无名缓冲区，那么切换的时候无效果，需手动删除
-			exec 'bwipeout ' . self.bufNum
+		if !inau && bufexists(self.bufNum)
+			" 当是替换模式，且替换了无名缓冲区，那么切换的时候无效果，需手动删除
+            " NOTE: 如果使用 :close 手动关闭窗口，会有错误信息，暂不知道如何解决
+            exec 'bwipeout ' . self.bufNum
 		endif
 		call s:exec(self.origWinNum . " wincmd w")
     endif
@@ -2668,7 +2670,8 @@ function! g:VimDialog.SaveAndQuit() "{{{2
 	call self.Quit()
 endfunction
 
-function! g:VimDialog.Quit() "{{{2
+function! g:VimDialog.Quit(...) "{{{2
+    let inau = get(a:000, 0, 0)
 	if self.lock
 		return
 	endif
@@ -2690,7 +2693,7 @@ function! g:VimDialog.Quit() "{{{2
 	if !empty(self.parentDlg)
 		call self.parentDlg.RemoveChildDialog(self)
 	endif
-	call self.Close()
+	call self.Close(inau)
 
 	if has_key(self, 'postCallback')
 		call self.postCallback(self, self.postCallbackData)
@@ -2699,9 +2702,10 @@ function! g:VimDialog.Quit() "{{{2
 	call self.Delete()
 endfunction
 
-function! g:VimDialog._ForceQuit() "{{{2
+function! g:VimDialog._ForceQuit(...) "{{{2
+    let inau = get(a:000, 0, 0)
 	let self.lock = 0
-	call self.Quit()
+	call self.Quit(inau)
 endfunction
 
 function! g:VimDialog.ConfirmQuit() "{{{2
