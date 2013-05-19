@@ -34,6 +34,7 @@ install:
 	@mkdir -p $(VIDEMDIR)/config
 	@cp BuildSettings.jcnf $(VIDEMDIR)/config
 	@-cp -r templates/ $(VIDEMDIR)/ 2>/dev/null
+	@-cp -r bitmaps/ $(VIDEMDIR)/ 2>/dev/null
 
 
 .PHONY: all clean install

@@ -27,6 +27,8 @@ endfunction
 " 本脚本的绝对路径
 let s:sfile = expand('<sfile>:p')
 
+let s:os = vlutils#os
+
 " Plug map example
 "if !hasmapto('<Plug>TypecorrAdd')
 "   map <unique> <Leader>a  <Plug>TypecorrAdd
@@ -134,13 +136,8 @@ call s:InitVariable("g:VLWorkspaceHasStarted", 0)
 call s:InitVariable("g:VLWorkspaceDbgConfName", "VLWDbg.conf")
 
 " 模板所在路径
-if vlutils#IsWindowsOS()
-    call s:InitVariable("g:VLWorkspaceTemplatesPath", 
-                \       $VIM . '\vimlite\templates\projects')
-else
-    call s:InitVariable("g:VLWorkspaceTemplatesPath", 
-                \       $HOME . '/.vimlite/templates/projects')
-endif
+call s:InitVariable("g:VLWorkspaceTemplatesPath",
+        \           s:os.path.join(g:VidemDir, 'templates', 'projects'))
 
 " 工作区文件后缀名
 call s:InitVariable("g:VLWorkspaceWspFileSuffix", "vlworkspace")
