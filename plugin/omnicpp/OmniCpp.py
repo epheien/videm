@@ -11,7 +11,7 @@ from Utils import IsCppSourceFile, IsCppHeaderFile
 
 def IndicateProgress(n, m):
     vim.command("echon 'Parsing files: '")
-    vim.command("call g:Progress(%d, %d)" % (n, m))
+    vim.command("call vlutils#Progress(%d, %d)" % (n, m))
 
 class OmniCpp:
     def __init__(self, tagmgr):

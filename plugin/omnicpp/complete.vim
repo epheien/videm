@@ -385,7 +385,7 @@ function! omnicpp#complete#Init() "{{{2
     endif
 
     " 初始化数据库
-    call VimTagsManagerInit()
+    call vltagmgr#Init()
 
     " 初始化函数 Calltips 服务
     call vlcalltips#Register(s:GetSFuncRef('s:RequestCalltips'),

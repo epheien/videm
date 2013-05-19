@@ -330,8 +330,11 @@ sys.path.append(os.path.dirname(vim.eval('omnicpp#settings#GetSfile()')))
 from OmniCpp import OmniCpp
 #from Notifier import Notifier
 
-# TODO 隐藏掉这个插件
-vim.command("call VimTagsManagerInit()")
+# 设置资源位置
+vim.command("let g:VimTagsManager_SrcDir = "
+            "fnamemodify(omnicpp#settings#GetSfile(), ':h')")
+# 初始化后，vtm全局python变量即可用
+vim.command("call vltagmgr#Init()")
 videm_cc_omnicpp = OmniCpp(vtm)
 
 def DelNodePostHook(wsp, nodepath, nodetype, files, ins):

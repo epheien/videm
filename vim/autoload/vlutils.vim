@@ -400,6 +400,21 @@ function! vlutils#Inputs(prompt, ...) "{{{2
     return lResult
 endfunction
 "}}}
+function vlutils#Progress(n, ...) "{{{2
+    let n = a:n
+    let m = get(a:000, 0, 100)
+
+    let nRange = 10
+    let nRatio = n * nRange / m
+
+    echoh Pmenu
+    echon repeat(' ', nRatio)
+    echoh None
+    echon repeat(' ', nRange - nRatio)
+    echon printf("%4d%%", n * 100 / m)
+    redraw
+endfunction
+"}}}
 " 供 vimdialog 使用的一个共用回调函数，一般情况下请不要使用
 " eg. call ctl.ConnectButtonCallback(function('vlutils#EditTextBtnCbk'), &ft)
 function! vlutils#EditTextBtnCbk(ctl, data) "{{{2

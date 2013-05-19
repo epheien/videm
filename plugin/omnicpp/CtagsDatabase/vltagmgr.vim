@@ -1,17 +1,17 @@
-" Vim script utilities for VimLite
-" Last Change: 2011 May 10
-" Maintainer: fanhe <fanhed@163.com>
+" tags manager plugin
+" Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
+" Create:   2011-05-10
+" Change:   2013-05-19
 
-if exists('g:loaded_VimTagsManager')
+if exists('g:loaded_vltagmgr')
     finish
 endif
-let g:loaded_VimTagsManager = 1
+let g:loaded_vltagmgr = 1
 
 let s:start = 0
 
 command! -nargs=* -complete=file VTMParseFiles call g:VTMParseFiles(<f-args>)
-
 
 function s:InitVariable(varName, defaultVal) "{{{2
     if !exists(a:varName)
@@ -22,9 +22,7 @@ function s:InitVariable(varName, defaultVal) "{{{2
 endfunction
 "}}}
 
-"call s:InitVariable('g:VimTagsManager_DbFile', 
-            "\'~/Desktop/VimLite/CtagsDatabase/TestTags3.db')
-call s:InitVariable('g:VimTagsManager_DbFile', 'VimLiteTags.db')
+call s:InitVariable('g:VimTagsManager_DbFile', 'vltags.db')
 
 call s:InitVariable('g:VimTagsManager_SrcDir', expand('~/.videm/core'))
 
@@ -106,16 +104,15 @@ function! g:VTMParseFiles(...) "{{{2
 endfunction
 
 
-function! g:VTMOpenDatabase(dbFile) "{{{2
+function! vltagmgr#OpenDatabase(dbFile) "{{{2
     if !s:hasStarted
-        call VimTagsManagerInit()
+        call vltagmgr#Init()
     endif
 
     py vtm.OpenDatabase(os.path.expanduser(vim.eval('a:dbFile')))
 endfunction
-
-
-function! VimTagsManagerInit() "{{{1
+"}}}
+function! vltagmgr#Init() "{{{2
     if s:hasStarted
         return
     else
@@ -129,7 +126,10 @@ import os
 import os.path
 import vim
 
-sys.path.append(os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir')))
+try:
+    sys.path.index(os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir')))
+except ValueError:
+    sys.path.append(os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir')))
 from VimTagsManager import VimTagsManager
 from VimTagsManager import AppendCtagsOpt
 from Misc import ToVimEval
@@ -145,18 +145,17 @@ PYTHON_EOF
         " 若已存在数据库文件, 直接打开之
         let s:hasConnected = 1
         py vtm.OpenDatabase(
-                    \os.path.expanduser(vim.eval('g:VimTagsManager_DbFile')))
+                \ os.path.expanduser(vim.eval('g:VimTagsManager_DbFile')))
     else
         " 没有存在的数据库文件, 暂时连接内存数据库
         " 当请求 ParseFiles() 时才新建硬盘的数据库
         let s:hasConnected = 0
         py vim.command("let s:absDbFile = '%s'" 
-                    \% os.path.abspath(os.path.expanduser(vim.eval(
-                    \       'g:VimTagsManager_DbFile'))).replace("'", "''"))
+                \   % os.path.abspath(os.path.expanduser(vim.eval(
+                \           'g:VimTagsManager_DbFile'))).replace("'", "''"))
         " 连接内存数据库
         py vtm.OpenDatabase(':memory:')
     endif
 endfunction
-
-
+"}}}
 " vim:fdm=marker:fen:expandtab:smarttab:fdl=1:
