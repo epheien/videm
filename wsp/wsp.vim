@@ -820,7 +820,6 @@ function! s:InstallCommands() "{{{2
                 \                               call <SID>ParseCurrentFile(1)
 
     command! -nargs=0 -bar VLWEnvVarSetttings   call <SID>EnvVarSettings()
-    command! -nargs=0 -bar VLWTagsSetttings     call <SID>TagsSettings()
     command! -nargs=0 -bar VLWCompilersSettings call <SID>CompilersSettings()
     command! -nargs=0 -bar VLWBuildersSettings  call <SID>BuildersSettings()
 
@@ -836,19 +835,15 @@ function! s:InstallCommands() "{{{2
 endfunction
 "}}}
 function! s:InstallMenuBarMenu() "{{{2
-    anoremenu <silent> 200 &VimLite.Build\ Settings.Compilers\ Settings\.\.\. 
+    anoremenu <silent> 200 &Videm.Build\ Settings.Compilers\ Settings\.\.\. 
                 \:call <SID>CompilersSettings()<CR>
-    anoremenu <silent> 200 &VimLite.Build\ Settings.Builders\ Settings\.\.\. 
+    anoremenu <silent> 200 &Videm.Build\ Settings.Builders\ Settings\.\.\. 
                 \:call <SID>BuildersSettings()<CR>
-    "anoremenu <silent> 200 &VimLite.Debugger\ Settings\.\.\. <Nop>
+    "anoremenu <silent> 200 &Videm.Debugger\ Settings\.\.\. <Nop>
 
-    anoremenu <silent> 200 &VimLite.Environment\ Variables\ Settings\.\.\. 
+    anoremenu <silent> 200 &Videm.Environment\ Variables\ Settings\.\.\. 
                 \:call <SID>EnvVarSettings()<CR>
 
-    "if !g:VLWorkspaceUseVIMCCC
-        anoremenu <silent> 200 &VimLite.Tags\ And\ Clang\ Settings\.\.\. 
-                    \:call <SID>TagsSettings()<CR>
-    "endif
 endfunction
 
 
@@ -1978,98 +1973,6 @@ PYTHON_EOF
     endif
     "私有变量保存当前环境变量列表的 setName
     call dListCtl.SetData(dSetsCtl.GetValue())
-
-    call dlg.AddFooterButtons()
-
-    py del ins
-    return dlg
-endfunction
-"}}}1
-" =================== tags 设置 ===================
-"{{{1
-"标识用控件 ID {{{2
-let s:ID_TagsSettingsIncludePaths = 10
-let s:ID_TagsSettingsTagsTokens = 11
-let s:ID_TagsSettingsTagsTypes = 12
-
-
-function! s:TagsSettings() "{{{2
-    let dlg = s:CreateTagsSettingsDialog()
-    call dlg.Display()
-endfunction
-
-function! s:SaveTagsSettingsCbk(dlg, data) "{{{2
-    py ins = TagsSettingsST.Get()
-    for ctl in a:dlg.controls
-        if ctl.GetId() == s:ID_TagsSettingsIncludePaths
-"           let table = ctl.table
-"           py del ins.includePaths[:]
-"           for line in table
-"               py ins.includePaths.append(vim.eval("line[0]"))
-"           endfor
-            py ins.includePaths = vim.eval("ctl.values")
-        elseif ctl.GetId() == s:ID_TagsSettingsTagsTokens
-            py ins.tagsTokens = vim.eval("ctl.values")
-        elseif ctl.GetId() == s:ID_TagsSettingsTagsTypes
-            py ins.tagsTypes = vim.eval("ctl.values")
-        endif
-    endfor
-    " 保存
-    py ins.Save()
-    py del ins
-    " 重新初始化 OmniCpp 类型替换字典
-    py ws.InitOmnicppTypesVar()
-endfunction
-
-function! s:CreateTagsSettingsDialog() "{{{2
-    let dlg = g:VimDialog.New('== Tags And Clang Settings ==')
-    py ins = TagsSettingsST.Get()
-
-"===============================================================================
-    "1.Include Files
-    "let ctl = g:VCStaticText.New("Tags Settings")
-    "call ctl.SetHighlight("Special")
-    "call dlg.AddControl(ctl)
-    "call dlg.AddBlankLine()
-
-    " 头文件搜索路径
-    let ctl = g:VCMultiText.New(
-                \"Add search paths for the vlctags and libclang parser:")
-    call ctl.SetId(s:ID_TagsSettingsIncludePaths)
-    call ctl.SetIndent(4)
-    py vim.command("let includePaths = %s" % ToVimEval(ins.includePaths))
-    call ctl.SetValue(includePaths)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
-
-    call dlg.AddBlankLine()
-    call dlg.AddSeparator(4)
-    let ctl = g:VCStaticText.New('The followings are only for vlctags parser')
-    call ctl.SetIndent(4)
-    call ctl.SetHighlight('WarningMsg')
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
-
-    let ctl = g:VCMultiText.New("Macros:")
-    call ctl.SetId(s:ID_TagsSettingsTagsTokens)
-    call ctl.SetIndent(4)
-    py vim.command("let tagsTokens = %s" % ToVimEval(ins.tagsTokens))
-    call ctl.SetValue(tagsTokens)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "cpp")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
-
-    let ctl = g:VCMultiText.New("Types:")
-    call ctl.SetId(s:ID_TagsSettingsTagsTypes)
-    call ctl.SetIndent(4)
-    py vim.command("let tagsTypes = %s" % ToVimEval(ins.tagsTypes))
-    call ctl.SetValue(tagsTypes)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
-
-    call dlg.ConnectSaveCallback(s:GetSFuncRef("s:SaveTagsSettingsCbk"), "")
 
     call dlg.AddFooterButtons()
 
