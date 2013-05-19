@@ -1,8 +1,10 @@
-" Vim Script
+" asynchronous code completion framework
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-01-15
 " Change:   2013-01-15
+
+" TODO 暂未完成
 
 if exists('s:loaded')
     finish
