@@ -353,7 +353,8 @@ class VimLiteWorkspace:
                 CPP_SOURCE_EXT.add(i)
             # 根据载入的工作区配置刷新全局的配置
             if self.VLWSettings.enableLocalConfig:
-                VLWSetCurrentConfig(self.VLWSettings.localConfig, force=True)
+                vim.command("call videm#wsp#WspConfSetCurr(%s)"
+                            % ToVimEval(self.VLWSettings.localConfig))
 
     def SaveWspSettings(self):
         if self.VLWSettings.Save():

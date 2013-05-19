@@ -305,8 +305,8 @@ function! videm#plugin#cscope#SettingsHook(event, data, priv) "{{{2
 endfunction
 "}}}
 function! videm#plugin#cscope#Init() "{{{2
-    call videm#settings#RegisterHook('videm#plugin#cscope#SettingsHook', 0, 0)
     call s:InitSettings()
+    call videm#settings#RegisterHook('videm#plugin#cscope#SettingsHook', 0, 0)
     if !videm#settings#Get('.videm.symdb.cscope.Enable', 0)
         return
     endif

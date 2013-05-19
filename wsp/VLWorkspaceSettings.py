@@ -58,17 +58,9 @@ class VLWorkspaceSettings:
 
         # 2013-01-23: 工作区配置信息，每个工作区可有自己的配置，覆盖全局配置
         self.enableLocalConfig = False  # 是否使用工作区自己的配置
-        # 工作区配置信息。配置信息包括几大类
-        # 'Base'    : 基本配置
-        # 'VIMCCC'  : VIMCCC 的配置
-        # 'OmniCpp' : OmniCpp 的配置
-        # 'Debugger': 调试器的配置
-        self.localConfig = {
-            'Base'      : {},
-            'VIMCCC'    : {},
-            'OmniCpp'   : {},
-            'Debugger'  : {},
-        }
+        # 工作区配置信息
+        # '.videm.cc.Current': 'none', ...
+        self.localConfig = {}
 
         # 统一的配置视图 on 2013-05-19
         self.conf = ConfTree()
@@ -162,14 +154,14 @@ class VLWorkspaceSettings:
         return self.INC_PATH_FLAG_WORDS[self.incPathFlag]
 
     def GetLocalConfigScript(self):
-        '''把 localConfig 字典转为 vim 脚本形式的文本。主要用于设置时提取'''
+        '''把 localConfig 字典转为可读的形式'''
         li = []
-        for name, conf in self.localConfig.iteritems():
-            for k, v in conf.iteritems():
-                if isinstance(v, str):
-                    li.append("let %s = '%s'" % (k, v.replace("'", "''")))
-                else:
-                    li.append('let %s = %d' % (k, v))
+        for k, v in self.localConfig.iteritems():
+            if isinstance(v, str):
+                li.append("%s = '%s'" % (k, v.replace("'", "''")))
+            else:
+                li.append("%s = %d" % (k, v))
+        li.sort()
         return '\n'.join(li)
 
     def SetIncPathFlag(self, flag):
@@ -211,7 +203,9 @@ class VLWorkspaceSettings:
                 self.cSrcExts = obj.cSrcExts
                 self.cppSrcExts = obj.cppSrcExts
                 self.enableLocalConfig = obj.enableLocalConfig
-                self.localConfig = obj.localConfig
+                if obj.localConfig and \
+                   obj.localConfig.keys()[0].startswith('.videm'):
+                    self.localConfig = obj.localConfig
                 self.conf = obj.conf
             except:
                 pass

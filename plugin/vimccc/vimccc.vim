@@ -13,6 +13,26 @@ let s:ctls = {}
 
 let s:enable = 0
 
+let s:VIMCCCSettings = {
+    \ '.videm.cc.vimccc.Enable'             : 0,
+\ }
+
+let s:CompatSettings = {
+\ }
+
+function! s:InitCompatSettings() "{{{2
+    for item in items(s:CompatSettings)
+        call videm#settings#Set(item[1], {item[0]})
+    endfor
+endfunction
+"}}}2
+function! s:InitSettings() "{{{2
+    if videm#settings#Get('.videm.Compatible')
+        call s:InitCompatSettings()
+    endif
+    call videm#settings#Init(s:VIMCCCSettings)
+endfunction
+"}}}
 function! s:SID() "获取脚本 ID {{{2
     return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfunction
@@ -222,6 +242,7 @@ function! videm#plugin#vimccc#SettingsHook(event, data, priv) "{{{2
 endfunction
 "}}}
 function! videm#plugin#vimccc#Init() "{{{2
+    call s:InitSettings()
     call videm#settings#RegisterHook('videm#plugin#vimccc#SettingsHook', 0, 0)
     if !videm#settings#Get('.videm.cc.vimccc.Enable', 0)
         return

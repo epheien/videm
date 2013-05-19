@@ -19,7 +19,8 @@ function! videm#settings#UnregisterHook(hook, prio) "{{{2
     return s:settings_notifier.Unregister(a:hook, a:prio)
 endfunction
 "}}}2
-function! videm#settings#Set(opt, val) "{{{2
+function! videm#settings#Set(opt, val, ...) "{{{2
+    let callchain = get(a:000, 0, 1)
     let li = split(a:opt, '\.')
     if empty(li)
         return
@@ -36,7 +37,9 @@ function! videm#settings#Set(opt, val) "{{{2
         let d = d[k]
     endfor
     let d[li[-1]] = a:val
-    call s:settings_notifier.CallChain('set', {'opt': a:opt, 'val': a:val})
+    if callchain
+        call s:settings_notifier.CallChain('set', {'opt': a:opt, 'val': a:val})
+    endif
 endfunction
 "}}}2
 function! videm#settings#Get(opt, ...) "{{{2

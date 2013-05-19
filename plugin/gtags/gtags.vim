@@ -208,8 +208,8 @@ function! s:SanityCheck() "{{{2
 endfunction
 "}}}
 function! videm#plugin#gtags#Init() "{{{2
-    call videm#settings#RegisterHook('videm#plugin#gtags#SettingsHook', 0, 0)
     call s:InitSettings()
+    call videm#settings#RegisterHook('videm#plugin#gtags#SettingsHook', 0, 0)
     if !videm#settings#Get('.videm.symdb.gtags.Enable', 0)
         return
     endif

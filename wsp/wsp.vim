@@ -83,8 +83,7 @@ call s:InitVariable('g:VLWorkspaceHighlightSourceFile', 1)
 call s:InitVariable('g:VLWorkspaceActiveProjectHlGroup', 'SpecialKey')
 
 " 0 -> none, 1 -> cscope, 2 -> global tags
-" 见下面的 python 代码
-"call s:InitVariable('g:VLWorkspaceSymbolDatabase', 1)
+call s:InitVariable('g:VLWorkspaceSymbolDatabase', 'cscope')
 
 " 补全引擎选择，'none', 'omnicpp', 'vimccc'
 call s:InitVariable("g:VLWorkspaceCodeCompleteEngine", 'omnicpp')
@@ -138,7 +137,7 @@ call s:InitVariable("g:VLWorkspacePrjFileSuffix", "vlproject")
 if exists('g:VLWorkspaceUseVIMCCC') && g:VLWorkspaceUseVIMCCC
     let g:VLWorkspaceCodeCompleteEngine = 'vimccc'
 endif
-function! s:RefreshBackwardOptions()
+function! s:RefreshBackwardOptions() "{{{2
     if      g:VLWorkspaceCodeCompleteEngine == 'omnicpp'
         call videm#settings#Set('.videm.cc.vimccc.Enable', 0)
         call videm#settings#Set('.videm.cc.omnicpp.Enable', 1)
@@ -150,33 +149,31 @@ function! s:RefreshBackwardOptions()
         call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
     endif
 
-    if exists('g:VLWorkspaceSymbolDatabase')
-        if type(g:VLWorkspaceSymbolDatabase) == type('')
-            if g:VLWorkspaceSymbolDatabase ==? 'cscope'
-                call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-                call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
-            elseif g:VLWorkspaceSymbolDatabase ==? 'gtags'
-                call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-                call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
-            else
-                call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-                call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-            endif
+    if type(g:VLWorkspaceSymbolDatabase) == type('')
+        if g:VLWorkspaceSymbolDatabase ==? 'cscope'
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
+        elseif g:VLWorkspaceSymbolDatabase ==? 'gtags'
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
         else
-            if g:VLWorkspaceSymbolDatabase == 1
-                call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-                call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
-            elseif g:VLWorkspaceSymbolDatabase == 2
-                call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-                call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
-            else
-                call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-                call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-            endif
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+        endif
+    else
+        if g:VLWorkspaceSymbolDatabase == 1
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
+        elseif g:VLWorkspaceSymbolDatabase == 2
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+        else
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
         endif
     endif
 endfunction
-call s:RefreshBackwardOptions()
+"}}}
 "}}}
 
 let s:DefaultSettings = {
@@ -209,6 +206,9 @@ let s:DefaultSettings = {
     \ '.videm.wsp.keybind.GotoPrevSibling'  : '<C-p>',
     \ '.videm.wsp.keybind.RefreshBuffer'    : 'R',
     \ '.videm.wsp.keybind.ToggleHelpInfo'   : '<F1>',
+    \
+    \ '.videm.cc.Current'       : 'omnicpp',
+    \ '.videm.symdb.Current'    : 'gtags',
 \ }
 
 let s:CompatSettings = {
@@ -230,88 +230,97 @@ function! s:InitCompatSettings() "{{{2
     for item in items(s:CompatSettings)
         call videm#settings#Set(item[1], {item[0]})
     endfor
+    call s:RefreshBackwardOptions()
 endfunction
 "}}}2
 function! s:InitSettings() "{{{2
+    if videm#settings#Get('.videm.Compatible')
+        call s:InitCompatSettings()
+    endif
     call videm#settings#Init(s:DefaultSettings)
 endfunction
 "}}}2
 
+" 这里就直接初始化配置，无须等待到正式打开工作区的时候了
+call s:InitSettings()
 
 " ============================================================================
-" 全部可配置的信息 {{{2
-python << PYTHON_EOF
-import vim
-# python 的字典结构更容易写...
-VLWConfigTemplate = {
-    'Base': {
-        # 补全引擎
-        'g:VLWorkspaceCodeCompleteEngine'    : 'omnicpp',
-        # 0 -> none, 1 -> cscope, 2 -> global tags. 可用字符串标识，更具可读性
-        'g:VLWorkspaceSymbolDatabase'   : 'cscope',
-    },
+" 工作区可局部配置的信息 {{{1
+let s:WspConfTmpl = {
+    \ '.videm.cc.Current'   : '',
+    \ '.videm.symdb.Current' : '',
+\ }
 
-    'VIMCCC': {
-    },
+" 需要重启的选项
+let s:WspConfTmplRestart = {}
 
-    'OmniCpp': {
-    },
+" 备份的设置，一般用于保存全局的配置
+let s:WspConfBakp = {}
 
-    'Debugger': {
-    }
-}
+" NOTE: 这个 hook 不能注册进 videm#settings，否则无限递归
+function! videm#wsp#SettingsHook(event, data, priv) "{{{2
+    let event = a:event
+    let opt = a:data['opt']
+    let val = a:data['val']
+    let refresh = a:priv
+    if event ==# 'set'
+        if (opt ==# '.videm.cc.Current' || opt ==# '.videm.symdb.Current') && 
+                \ !empty(val)
+            if opt ==# '.videm.cc.Current'
+                let prefix = '.videm.cc'
+            else
+                let prefix = '.videm.symdb'
+            endif
+            let choice = ''
+            for item in items(videm#settings#Get(prefix, {}))
+                if item[0] ==# 'Current'
+                    continue
+                elseif item[0] ==# val
+                    let choice = val
+                else
+                    " 禁用其他同类插件
+                    let key = printf("%s.%s.Enable", prefix, item[0])
+                    call videm#settings#Set(key, 0, refresh)
+                endif
+            endfor
+            if !empty(choice)
+                " 启用选择的
+                let key = printf("%s.%s.Enable", prefix, choice)
+                call videm#settings#Set(key, 1, refresh)
+            endif
+        endif
+    endif
+endfunction
+"}}}
+function! videm#wsp#WspConfSetCurr(conf, ...) "{{{2
+    let refresh = get(a:000, 0, 1)
+    for item in items(a:conf)
+        " 只允许设置指定的选项
+        if has_key(s:WspConfTmpl, item[0])
+            call videm#settings#Set(item[0], item[1])
+            " hook
+            call videm#wsp#SettingsHook('set', {'opt': item[0], 'val': item[1]},
+                    \                   refresh)
+        endif
+    endfor
+endfunction
+"}}}
+" 还原为全局配置
+function! videm#wsp#WspConfRestore(...) "{{{2
+    let refresh = get(a:000, 0, 1)
+    call videm#wsp#WspConfSetCurr(s:WspConfBakp, refresh)
+endfunction
+"}}}
+" 直接往 a:conf 添加，调用着保证 a:conf 的纯净
+function! videm#wsp#WspConfSave(conf) "{{{2
+    for key in keys(s:WspConfTmpl)
+        let a:conf[key] = videm#settings#Get(key)
+    endfor
+endfunction
+"}}}
+" 先备份全局配置
+call videm#wsp#WspConfSave(s:WspConfBakp)
 
-__VLWNeedRestartConfig = set([
-    'g:VLWorkspaceCodeCompleteEngine',
-    'g:VLWorkspaceSymbolDatabase',
-])
-
-# 全局的配置，只初始化一次，见下
-VLWGlobalConfig = {}
-
-# ----------------------------------------------------------------------------
-def VLWSetCurrentConfig(config, force=True, refresh=True):
-    '''把python的配置字典转为vim的配置变量'''
-    for name, conf in config.iteritems():
-        i = 0
-        if force:
-            i = 1
-        for ______k, ______v in conf.iteritems():
-            # 配置信息的值类型只有整数和字符串两种
-            if isinstance(______v, str):
-                # 安全地转为 vim 的字符串
-                vim.command("call s:InitVariable('%s', '%s', %d)"
-                                % (______k, ______v.replace("'", "''"), i))
-            else:
-                vim.command("call s:InitVariable('%s', %s, %d)"
-                                % (______k, str(______v), i))
-    if refresh:
-        vim.command('call s:RefreshBackwardOptions()')
-
-def VLWRestoreConfigToGlobal(refresh=True):
-    '''隐藏掉全局变量 VLWGlobalConfig'''
-    global VLWGlobalConfig
-    VLWSetCurrentConfig(VLWGlobalConfig, force=True, refresh=refresh)
-
-def VLWSaveCurrentConfig(config):
-    '''根据 VLWConfigTemplate 的规则保存当前工作区的配置到 config'''
-    global VLWConfigTemplate
-    config.clear() # 无论如何都要清空 config
-    for name, conf in VLWConfigTemplate.iteritems():
-        config[name] = {}
-        for k, v in conf.iteritems():
-            if isinstance(v, str):
-                config[name][k] = vim.eval(k)
-            else: # 整数类型
-                config[name][k] = int(vim.eval(k))
-# ----------------------------------------------------------------------------
-
-# 根据模板初始化配置变量
-VLWSetCurrentConfig(VLWConfigTemplate, force=False)
-
-# 保存当前全局配置到 VLWGlobalConfig
-VLWSaveCurrentConfig(VLWGlobalConfig)
-PYTHON_EOF
 "}}}
 " ============================================================================
 
@@ -519,12 +528,6 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
 
     " 初始化所有 python 接口
     call s:InitPythonInterfaces()
-
-    " 初始化设置
-    call s:InitSettings()
-    if videm#settings#Get('.videm.Compatible')
-        call s:InitCompatSettings()
-    endif
 
     if bNeedConvertWspFileFormat
         " 老格式的 workspace, 提示转换格式
@@ -3395,12 +3398,14 @@ function! s:SaveWspSettingsCbk(dlg, data) "{{{2
         elseif ctl.GetId() == s:ID_WspSettingsEnableLocalConfig
             py ws.VLWSettings.enableLocalConfig = int(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsLocalConfig
-            let sTempFile = tempname()
-            " ctl.values 是列表
-            call writefile(ctl.values, sTempFile)
-            exec 'source' fnameescape(sTempFile)
-            call delete(sTempFile)
-            py VLWSaveCurrentConfig(ws.VLWSettings.localConfig)
+            let conf = {}
+            for sLine in ctl.values
+                let li = split(sLine, '\s*=\s*')
+                if len(li) == 2
+                    exec 'let conf[li[0]] =' li[1]
+                endif
+            endfor
+            py ws.VLWSettings.localConfig = vim.eval('conf')
         endif
     endfor
     " 回调
@@ -3411,9 +3416,9 @@ function! s:SaveWspSettingsCbk(dlg, data) "{{{2
     py ws.VLWIns.TouchAllProjectFiles()
     " 是否启动局部配置直接影响还原设置的方式
     py if not ws.VLWSettings.enableLocalConfig:
-            \ VLWRestoreConfigToGlobal(refresh=True)
+            \ vim.command("call videm#wsp#WspConfRestore(1)")
     py if ws.VLWSettings.enableLocalConfig:
-            \ VLWRestoreConfigToGlobal(refresh=False)
+            \ vim.command("call videm#wsp#WspConfRestore(0)")
     " 载入的时候就有刷新操作了
     py ws.LoadWspSettings()
 endfunction
@@ -3437,13 +3442,16 @@ comment while writing a single line script.
 == Wrokspace Local Configurations ==
 current support configuration variables:
 '''
-    global VLWConfigTemplate
-    for name, conf in VLWConfigTemplate.iteritems():
-        for k, v in conf.iteritems():
-            s += '  %s' % k
-            if k in __VLWNeedRestartConfig:
-                s += '*'
-            s += '\n'
+    conf = vim.eval("s:WspConfTmpl")
+    li = conf.keys()
+    li.sort()
+    restart_conf = vim.eval("s:WspConfTmplRestart")
+    for k in li:
+        v = conf[k]
+        s += '  %s' % k
+        if restart_conf.has_key(k):
+            s += '*'
+        s += '\n'
 
     s += '''
 Variables which with trailing '*' need to restart VimLite to take effect.
@@ -3520,7 +3528,7 @@ function! s:CreateWspSettingsDialog() "{{{2
     py vim.command("let localConfig = %s"
             \       % ToVimEval(ws.VLWSettings.GetLocalConfigScript()))
     call ctl.SetValue(localConfig)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "vim")
+    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "")
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
 
