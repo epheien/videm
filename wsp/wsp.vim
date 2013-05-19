@@ -1,8 +1,8 @@
-" Vim global plugin for handle workspace
+" Vim global plugin for handle videm workspace
 " Author:   fanhe <fanhed@163.com>
 " License:  This file is placed in the public domain.
-" Create:   2011 Mar 18
-" Change:   2011 Jun 14
+" Create:   2011-03-18
+" Change:   2013-05-19
 
 if exists("g:loaded_autoload_wsp")
     finish
@@ -65,8 +65,8 @@ endif
 
 let g:VidemPyDir = s:os.path.join(g:VidemDir, 'core')
 
-" 如果这个变量为零，所有后向兼容的选项都失效
-call s:InitVariable('g:VidemCompatible', 1)
+" 如果这个选项为零，所有后向兼容的选项都失效
+call videm#settings#Set('.videm.Compatible', 1)
 
 call s:InitVariable("g:VLWorkspaceWinSize", 30)
 call s:InitVariable("g:VLWorkspaceWinPos", "left")
@@ -85,23 +85,6 @@ call s:InitVariable('g:VLWorkspaceActiveProjectHlGroup', 'SpecialKey')
 " 0 -> none, 1 -> cscope, 2 -> global tags
 " 见下面的 python 代码
 "call s:InitVariable('g:VLWorkspaceSymbolDatabase', 1)
-" Cscope tags database
-call s:InitVariable('g:VLWorkspaceCscopeProgram', &cscopeprg)
-call s:InitVariable('g:VLWorkspaceCscopeContainExternalHeader', 1)
-call s:InitVariable('g:VLWorkspaceCreateCscopeInvertedIndex', 0)
-" 以下几个 cscope 选项仅供内部使用
-call s:InitVariable('g:VLWorkspaceCscpoeFilesFile', '_cscope.files')
-call s:InitVariable('g:VLWorkspaceCscpoeOutFile', '_cscope.out')
-
-" Global tags database
-"call s:InitVariable('g:VLWorkspaceGtagsGlobalProgram', 'global')
-call s:InitVariable('g:VLWorkspaceGtagsProgram', 'gtags')
-call s:InitVariable('g:VLWorkspaceGtagsCscopeProgram', 'gtags-cscope')
-call s:InitVariable('g:VLWorkspaceGtagsFilesFile', '_gtags.files')
-call s:InitVariable('g:VLWorkspaceUpdateGtagsAfterSave', 1)
-
-" 保存文件时自动解析文件, 仅对属于工作空间的文件有效
-call s:InitVariable("g:VLWorkspaceParseFileAfterSave", 1)
 
 " 补全引擎选择，'none', 'omnicpp', 'vimccc'
 call s:InitVariable("g:VLWorkspaceCodeCompleteEngine", 'omnicpp')
@@ -539,7 +522,7 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
 
     " 初始化设置
     call s:InitSettings()
-    if g:VidemCompatible
+    if videm#settings#Get('.videm.Compatible')
         call s:InitCompatSettings()
     endif
 

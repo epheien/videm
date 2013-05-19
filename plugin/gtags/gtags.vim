@@ -6,6 +6,24 @@
 
 let s:enable = 0
 
+" 初始化变量仅在变量没有定义时才赋值，var 必须是合法的变量名
+function! s:InitVariable(var, value, ...) "{{{2
+    let force = get(a:000, 0, 0)
+    if force || !exists(a:var)
+        if exists(a:var)
+            unlet {a:var}
+        endif
+        let {a:var} = a:value
+    endif
+endfunction
+"}}}2
+
+" gtags symbol database
+call s:InitVariable('g:VLWorkspaceGtagsProgram', 'gtags')
+call s:InitVariable('g:VLWorkspaceGtagsCscopeProgram', 'gtags-cscope')
+call s:InitVariable('g:VLWorkspaceGtagsFilesFile', '_gtags.files')
+call s:InitVariable('g:VLWorkspaceUpdateGtagsAfterSave', 1)
+
 let s:GtagsSettings = {
     \ '.videm.symdb.gtags.Enable'           : 0,
     \ '.videm.symdb.gtags.Program'          : 'gtags',
@@ -14,7 +32,23 @@ let s:GtagsSettings = {
     \ '.videm.symdb.gtags.UpdAfterSave'     : 1,
 \ }
 
+let s:CompatSettings = {
+    \ 'g:VLWorkspaceGtagsProgram'           : '.videm.symdb.gtags.Program',
+    \ 'g:VLWorkspaceGtagsCscopeProgram'     : '.videm.symdb.gtags.CscopeProg',
+    \ 'g:VLWorkspaceGtagsFilesFile'         : '.videm.symdb.gtags.FilesFile',
+    \ 'g:VLWorkspaceUpdateGtagsAfterSave'   : '.videm.symdb.gtags.UpdAfterSave',
+\ }
+
+function! s:InitCompatSettings() "{{{2
+    for item in items(s:CompatSettings)
+        call videm#settings#Set(item[1], {item[0]})
+    endfor
+endfunction
+"}}}2
 function! s:InitSettings() "{{{2
+    if videm#settings#Get('.videm.Compatible')
+        call s:InitCompatSettings()
+    endif
     call videm#settings#Init(s:GtagsSettings)
 endfunction
 "}}}

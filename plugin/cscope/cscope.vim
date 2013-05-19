@@ -6,6 +6,25 @@
 
 let s:enable = 0
 
+" 初始化变量仅在变量没有定义时才赋值，var 必须是合法的变量名
+function! s:InitVariable(var, value, ...) "{{{2
+    let force = get(a:000, 0, 0)
+    if force || !exists(a:var)
+        if exists(a:var)
+            unlet {a:var}
+        endif
+        let {a:var} = a:value
+    endif
+endfunction
+"}}}2
+
+call s:InitVariable('g:VLWorkspaceCscopeProgram', &cscopeprg)
+call s:InitVariable('g:VLWorkspaceCscopeContainExternalHeader', 1)
+call s:InitVariable('g:VLWorkspaceCreateCscopeInvertedIndex', 0)
+" 以下几个 cscope 选项仅供内部使用
+call s:InitVariable('g:VLWorkspaceCscpoeFilesFile', '_cscope.files')
+call s:InitVariable('g:VLWorkspaceCscpoeOutFile', '_cscope.out')
+
 let s:CscopeSettings = {
     \ '.videm.symdb.cscope.Enable'          : 1,
     \ '.videm.symdb.cscope.Program'         : &cscopeprg,
@@ -15,7 +34,24 @@ let s:CscopeSettings = {
     \ '.videm.symdb.cscope.OutFile'         : '_cscope.out',
 \ }
 
+let s:CompatSettings = {
+    \ 'g:VLWorkspaceCscopeProgram'          : '.videm.symdb.cscope.Program',
+    \ 'g:VLWorkspaceCscopeContainExternalHeader'    : '.videm.symdb.cscope.IncExtHdr',
+    \ 'g:VLWorkspaceCreateCscopeInvertedIndex'      : '.videm.symdb.cscope.GenInvIdx',
+    \ 'g:VLWorkspaceCscpoeFilesFile'        : '.videm.symdb.cscope.FilesFile',
+    \ 'g:VLWorkspaceCscpoeOutFile'          : '.videm.symdb.cscope.OutFile',
+\ }
+
+function! s:InitCompatSettings() "{{{2
+    for item in items(s:CompatSettings)
+        call videm#settings#Set(item[1], {item[0]})
+    endfor
+endfunction
+"}}}2
 function! s:InitSettings() "{{{2
+    if videm#settings#Get('.videm.Compatible')
+        call s:InitCompatSettings()
+    endif
     call videm#settings#Init(s:CscopeSettings)
 endfunction
 "}}}
@@ -71,7 +107,7 @@ def InitVLWCscopeDatabase():
     # 这只关系到跳到定义处，如果实现了 ctags 数据库，就不需要
     # 比较麻烦，暂不实现
     incPaths = []
-    if vim.eval('g:VLWorkspaceCscopeContainExternalHeader') != '0':
+    if vim.eval('videm#settings#Get(".videm.symdb.cscope.IncExtHdr")') != '0':
         incPaths = ws.GetWorkspaceIncludePaths()
     vim.command('let lIncludePaths = %s"' % ToVimEval(incPaths))
 
@@ -97,32 +133,34 @@ PYTHON_EOF
     exec 'silent! cs kill '. sCsOutFile
 
     let retval = 0
+    let prog = videm#settings#Get('.videm.symdb.cscope.Program')
     if filereadable(sCsOutFile)
         " 已存在，但不更新，应该由用户调用 s:UpdateVLWCscopeDatabase 来更新
         " 除非为强制初始化全部
         if l:force
-            if g:VLWorkspaceCreateCscopeInvertedIndex
+            if videm#settings#Get('.videm.symdb.cscope.GenInvIdx')
                 let sFirstOpts = '-bqkU'
             else
                 let sFirstOpts = '-bkU'
             endif
             let sCmd = printf('%s %s %s -i %s -f %s', 
-                        \shellescape(g:VLWorkspaceCscopeProgram), 
-                        \sFirstOpts, sIncludeOpts, 
-                        \shellescape(sCsFilesFile), shellescape(sCsOutFile))
+                    \         shellescape(prog), 
+                    \         sFirstOpts, sIncludeOpts, 
+                    \         shellescape(sCsFilesFile),
+                    \         shellescape(sCsOutFile))
             "call system(sCmd)
             py vim.command('let retval = %d' % System(vim.eval('sCmd'))[0])
         endif
     else
-        if g:VLWorkspaceCreateCscopeInvertedIndex
+        if videm#settings#Get('.videm.symdb.cscope.GenInvIdx')
             let sFirstOpts = '-bqk'
         else
             let sFirstOpts = '-bk'
         endif
         let sCmd = printf('%s %s %s -i %s -f %s', 
-                    \shellescape(g:VLWorkspaceCscopeProgram), 
-                    \sFirstOpts, sIncludeOpts, 
-                    \shellescape(sCsFilesFile), shellescape(sCsOutFile))
+                \         shellescape(prog), 
+                \         sFirstOpts, sIncludeOpts, 
+                \         shellescape(sCsFilesFile), shellescape(sCsOutFile))
         "call system(sCmd)
         py vim.command('let retval = %d' % System(vim.eval('sCmd'))[0])
     endif
@@ -180,7 +218,7 @@ function! s:UpdateVLWCscopeDatabase(...) "{{{2
     endif
 
     let lIncludePaths = []
-    if g:VLWorkspaceCscopeContainExternalHeader
+    if videm#settings#Get('.videm.symdb.cscope.IncExtHdr')
         py vim.command("let lIncludePaths = %s" % json.dumps(
                     \ws.GetWorkspaceIncludePaths(), ensure_ascii=False))
     endif
@@ -191,13 +229,14 @@ function! s:UpdateVLWCscopeDatabase(...) "{{{2
     endif
 
     let sFirstOpts = '-bkU'
-    if g:VLWorkspaceCreateCscopeInvertedIndex
+    if videm#settings#Get('.videm.symdb.cscope.GenInvIdx')
         let sFirstOpts .= 'q'
     endif
+    let prog = videm#settings#Get('.videm.symdb.cscope.Program')
     let sCmd = printf('%s %s %s -i %s -f %s', 
-                \shellescape(g:VLWorkspaceCscopeProgram), sFirstOpts, 
-                \sIncludeOpts, 
-                \shellescape(sCsFilesFile), shellescape(sCsOutFile))
+            \         shellescape(prog), sFirstOpts, 
+            \         sIncludeOpts, 
+            \         shellescape(sCsFilesFile), shellescape(sCsOutFile))
 
     " Windows 下必须先断开链接，否则无法更新
     exec 'silent! cs kill '. sCsOutFile
@@ -227,7 +266,7 @@ function! videm#plugin#cscope#ConnectCscopeDatabase(...) "{{{2
 
     let sCsOutFile = a:0 > 0 ? a:1 : sCsOutFile
     if filereadable(sCsOutFile)
-        let &cscopeprg = g:VLWorkspaceCscopeProgram
+        let &cscopeprg = videm#settings#Get('.videm.symdb.cscope.Program')
         set cscopetagorder=0
         set cscopetag
         exec 'silent! cs kill '. sCsOutFile
