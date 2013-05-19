@@ -9,7 +9,7 @@ import os
 ##-----------------------------------------------------
 
 # 版本号 850 -> 0.8.5.0
-VIMLITE_VER = 970
+VIMLITE_VER = 1001
 
 # VimLite 起始目录
 VIMLITE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

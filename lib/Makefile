@@ -7,7 +7,7 @@ all:
 clean:
 
 install:
-	@for d in $(files); do cp "$$d" $(DESTDIR)/$(PYDIR)/; done
+	@for d in $(files); do cp "$$d" $(PYDIR)/; done
 
 
 .PHONY: all clean install

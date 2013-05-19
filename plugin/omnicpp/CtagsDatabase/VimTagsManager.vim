@@ -26,7 +26,7 @@ endfunction
             "\'~/Desktop/VimLite/CtagsDatabase/TestTags3.db')
 call s:InitVariable('g:VimTagsManager_DbFile', 'VimLiteTags.db')
 
-call s:InitVariable('g:VimTagsManager_SrcDir', expand('~/.vimlite/omnicpp'))
+call s:InitVariable('g:VimTagsManager_SrcDir', expand('~/.videm/core'))
 
 call s:InitVariable('g:VimTagsManager_InclAllCondCmplBrch', 1)
 
