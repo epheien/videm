@@ -8,6 +8,17 @@
 
 let s:settings = {}
 
+let s:Notifier = vlutils#Notifier
+let s:settings_notifier = s:Notifier.New('videm_settings')
+
+function! videm#settings#RegisterHook(hook, prio, priv) "{{{2
+    return s:settings_notifier.Register(a:hook, a:prio, a:priv)
+endfunction
+"}}}2
+function! videm#settings#UnregisterHook(hook, prio) "{{{2
+    return s:settings_notifier.Unregister(a:hook, a:prio)
+endfunction
+"}}}2
 function! videm#settings#Set(opt, val) "{{{2
     let li = split(a:opt, '\.')
     if empty(li)
@@ -25,6 +36,7 @@ function! videm#settings#Set(opt, val) "{{{2
         let d = d[k]
     endfor
     let d[li[-1]] = a:val
+    call s:settings_notifier.CallChain('set', {'opt': a:opt, 'val': a:val})
 endfunction
 "}}}2
 function! videm#settings#Get(opt, ...) "{{{2

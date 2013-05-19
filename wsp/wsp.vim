@@ -153,25 +153,43 @@ call s:InitVariable("g:VLWorkspacePrjFileSuffix", "vlproject")
 if exists('g:VLWorkspaceUseVIMCCC') && g:VLWorkspaceUseVIMCCC
     let g:VLWorkspaceCodeCompleteEngine = 'vimccc'
 endif
-if      g:VLWorkspaceCodeCompleteEngine == 'omnicpp'
-    call videm#settings#Set('.videm.cc.omnicpp.Enable', 1)
-elseif  g:VLWorkspaceCodeCompleteEngine == 'vimccc'
-    call videm#settings#Set('.videm.cc.vimccc.Enable', 1)
-endif
+function! s:RefreshBackwardOptions()
+    if      g:VLWorkspaceCodeCompleteEngine == 'omnicpp'
+        call videm#settings#Set('.videm.cc.vimccc.Enable', 0)
+        call videm#settings#Set('.videm.cc.omnicpp.Enable', 1)
+    elseif  g:VLWorkspaceCodeCompleteEngine == 'vimccc'
+        call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
+        call videm#settings#Set('.videm.cc.vimccc.Enable', 1)
+    else
+        call videm#settings#Set('.videm.cc.vimccc.Enable', 0)
+        call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
+    endif
 
-if type(g:VLWorkspaceSymbolDatabase) == type('')
-    if g:VLWorkspaceSymbolDatabase ==? 'cscope'
-        call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
-    elseif g:VLWorkspaceSymbolDatabase ==? 'gtags'
-        call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+    if type(g:VLWorkspaceSymbolDatabase) == type('')
+        if g:VLWorkspaceSymbolDatabase ==? 'cscope'
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
+        elseif g:VLWorkspaceSymbolDatabase ==? 'gtags'
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+        else
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+        endif
+    else
+        if g:VLWorkspaceSymbolDatabase == 1
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
+        elseif g:VLWorkspaceSymbolDatabase == 2
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+        else
+            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+        endif
     endif
-else
-    if g:VLWorkspaceSymbolDatabase == 1
-        call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
-    elseif g:VLWorkspaceSymbolDatabase == 2
-        call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
-    endif
-endif
+endfunction
+call s:RefreshBackwardOptions()
 "}}}
 
 let s:DefaultSettings = {
@@ -265,7 +283,7 @@ __VLWNeedRestartConfig = set([
 VLWGlobalConfig = {}
 
 # ----------------------------------------------------------------------------
-def VLWSetCurrentConfig(config, force=True):
+def VLWSetCurrentConfig(config, force=True, refresh=True):
     '''把python的配置字典转为vim的配置变量'''
     for name, conf in config.iteritems():
         i = 0
@@ -280,11 +298,13 @@ def VLWSetCurrentConfig(config, force=True):
             else:
                 vim.command("call s:InitVariable('%s', %s, %d)"
                                 % (______k, str(______v), i))
+    if refresh:
+        vim.command('call s:RefreshBackwardOptions()')
 
-def VLWRestoreConfigToGlobal():
+def VLWRestoreConfigToGlobal(refresh=True):
     '''隐藏掉全局变量 VLWGlobalConfig'''
     global VLWGlobalConfig
-    VLWSetCurrentConfig(VLWGlobalConfig, force=True)
+    VLWSetCurrentConfig(VLWGlobalConfig, force=True, refresh=refresh)
 
 def VLWSaveCurrentConfig(config):
     '''根据 VLWConfigTemplate 的规则保存当前工作区的配置到 config'''
@@ -931,7 +951,7 @@ function! s:ShowMenu() "显示菜单 {{{2
 endfunction
 
 
-function! s:MenuOperation(menu) "菜单操作 {{{2
+function! videm#wsp#MenuOperation(menu) "菜单操作 {{{2
     "menu 作为 id, 工作空间菜单形如 'W_Create a New Project'
     py ws.MenuOperation(vim.eval('a:menu'))
 endfunction
@@ -3400,11 +3420,13 @@ function! s:SaveWspSettingsCbk(dlg, data) "{{{2
     py ws.SaveWspSettings()
     " Extension Options 关系到项目 Makefile
     py ws.VLWIns.TouchAllProjectFiles()
-    " 对于工作区设置，先还原，再设置
-    py VLWRestoreConfigToGlobal()
-    " NOTE: 基本上不支持正在运行的时候设置变量，需要重启，现在还没实现...
+    " 是否启动局部配置直接影响还原设置的方式
+    py if not ws.VLWSettings.enableLocalConfig:
+            \ VLWRestoreConfigToGlobal(refresh=True)
     py if ws.VLWSettings.enableLocalConfig:
-            \ VLWSetCurrentConfig(ws.VLWSettings.localConfig, force=True)
+            \ VLWRestoreConfigToGlobal(refresh=False)
+    " 载入的时候就有刷新操作了
+    py ws.LoadWspSettings()
 endfunction
 "}}}
 " 工作区设置的帮助信息

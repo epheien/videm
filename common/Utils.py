@@ -12,34 +12,62 @@ import subprocess
 import shlex
 from Macros import *
 
+'''\
+源文件的判断是全局的，并且任何人都可以随时修改
+不能替换 C_XXX_EXT 系列变量的实例，只能原地更新，因为有不同的地方引用着它们
+'''
+
 def CSrcExtReset():
     global C_SOURCE_EXT
-    C_SOURCE_EXT = DEFAULT_C_SOURCE_EXT.copy()
+    C_SOURCE_EXT.clear()
+    C_SOURCE_EXT.update(DEFAULT_C_SOURCE_EXT)
 
 def CppSrcExtReset():
     global CPP_SOURCE_EXT
-    CPP_SOURCE_EXT = DEFAULT_CPP_SOURCE_EXT.copy()
+    CPP_SOURCE_EXT.clear()
+    CPP_SOURCE_EXT.update(DEFAULT_CPP_SOURCE_EXT)
 
-def IsCSourceFile(fileName):
+def CSrcExtSet(exts):
+    global C_SOURCE_EXT
+    C_SOURCE_EXT.clear()
+    C_SOURCE_EXT.update(exts)
+
+def CppSrcExtSet(exts):
+    global CPP_SOURCE_EXT
+    CPP_SOURCE_EXT.clear()
+    CPP_SOURCE_EXT.update(exts)
+
+def IsCSourceFile(fileName, default=False):
+    '''default为真时，表示使用通用的判断'''
     ext = os.path.splitext(fileName)[1]
-    if ext in C_SOURCE_EXT:
+    exts = C_SOURCE_EXT
+    if default:
+        exts = DEFAULT_C_SOURCE_EXT
+    if ext in exts:
         return True
     else:
         return False
 
-def IsCppSourceFile(fileName):
+def IsCppSourceFile(fileName, default=False):
     ext = os.path.splitext(fileName)[1]
-    if ext in CPP_SOURCE_EXT:
+    exts = CPP_SOURCE_EXT
+    if default:
+        exts = DEFAULT_CPP_SOURCE_EXT
+    if ext in exts:
         return True
     else:
         return False
 
-def IsCCppSourceFile(fileName):
-    return IsCSourceFile(fileName) or IsCppSourceFile(fileName)
+def IsCCppSourceFile(fileName, default=False):
+    return IsCSourceFile(fileName, default) or IsCppSourceFile(fileName, default)
 
-def IsCppHeaderFile(fileName):
+def IsCppHeaderFile(fileName, default=False):
     ext = os.path.splitext(fileName)[1]
-    if ext in CPP_HEADER_EXT:
+    # NOTE: cpp头文件后缀名暂不支持定制
+    exts = CPP_HEADER_EXT
+    if default:
+        exts = CPP_HEADER_EXT
+    if ext in exts:
         return True
     else:
         return False

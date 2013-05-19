@@ -30,6 +30,7 @@ import IncludeParser
 
 from GetTemplateDict import GetTemplateDict
 
+import Utils
 from Misc import SplitSmclStr, JoinToSmclStr, EscStr4DQ, IsWindowsOS, CmpIC
 from Misc import DirSaver, PosixPath, ToVimEval
 from Utils import IsCCppSourceFile, IsCppHeaderFile, ExpandAllVariables
@@ -158,15 +159,21 @@ class VimLiteWorkspace:
 
     @staticmethod
     def InsertWMenu(index, item, hook, priv):
-        return VidemWorkspace.__InsertMenuItem(
+        ret = VidemWorkspace.__InsertMenuItem(
             VidemWorkspace.popupMenuW, item, index,
             VidemWorkspace.__popupMenuW_mapping, hook, priv)
+        if ret == 0:
+            VidemWorkspace.ReinstallPopupMenuW()
+        return ret
 
     @staticmethod
     def RemoveWMenu(item):
-        return VidemWorkspace.__RemoveMenuItem(
+        ret = VidemWorkspace.__RemoveMenuItem(
             VidemWorkspace.popupMenuW, item,
             VidemWorkspace.__popupMenuW_mapping)
+        if ret == 0:
+            VidemWorkspace.ReinstallPopupMenuW()
+        return ret
 
     def __init__(self, fileName = ''):
         self.VLWIns = VLWorkspaceST.Get() # python VLWorkspace 对象实例
@@ -311,6 +318,9 @@ class VimLiteWorkspace:
         self.VLWIns.CloseWorkspace()
         # 还原配置
         VLWRestoreConfigToGlobal()
+        # 还原后缀设置
+        Utils.CSrcExtReset()
+        Utils.CppSrcExtReset()
         VidemWorkspace.wsp_ntf.CallChain('close_post', self)
 
     def ReloadWorkspace(self):
@@ -325,35 +335,30 @@ class VimLiteWorkspace:
         self.buildMTime = time.time()
 
     def LoadWspSettings(self):
-        # TODO
         if self.VLWIns.fileName:
             # 读取配置文件
             settingsFile = os.path.splitext(self.VLWIns.fileName)[0] \
                 + '.wspsettings'
             self.VLWSettings.SetFileName(settingsFile)
             self.VLWSettings.Load()
-            # 初始化 Omnicpp 类型替换字典
-            #self.InitOmnicppTypesVar()
             # 通知全局环境变量设置当前选择的组别名字
             EnvVarSettingsST.Get().SetActiveSetName(
                 self.VLWSettings.GetEnvVarSetName())
-            # 设置 OmniCpp 的 g:VLOmniCpp_PrependSearchScopes
-            #vim.command("let g:VLOmniCpp_PrependSearchScopes = %s" % \
-                #self.VLWSettings.GetUsingNamespace())
             # 设置全局源文件判断
-            #Utils.CSrcExtReset()
-            #Utils.CppSrcExtReset()
-            #for i in self.VLWSettings.cSrcExts:
-                #C_SOURCE_EXT.add(i)
-            #for i in self.VLWSettings.cppSrcExts:
-                #CPP_SOURCE_EXT.add(i)
+            Utils.CSrcExtReset()
+            Utils.CppSrcExtReset()
+            for i in self.VLWSettings.cSrcExts:
+                C_SOURCE_EXT.add(i)
+            for i in self.VLWSettings.cppSrcExts:
+                CPP_SOURCE_EXT.add(i)
             # 根据载入的工作区配置刷新全局的配置
             if self.VLWSettings.enableLocalConfig:
                 VLWSetCurrentConfig(self.VLWSettings.localConfig, force=True)
 
     def SaveWspSettings(self):
         if self.VLWSettings.Save():
-            self.LoadWspSettings()
+            pass
+            #self.LoadWspSettings()
 
     def InstallPopupMenu(self):
         for idx, value in enumerate(self.popupMenuW):
@@ -365,7 +370,7 @@ class VimLiteWorkspace:
                     % (idx * 10, value))
             else:
                 vim.command("an <silent> 100.%d ]VLWorkspacePopup.%s "\
-                    ":call <SID>MenuOperation('W_%s')<CR>" 
+                    ":call videm#wsp#MenuOperation('W_%s')<CR>" 
                     % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'), 
                        value))
         for idx in range(1, len(self.popupMenuP)):
@@ -375,7 +380,7 @@ class VimLiteWorkspace:
                     % (idx * 10, value))
             else:
                 vim.command("an <silent> 100.%d ]VLWProjectPopup.%s "\
-                    ":call <SID>MenuOperation('P_%s')<CR>" 
+                    ":call videm#wsp#MenuOperation('P_%s')<CR>" 
                     % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'), 
                        value))
         for idx in range(1, len(self.popupMenuV)):
@@ -385,7 +390,7 @@ class VimLiteWorkspace:
                     % value)
             else:
                 vim.command("an <silent> ]VLWVirtualDirectoryPopup.%s "\
-                    ":call <SID>MenuOperation('V_%s')<CR>" 
+                    ":call videm#wsp#MenuOperation('V_%s')<CR>" 
                     % (value.replace(' ', '\\ ').replace('.', '\\.'), value))
         for idx in range(1, len(self.popupMenuF)):
             value = self.popupMenuF[idx]
@@ -393,13 +398,14 @@ class VimLiteWorkspace:
                 vim.command("an <silent> ]VLWFilePopup.%s <Nop>" % value)
             else:
                 vim.command("an <silent> ]VLWFilePopup.%s "\
-                    ":call <SID>MenuOperation('F_%s')<CR>" 
+                    ":call videm#wsp#MenuOperation('F_%s')<CR>" 
                     % (value.replace(' ', '\\ ').replace('.', '\\.'), value))
 
-    def ReinstallPopupMenuW(self):
+    @staticmethod
+    def ReinstallPopupMenuW():
         '''Windows 下面的 popup 菜单有 bug，无法正常删除菜单'''
         vim.command("silent! aunmenu ]VLWorkspacePopup")
-        for idx, value in enumerate(self.popupMenuW):
+        for idx, value in enumerate(VidemWorkspace.popupMenuW):
             if idx == 0:
                 continue
             elif value[:4] == '-Sep':
@@ -411,7 +417,7 @@ class VimLiteWorkspace:
                     '''Windows 下删除菜单有问题'''
                     continue
                 vim.command("an <silent> 100.%d ]VLWorkspacePopup.%s "\
-                    ":call <SID>MenuOperation('W_%s')<CR>" 
+                    ":call videm#wsp#MenuOperation('W_%s')<CR>" 
                     % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'), 
                        value))
 
@@ -425,7 +431,7 @@ class VimLiteWorkspace:
                     % (idx * 10, value))
             else:
                 vim.command("an <silent> 100.%d ]VLWProjectPopup.%s "\
-                    ":call <SID>MenuOperation('P_%s')<CR>" 
+                    ":call videm#wsp#MenuOperation('P_%s')<CR>" 
                     % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'), 
                        value))
 
@@ -452,18 +458,6 @@ class VimLiteWorkspace:
             #% (self.bufNum, ToVimStr(string)))
         self.cache_confName = \
                 self.VLWIns.GetBuildMatrix().GetSelectedConfigName()
-
-    def InitOmnicppTypesVar(self):
-        vim.command("let g:dOCppTypes = {}")
-        for i in (self.VLWSettings.tagsTypes + TagsSettingsST.Get().tagsTypes):
-            li = i.partition('=')
-            path = vim.eval("omnicpp#utils#GetVariableType('%s').name" 
-                            % ToVimStr(li[0]))
-            vim.command("let g:dOCppTypes['%s'] = {}" % (ToVimStr(path),))
-            vim.command("let g:dOCppTypes['%s'].orig = '%s'" 
-                        % (ToVimStr(path), ToVimStr(li[0])))
-            vim.command("let g:dOCppTypes['%s'].repl = '%s'" 
-                        % (ToVimStr(path), ToVimStr(li[2])))
 
     def GetSHSwapList(self, fileName):
         '''获取源/头文件切换列表'''
@@ -659,7 +653,7 @@ class VimLiteWorkspace:
                         pass
                     vim.command("an <silent> 100.%d ]VLWProjectPopup."
                         "Custom\\ Build\\ Targets.%s "
-                        ":call <SID>MenuOperation('P_C_%s')<CR>" 
+                        ":call videm#wsp#MenuOperation('P_C_%s')<CR>" 
                         % (menuNumber, 
                            target.replace(' ', '\\ ').replace('.', '\\.'), 
                            target))
@@ -667,7 +661,7 @@ class VimLiteWorkspace:
             vim.command("popup ]VLWProjectPopup")
         elif nodeType == VLWorkspace.TYPE_WORKSPACE: #工作空间右键菜单
             if IsWindowsOS():
-                self.ReinstallPopupMenuW()
+                VidemWorkspace.ReinstallPopupMenuW()
             # 先删除上次添加的菜单
             vim.command("silent! aunmenu ]VLWorkspacePopup.Batch\\ Builds")
             vim.command("silent! aunmenu ]VLWorkspacePopup.Batch\\ Cleans")
@@ -687,12 +681,12 @@ class VimLiteWorkspace:
                     name2 = name.replace(' ', '\\ ').replace('.', '\\.')
                     vim.command("an <silent> 100.%d ]VLWorkspacePopup."
                         "Batch\\ Builds.%s "
-                        ":call <SID>MenuOperation('W_BB_%s')<CR>"
+                        ":call videm#wsp#MenuOperation('W_BB_%s')<CR>"
                         % (menuNumber, name2, name))
                     name2 = name.replace(' ', '\\ ').replace('.', '\\.')
                     vim.command("an <silent> 100.%d ]VLWorkspacePopup."
                         "Batch\\ Cleans.%s "
-                        ":call <SID>MenuOperation('W_BC_%s')<CR>"
+                        ":call videm#wsp#MenuOperation('W_BC_%s')<CR>"
                         % (menuNumber + 1, name2, name))
 
             vim.command("popup ]VLWorkspacePopup")

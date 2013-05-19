@@ -11,6 +11,8 @@
 " 工作区设置的控件字典
 let s:ctls = {}
 
+let s:enable = 0
+
 function! s:SID() "获取脚本 ID {{{2
     return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfunction
@@ -181,7 +183,7 @@ function! videm#plugin#vimccc#WspSetHook(event, data, priv) "{{{2
                 \ ToVimStr(ws.VLWSettings.GetCurIncPathFlagWord()))
         call dlg.AddControl(ctl)
         call dlg.AddBlankLine()
-    elseif event ==# 'save'
+    elseif event ==# 'save' && !empty(ctls)
         py ws.VLWSettings.includePaths = vim.eval("ctls['IncludePaths'].values")
         py ws.VLWSettings.SetIncPathFlag(vim.eval("ctls['IncPathFlag'].GetValue()"))
     endif
@@ -202,11 +204,54 @@ function! s:ThisInit() "{{{2
             \ :call <SID>TagsSettings()<CR>
 endfunction
 "}}}
+function! videm#plugin#vimccc#SettingsHook(event, data, priv) "{{{2
+    let event = a:event
+    let opt = a:data['opt']
+    let val = a:data['val']
+    if event ==# 'set'
+        if opt ==# '.videm.cc.vimccc.Enable'
+            if val
+                call videm#plugin#vimccc#Enable()
+            else
+                call videm#plugin#vimccc#Disable()
+            endif
+        endif
+    endif
+endfunction
+"}}}
 function! videm#plugin#vimccc#Init() "{{{2
+    call videm#settings#RegisterHook('videm#plugin#vimccc#SettingsHook', 0, 0)
     if !videm#settings#Get('.videm.cc.vimccc.Enable', 0)
         return
     endif
     call s:ThisInit()
+    let s:enable = 1
+endfunction
+"}}}
+function! videm#plugin#vimccc#Enable() "{{{2
+    if s:enable
+        return
+    endif
+    call s:ThisInit()
+    let s:enable = 1
+endfunction
+"}}}
+" 禁用插件时的动作
+function! videm#plugin#vimccc#Disable() "{{{2
+    if !s:enable
+        return
+    endif
+    py VidemWorkspace.wsp_ntf.Unregister(VidemWspVIMCCCHook, 0)
+    augroup VidemCCVIMCCC
+        autocmd!
+    augroup END
+    augroup! VidemCCVIMCCC
+    call VidemWspSetCreateHookUnregister('videm#plugin#vimccc#WspSetHook', 0)
+    aunmenu &Videm.VIMCCC\ Settings\.\.\.
+    " 清理 python 全局数据
+    "py VIMCCCIndex = OrigVIMCCCIndex
+    py ws.clangIndices.clear()
+    let s:enable = 0
 endfunction
 "}}}
 function! s:InitPythonIterfaces() "{{{2

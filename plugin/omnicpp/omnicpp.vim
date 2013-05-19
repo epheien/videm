@@ -7,6 +7,8 @@
 " 工作区设置的控件字典
 let s:ctls = {}
 
+let s:enable = 0
+
 function! s:SID() "获取脚本 ID {{{2
     return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfunction
@@ -108,6 +110,12 @@ function! s:InstallCommands() "{{{2
     command! -nargs=0 -bar VLWTagsSetttings     call <SID>TagsSettings()
 endfunction
 "}}}
+function! s:UninstallCommands() "{{{2
+    delcommand VLWAsyncParseCurrentFile
+    delcommand VLWDeepAsyncParseCurrentFile
+    delcommand VLWTagsSetttings
+endfunction
+"}}}
 " =================== tags 设置 ===================
 "{{{1
 "标识用控件 ID {{{2
@@ -136,7 +144,7 @@ function! s:SaveTagsSettingsCbk(dlg, data) "{{{2
     py ins.Save()
     py del ins
     " 重新初始化 OmniCpp 类型替换字典
-    py ws.InitOmnicppTypesVar()
+    py OmniCppUpdateTypesVar(ws)
 endfunction
 
 function! s:CreateTagsSettingsDialog() "{{{2
@@ -204,7 +212,7 @@ function! videm#plugin#omnicpp#WspSetHook(event, data, priv) "{{{2
     "echo ctls
     if event ==# 'create'
         " ======================================================================
-        let ctl = g:VCStaticText.New("Tags And Clang Settings")
+        let ctl = g:VCStaticText.New("OmniCpp Tags Settings")
         call ctl.SetHighlight("Special")
         call dlg.AddControl(ctl)
         call dlg.AddBlankLine()
@@ -277,7 +285,7 @@ function! videm#plugin#omnicpp#WspSetHook(event, data, priv) "{{{2
         call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
         call dlg.AddControl(ctl)
         call dlg.AddBlankLine()
-    elseif event ==# 'save'
+    elseif event ==# 'save' && !empty(ctls)
         py ws.VLWSettings.includePaths = vim.eval("ctls['IncludePaths'].values")
         py ws.VLWSettings.SetIncPathFlag(vim.eval("ctls['IncPathFlag'].GetValue()"))
 
@@ -304,7 +312,7 @@ function! s:ThisInit() "{{{2
         autocmd! FileType c,cpp call omnicpp#complete#Init()
         autocmd! BufWritePost * call <SID>AsyncParseCurrentFile(1, 1)
     augroup END
-    py OmniCppInit()
+    py OmniCppWMenuAction()
     " 工作区设置
     call VidemWspSetCreateHookRegister('videm#plugin#omnicpp#WspSetHook',
             \                          0, s:ctls)
@@ -314,11 +322,60 @@ function! s:ThisInit() "{{{2
     "echomsg 'omnicpp init ok'
 endfunction
 "}}}
+function! videm#plugin#omnicpp#SettingsHook(event, data, priv) "{{{2
+    let event = a:event
+    let opt = a:data['opt']
+    let val = a:data['val']
+    if event ==# 'set'
+        if opt ==# '.videm.cc.omnicpp.Enable'
+            if val
+                call videm#plugin#omnicpp#Enable()
+            else
+                call videm#plugin#omnicpp#Disable()
+            endif
+        endif
+    endif
+endfunction
+"}}}
 function! videm#plugin#omnicpp#Init() "{{{2
+    call videm#settings#RegisterHook('videm#plugin#omnicpp#SettingsHook', 0, 0)
     if !videm#settings#Get('.videm.cc.omnicpp.Enable', 0)
         return
     endif
     call s:ThisInit()
+    let s:enable = 1
+endfunction
+"}}}
+function! videm#plugin#omnicpp#Enable() "{{{2
+    if s:enable
+        return
+    endif
+    call s:ThisInit()
+    let s:enable = 1
+endfunction
+"}}}
+" 禁用插件时的动作
+function! videm#plugin#omnicpp#Disable() "{{{2
+    if !s:enable
+        return
+    endif
+    call s:UninstallCommands()
+    py VidemWorkspace.UnregDelNodePostHook(DelNodePostHook, 0)
+    py VidemWorkspace.UnregRnmNodePostHook(RnmNodePostHook, 0)
+    py VidemWorkspace.wsp_ntf.Unregister(VidemWspOmniCppHook, 0)
+    augroup VidemCCOmniCpp
+        autocmd!
+    augroup END
+    augroup! VidemCCOmniCpp
+    py OmniCppWMenuAction(remove=True)
+    " NOTE: 保存工作区的时候可能触发这个事件，然后这里卸载hook，会造成不一致
+    call VidemWspSetCreateHookUnregister('videm#plugin#omnicpp#WspSetHook', 0)
+    aunmenu &Videm.OmniCpp\ Tags\ Settings\.\.\.
+    let s:enable = 0
+endfunction
+"}}}
+" 卸载插件时的动作
+function! videm#plugin#omnicpp#Exit() "{{{2
 endfunction
 "}}}
 function! s:InitPythonIterfaces() "{{{2
@@ -351,6 +408,11 @@ def VidemWspOmniCppHook(event, wsp, ins):
     if   event == 'open_post':
         dbfile = os.path.splitext(wsp.VLWIns.fileName)[0] + '.vltags'
         ins.tagmgr.OpenDatabase(dbfile)
+        # 更新OmniCpp类型替换
+        OmniCppUpdateTypesVar(wsp)
+        # 更新额外的搜索域
+        vim.command("let g:VLOmniCpp_PrependSearchScopes = %s" %
+                    ToVimEval(wsp.VLWSettings.GetUsingNamespace()))
     elif event == 'close_post':
         ins.tagmgr.CloseDatabase()
 
@@ -366,7 +428,20 @@ def OmniCppMenuWHook(wsp, choice, ins):
     elif choice == 'Parse Workspace (Quick)':
         ins.ParseWorkspace(wsp, async=False, full=False)
 
-def OmniCppInit():
+def OmniCppUpdateTypesVar(wsp):
+    '''更新OmniCpp补全的类型替换'''
+    vim.command("let g:dOCppTypes = {}")
+    for i in (wsp.VLWSettings.tagsTypes + TagsSettingsST.Get().tagsTypes):
+        li = i.partition('=')
+        path = vim.eval("omnicpp#utils#GetVariableType('%s').name" 
+                        % ToVimStr(li[0]))
+        vim.command("let g:dOCppTypes['%s'] = {}" % (ToVimStr(path),))
+        vim.command("let g:dOCppTypes['%s'].orig = '%s'" 
+                    % (ToVimStr(path), ToVimStr(li[0])))
+        vim.command("let g:dOCppTypes['%s'].repl = '%s'" 
+                    % (ToVimStr(path), ToVimStr(li[2])))
+
+def OmniCppWMenuAction(remove=False):
     # 菜单动作，只添加工作区菜单
     li = [
         '-Sep_OmniCpp-',
@@ -375,11 +450,16 @@ def OmniCppInit():
         'Parse Workspace (Full)',
         'Parse Workspace (Quick)',
     ]
-    idx = VidemWorkspace.popupMenuW.index('-Sep_Settings-')
-    for item in li:
-        VidemWorkspace.InsertWMenu(idx, item,
-                                   OmniCppMenuWHook, videm_cc_omnicpp)
-        idx += 1
+
+    if remove:
+        for item in li:
+            VidemWorkspace.RemoveWMenu(item)
+    else:
+        idx = VidemWorkspace.popupMenuW.index('-Sep_Settings-')
+        for item in li:
+            VidemWorkspace.InsertWMenu(idx, item,
+                                       OmniCppMenuWHook, videm_cc_omnicpp)
+            idx += 1
 
 PYTHON_EOF
 endfunction

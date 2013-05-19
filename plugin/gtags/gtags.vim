@@ -4,6 +4,8 @@
 " Create:   2013-05-18
 " Change:   2013-05-18
 
+let s:enable = 0
+
 let s:GtagsSettings = {
     \ '.videm.symdb.gtags.Enable'           : 0,
     \ '.videm.symdb.gtags.Program'          : 'gtags',
@@ -107,7 +109,31 @@ function! s:Autocmd_UpdateGtagsDatabase(sFile) "{{{2
     endif
 endfunction
 "}}}
+function! videm#plugin#gtags#SettingsHook(event, data, priv) "{{{2
+    let event = a:event
+    let opt = a:data['opt']
+    let val = a:data['val']
+    if event ==# 'set'
+        if opt ==# '.videm.symdb.gtags.Enable'
+            "echomsg 'gtags'
+            "echomsg s:enable
+            "echomsg event
+            "echomsg val
+            if val
+                call videm#plugin#gtags#Enable()
+            else
+                call videm#plugin#gtags#Disable()
+            endif
+        endif
+    endif
+endfunction
+"}}}
 function! s:ThisInit() "{{{2
+    if !s:SanityCheck()
+        "call vlutils#EchoWarnMsg("gtags SanityCheck failed! Please fix it up.")
+        call getchar()
+        return -1
+    endif
     call s:InitPythonIterfaces()
     py VidemWorkspace.wsp_ntf.Register(VidemWspGtagsHook, 0, None)
     " 命令
@@ -147,20 +173,50 @@ function! s:SanityCheck() "{{{2
     return 1
 endfunction
 "}}}
-function! videm#plugin#gtags#Init()
+function! videm#plugin#gtags#Init() "{{{2
+    call videm#settings#RegisterHook('videm#plugin#gtags#SettingsHook', 0, 0)
     call s:InitSettings()
     if !videm#settings#Get('.videm.symdb.gtags.Enable', 0)
         return
     endif
-    if !s:SanityCheck()
-        "call vlutils#EchoWarnMsg("gtags SanityCheck failed! Please fix it up.")
-        call getchar()
+    let ret = s:ThisInit()
+    if ret
+        return ret
+    endif
+    let s:enable = 1
+endfunction
+"}}}
+function! videm#plugin#gtags#Disable() "{{{2
+    if !s:enable
         return
     endif
-    call s:ThisInit()
+    py VidemWorkspace.wsp_ntf.Unregister(VidemWspGtagsHook, 0)
+    " 命令
+    delcommand VLWInitGtagsDatabase
+    delcommand VLWUpdateGtagsDatabase
+    " 自动命令
+    augroup VidemSyndbGtags
+        autocmd!
+    augroup END
+    augroup! VidemSyndbGtags
+    " kill all symdb
+    cs kill -1
+    let s:enable = 0
 endfunction
-
-function! s:InitPythonIterfaces()
+"}}}
+function! videm#plugin#gtags#Enable() "{{{2
+    if s:enable
+        return
+    endif
+    let ret = s:ThisInit()
+    if ret
+        return ret
+    endif
+    call videm#plugin#gtags#ConnectGtagsDatabase()
+    let s:enable = 1
+endfunction
+"}}}
+function! s:InitPythonIterfaces() "{{{2
 python << PYTHON_EOF
 import vim
 
@@ -172,5 +228,5 @@ def VidemWspGtagsHook(event, wsp, unused):
     return Notifier.OK
 PYTHON_EOF
 endfunction
-
+"}}}
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1

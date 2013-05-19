@@ -476,14 +476,15 @@ function! vlutils#Notifier.Register(callback, priority, ...) "{{{2
 endfunction
 "}}}
 function! vlutils#Notifier.Unregister(callback, priority) "{{{2
-    let cbk = a:callback
-    if type(cbk) == type('')
-        unlet cbk
-        let cbk = function(a:callback)
+    " 回调函数变量的首字母必须是大写...
+    let Cbk = a:callback
+    if type(Cbk) == type('')
+        unlet Cbk
+        let Cbk = function(a:callback)
     endif
     let idx = 0
     for item in self.callbacks
-        if item['callback'] is cbk && item['priority'] == a:priority
+        if item['callback'] is Cbk && item['priority'] == a:priority
             call remove(self.callbacks, idx)
             return 0
         endif

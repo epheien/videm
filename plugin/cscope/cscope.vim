@@ -4,6 +4,8 @@
 " Create:   2013-05-18
 " Change:   2013-05-18
 
+let s:enable = 0
+
 let s:CscopeSettings = {
     \ '.videm.symdb.cscope.Enable'          : 1,
     \ '.videm.symdb.cscope.Program'         : &cscopeprg,
@@ -244,14 +246,57 @@ function! s:ThisInit() "{{{2
                 \               call <SID>UpdateVLWCscopeDatabase(1)
 endfunction
 "}}}
-function! videm#plugin#cscope#Init()
+function! videm#plugin#cscope#SettingsHook(event, data, priv) "{{{2
+    let event = a:event
+    let opt = a:data['opt']
+    let val = a:data['val']
+    if event ==# 'set'
+        if opt ==# '.videm.symdb.cscope.Enable'
+            "echomsg 'cscope'
+            "echomsg s:enable
+            "echomsg event
+            "echomsg val
+            if val
+                call videm#plugin#cscope#Enable()
+            else
+                call videm#plugin#cscope#Disable()
+            endif
+        endif
+    endif
+endfunction
+"}}}
+function! videm#plugin#cscope#Init() "{{{2
+    call videm#settings#RegisterHook('videm#plugin#cscope#SettingsHook', 0, 0)
     call s:InitSettings()
     if !videm#settings#Get('.videm.symdb.cscope.Enable', 0)
         return
     endif
     call s:ThisInit()
+    let s:enable = 1
 endfunction
-function! s:InitPythonIterfaces()
+"}}}
+function! videm#plugin#cscope#Enable() "{{{2
+    if s:enable
+        return
+    endif
+    call s:ThisInit()
+    call videm#plugin#cscope#ConnectCscopeDatabase()
+    let s:enable = 1
+endfunction
+"}}}
+function! videm#plugin#cscope#Disable() "{{{2
+    if !s:enable
+        return
+    endif
+    py VidemWorkspace.wsp_ntf.Unregister(VidemWspCscopeHook, 0)
+    " 命令
+    delcommand VLWInitCscopeDatabase
+    delcommand VLWUpdateCscopeDatabase
+    cs kill -1
+    let s:enable = 0
+endfunction
+"}}}
+function! s:InitPythonIterfaces() "{{{2
 python << PYTHON_EOF
 import vim
 #from Notifier import Notifier
@@ -264,5 +309,5 @@ def VidemWspCscopeHook(event, wsp, unused):
     return Notifier.OK
 PYTHON_EOF
 endfunction
-
+"}}}
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1
