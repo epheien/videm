@@ -8,3 +8,4 @@ rm -rf "$TGT_DIR"
 make --no-print-directory install
 cd "$TGT_DIR" && tar -czf "$SCRIPT_DIR/videm-$VERSION.tar.gz" *
 cd - >/dev/null
+echo "$SCRIPT_DIR/videm-$VERSION.tar.gz" is ready

@@ -28,7 +28,7 @@ install:
 	@for d in $(files); do cp "$$d" $(PYDIR)/; done
 	@mkdir -p $(VIMDIR)/autoload/videm
 	@cp videm.vim $(VIMDIR)/plugin
-	@cp wsp.vim wsp.py $(VIMDIR)/autoload/videm
+	@cp settings.vim wsp.vim wsp.py $(VIMDIR)/autoload/videm
 	@mkdir -p $(VIMDIR)/syntax
 	@cp syntax/* $(VIMDIR)/syntax
 	@mkdir -p $(VIDEMDIR)/config

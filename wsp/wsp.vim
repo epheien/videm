@@ -165,27 +165,29 @@ function! s:RefreshBackwardOptions()
         call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
     endif
 
-    if type(g:VLWorkspaceSymbolDatabase) == type('')
-        if g:VLWorkspaceSymbolDatabase ==? 'cscope'
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
-        elseif g:VLWorkspaceSymbolDatabase ==? 'gtags'
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+    if exists('g:VLWorkspaceSymbolDatabase')
+        if type(g:VLWorkspaceSymbolDatabase) == type('')
+            if g:VLWorkspaceSymbolDatabase ==? 'cscope'
+                call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+                call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
+            elseif g:VLWorkspaceSymbolDatabase ==? 'gtags'
+                call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+                call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+            else
+                call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+                call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+            endif
         else
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-        endif
-    else
-        if g:VLWorkspaceSymbolDatabase == 1
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
-        elseif g:VLWorkspaceSymbolDatabase == 2
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
-        else
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+            if g:VLWorkspaceSymbolDatabase == 1
+                call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+                call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
+            elseif g:VLWorkspaceSymbolDatabase == 2
+                call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+                call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+            else
+                call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
+                call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+            endif
         endif
     endif
 endfunction

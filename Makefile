@@ -24,6 +24,8 @@ install: skel_dir
 	@for d in $(dirs); do $(MAKE) $@ -C "$$d"; done
 # clean '.svn'
 	@find $(DESTDIR) -depth -name '.svn' -exec rm -rf {} \;
+# clean '.*.swp'
+	@find $(DESTDIR) -name '.*.swp' -exec rm -f {} \;
 
 skel_dir:
 	@mkdir -p $(PYDIR)
