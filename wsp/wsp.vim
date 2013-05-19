@@ -63,6 +63,8 @@ else
     call s:InitVariable("g:VidemDir", fnamemodify("~/.videm", ":p"))
 endif
 
+let g:VidemPyDir = s:os.path.join(g:VidemDir, 'core')
+
 " 如果这个变量为零，所有后向兼容的选项都失效
 call s:InitVariable('g:VidemCompatible', 1)
 

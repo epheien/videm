@@ -22,7 +22,7 @@ VimExcHdr.Init()
 # iter(CompletionString).next -> CompletionChunk
 # CompletionChunk.spelling -> text needed by vim
 
-sys.path.append(os.path.dirname(__file__))
+#sys.path.append(os.path.dirname(__file__))
 
 def GetTypedText(iCompletionString):
     '''strings 是 CompletionString 实例，迭代后是 CompletionChunk 的实例'''

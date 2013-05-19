@@ -13,7 +13,7 @@ import shlex
 import json
 import vim
 
-sys.path.append(os.path.join(vim.eval('g:VidemDir'), 'core'))
+sys.path.append(vim.eval('g:VidemPyDir'))
 import VLWorkspace
 from VLWorkspace import VLWorkspaceST
 from TagsSettings import TagsSettings
