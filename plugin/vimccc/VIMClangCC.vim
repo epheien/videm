@@ -61,9 +61,9 @@ let g:dRelatedFile = {}
 let s:sPluginPath = substitute(expand('<sfile>:p:h'), '\\', '/', 'g')
 
 if has('win32') || has('win64')
-    let s:sDefaultPyModPath = fnamemodify($VIM . '\vimlite\VimLite', ":p")
+    let s:sDefaultPyModPath = fnamemodify($VIM . '\videm\core', ":p")
 else
-    let s:sDefaultPyModPath = fnamemodify("~/.vimlite/VimLite", ":p")
+    let s:sDefaultPyModPath = fnamemodify("~/.videm/core", ":p")
 endif
 
 function! s:InitVariable(varName, defaultVal) "{{{2
@@ -1236,11 +1236,6 @@ endfunction
 function! s:VIMCCCUpdateClangQuickFix(sFileName) "{{{2
     let sFileName = a:sFileName
 
-    "py t = UpdateQuickFixThread(vim.eval("sFileName"),
-                "\ [GetCurUnsavedFile()], True)
-    "py t.start()
-    "return
-
     " quickfix 里面就不需要添加前置内容了，暂时的处理
     py VIMCCCIndex.UpdateTranslationUnit(vim.eval("sFileName"), 
                 \[GetCurUnsavedFile(False)], True)
@@ -1376,28 +1371,16 @@ function! s:InitPythonInterfaces() "{{{2
         return
     endif
 
-    py import sys
-    py import vim
-    py sys.path.append(vim.eval("g:VIMCCC_PythonModulePath"))
-    py sys.argv = [vim.eval("g:VIMCCC_ClangLibraryPath")]
-    "silent! exec 'pyfile ' . s:VIMCCC_PythonModulePath . '/VIMClangCC.py'
-    py from VIMClangCC import *
 python << PYTHON_EOF
-
-#import threading
-#class UpdateQuickFixThread(threading.Thread):
-#    def __init__(self, sFileName, lUnsavedFiles = [], bReparse = False):
-#        threading.Thread.__init__(self)
-#        self.sFileName = sFileName
-#        self.lUnsavedFiles = lUnsavedFiles
-#        self.bReparse = bReparse
-#
-#    def run(self):
-#        global VIMCCCIndex
-#        VIMCCCIndex.UpdateTranslationUnit(self.sFileName, self.lUnsavedFiles,
-#                                          self.bReparse)
-#        vim.command("call setqflist(%s)" 
-#                    % VIMCCCIndex.GetVimQucikFixListFromRecentTU())
+import sys
+import vim
+try:
+    sys.path.index(vim.eval("g:VIMCCC_PythonModulePath"))
+except ValueError:
+    sys.path.append(vim.eval("g:VIMCCC_PythonModulePath"))
+# FIXME 暂时用这么搓的方法来传递参数给 cindex
+sys.argv = [vim.eval("g:VIMCCC_ClangLibraryPath")]
+from VIMClangCC import *
 
 UF_None = 0
 UF_Related = 1

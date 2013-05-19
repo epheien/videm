@@ -190,6 +190,8 @@ function! videm#plugin#vimccc#WspSetHook(event, data, priv) "{{{2
 endfunction
 "}}}
 function! s:ThisInit() "{{{2
+    " 先设置模块目录
+    let g:VIMCCC_PythonModulePath = 
     call s:InitPythonIterfaces()
     py VidemWorkspace.wsp_ntf.Register(VidemWspVIMCCCHook, 0, None)
     augroup VidemCCVIMCCC

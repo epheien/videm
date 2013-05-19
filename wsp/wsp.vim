@@ -63,6 +63,9 @@ else
     call s:InitVariable("g:VidemDir", fnamemodify("~/.videm", ":p"))
 endif
 
+" 如果这个变量为零，所有后向兼容的选项都失效
+call s:InitVariable('g:VidemCompatible', 1)
+
 call s:InitVariable("g:VLWorkspaceWinSize", 30)
 call s:InitVariable("g:VLWorkspaceWinPos", "left")
 call s:InitVariable("g:VLWorkspaceBufName", '== VidemWorkspace ==')
@@ -534,7 +537,9 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
 
     " 初始化设置
     call s:InitSettings()
-    call s:InitCompatSettings()
+    if g:VidemCompatible
+        call s:InitCompatSettings()
+    endif
 
     if bNeedConvertWspFileFormat
         " 老格式的 workspace, 提示转换格式
