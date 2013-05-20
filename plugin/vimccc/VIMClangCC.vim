@@ -23,12 +23,11 @@ if has('clientserver')
     let s:has_clientserver = 1
 endif
 
-augroup VidemCCVIMCCC
-    autocmd! FileType c,cpp call VIMCCCInit()
-augroup END
-
 " 标识是否第一次初始化
 let s:bFirstInit = 1
+
+" 启用状态
+let s:enable = 0
 
 " 调试用
 let s:nAsyncCompleteCount = 0
@@ -152,6 +151,7 @@ function! s:GetSFuncRef(sFuncName) "获取局部于脚本的函数的引用 {{{2
 endfunction
 "}}}
 function! s:StartQucikCalltips() "{{{2
+    if !s:enable | return '' | endif
     let s:dCalltipsData.usePrevTags = 1
     call vlcalltips#Start()
     return ''
@@ -187,6 +187,7 @@ function! s:ShouldComplete() "{{{2
 endfunction
 "}}}
 function! s:LaunchCodeCompletion() "{{{2
+    if !s:enable | return '' | endif
     if s:ShouldComplete()
         return "\<C-x>\<C-o>"
     else
@@ -348,6 +349,7 @@ endfunction
 " NOTE: a:char 必须是已经输入完成的，否则补全会失效，
 "       因为补全线程需要获取这个字符
 function! s:CompleteByCharAsync(char) "{{{2
+    if !s:enable | return '' | endif
     let nRow = line('.')
     let nCol = col('.')
     let sBase = ''
@@ -374,6 +376,7 @@ function! s:CompleteByCharAsync(char) "{{{2
 endfunction
 "}}}
 function! s:CompleteByChar(char) "{{{2
+    if !s:enable | return a:char | endif
     if a:char ==# '.'
         return a:char . s:LaunchCodeCompletion()
     elseif a:char ==# '>'
@@ -392,6 +395,10 @@ function! s:CompleteByChar(char) "{{{2
 endfunction
 "}}}
 function! s:InitPyIf() "{{{2
+    if !s:bFirstInit
+        return
+    endif
+
 python << PYTHON_EOF
 import threading
 import subprocess
@@ -399,7 +406,7 @@ import StringIO
 import traceback
 import vim
 
-# FIXME: 应该引用
+# FIXME 应该引用
 import json
 
 def ToVimEval(o):
@@ -690,11 +697,12 @@ endfunction
 function! s:VIMCCCInitForcibly() "{{{2
     let bak = g:VIMCCC_Enable
     let g:VIMCCC_Enable = 1
-    call VIMCCCInit()
+    call VIMCCCInitEarly()
     let g:VIMCCC_Enable = bak
+    call VIMCCCInit()
 endfunction
 "}}}
-" 首次启动
+" 这些初始化作为全局存在，已经初始化，永不销毁
 function! s:FirstInit() "{{{2
 " ============================================================================
     " MayComplete to '.'
@@ -753,13 +761,6 @@ function! s:FirstInit() "{{{2
     call s:InitVariable('g:VIMCCC_TriggerCharCount', 2)
 
 " ============================================================================
-    command! -nargs=0 -bar VIMCCCQuickFix
-            \ call <SID>VIMCCCUpdateClangQuickFix(expand('%:p'))
-
-    command! -nargs=+ VIMCCCSetArgs call <SID>VIMCCCSetArgsCmd(<f-args>)
-    command! -nargs=+ VIMCCCAppendArgs call <SID>VIMCCCAppendArgsCmd(<f-args>)
-    command! -nargs=0 VIMCCCPrintArgs call <SID>VIMCCCPrintArgsCmd(<f-args>)
-
     let g:VIMCCC_CodeCompleteFlags = 0
     if g:VIMCCC_CompleteMacros
         let g:VIMCCC_CodeCompleteFlags += 1
@@ -772,18 +773,44 @@ function! s:FirstInit() "{{{2
 
     " 这是异步接口
     call s:InitPyIf()
-    " === 全局结构
-    " 异步线程队列
-    py g_SyncData = cc_sync_data()
-    " 当前补全的结果，cc_thread实例，串行修改
-    py g_SyncDataResult = None
 endfunction
 "}}}
-" 可选参数存在且非零，不 '冷启动'(异步新建不存在的当前文件对应的翻译单元)
-function! VIMCCCInit(...) "{{{2
+" 用于支持 videm 的插件动作
+function! VIMCCCExit() "{{{2
+    if !s:enable
+        return
+    endif
+    delcommand VIMCCCQuickFix
+    delcommand VIMCCCSetArgs
+    delcommand VIMCCCAppendArgs
+    delcommand VIMCCCPrintArgs
+    augroup VidemCCVIMCCC
+        autocmd!
+    augroup END
+    silent! augroup! VidemCCVIMCCC
+    " NOTE: 即使清除了所有的自动命令，键位绑定还是没法清除的
+    "       并且这个清除是不可逆的，即重新初始化的时候，没法恢复这些自动命令
+    augroup VIMCCC_AUGROUP
+        autocmd!
+    augroup END
+    silent! augroup! VIMCCC_AUGROUP
+    call s:ResetAucmPrevStat()
+    call vlcalltips#Unregister(s:GetSFuncRef('s:RequestCalltips'))
+    py del g_SyncData
+    py del g_SyncDataResult
+    let s:enable = 0
+    " NOTE: VIMCCCIndex 不销毁
+endfunction
+"}}}
+" 最早阶段的初始化，只初始化一些基本设施
+function! VIMCCCInitEarly() "{{{2
     " 是否使用，可用于外部控制
     call s:InitVariable('g:VIMCCC_Enable', 0)
     if !g:VIMCCC_Enable
+        return
+    endif
+
+    if s:enable
         return
     endif
 
@@ -791,6 +818,38 @@ function! VIMCCCInit(...) "{{{2
         call s:FirstInit()
     endif
     let s:bFirstInit = 0
+
+    " 全局命令
+    command! -nargs=0 -bar VIMCCCQuickFix
+            \ call <SID>VIMCCCUpdateClangQuickFix(expand('%:p'))
+
+    command! -nargs=+ VIMCCCSetArgs call <SID>VIMCCCSetArgsCmd(<f-args>)
+    command! -nargs=+ VIMCCCAppendArgs call <SID>VIMCCCAppendArgsCmd(<f-args>)
+    command! -nargs=0 VIMCCCPrintArgs call <SID>VIMCCCPrintArgsCmd(<f-args>)
+
+    " 自动命令
+    augroup VidemCCVIMCCC
+        autocmd!
+        autocmd! FileType c,cpp call VIMCCCInit()
+    augroup END
+
+    " 初始化函数参数提示服务
+    call vlcalltips#Register(s:GetSFuncRef('s:RequestCalltips'),
+            \                s:dCalltipsData)
+
+    " === 全局结构 ===
+    " 异步线程队列
+    py g_SyncData = cc_sync_data()
+    " 当前补全的结果，cc_thread实例，串行修改
+    py g_SyncDataResult = None
+
+    let s:enable = 1
+endfunction
+"}}}
+" 可选参数控制是否立即更新（生成）翻译翻译单元
+" 这个初始化是进入缓冲区的时候才调用
+function! VIMCCCInit(...) "{{{2
+    let bUpdTu = get(a:000, 0, 1)
 
     let bAsync = g:VIMCCC_AutoPopupMenu
 
@@ -820,14 +879,13 @@ function! VIMCCCInit(...) "{{{2
         augroup END
     endif
 
-    " 初始化函数参数提示服务
-    call vlcalltips#Register(s:GetSFuncRef('s:RequestCalltips'), s:dCalltipsData)
+    " 函数参数提示键绑定
     call vlcalltips#InitBuffKeymap()
 
     if g:VIMCCC_MayCompleteDot
         if bAsync
-            inoremap <silent> <buffer> . .
-                    \<C-r>=<SID>CompleteByCharAsync('.')<CR>
+            inoremap <silent> <buffer> . 
+                    \.<C-r>=<SID>CompleteByCharAsync('.')<CR>
         else
             inoremap <silent> <buffer> . 
                     \<C-r>=<SID>SetOpts()<CR>
@@ -838,54 +896,51 @@ function! VIMCCCInit(...) "{{{2
 
     if g:VIMCCC_MayCompleteArrow
         if bAsync
-            inoremap <silent> <buffer> > >
-                        \<C-r>=<SID>CompleteByCharAsync('>')<CR>
+            inoremap <silent> <buffer> > 
+                    \><C-r>=<SID>CompleteByCharAsync('>')<CR>
         else
             inoremap <silent> <buffer> > 
-                        \<C-r>=<SID>SetOpts()<CR>
-                        \<C-r>=<SID>CompleteByChar('>')<CR>
-                        \<C-r>=<SID>RestoreOpts()<CR>
+                    \<C-r>=<SID>SetOpts()<CR>
+                    \<C-r>=<SID>CompleteByChar('>')<CR>
+                    \<C-r>=<SID>RestoreOpts()<CR>
         endif
     endif
 
     if g:VIMCCC_MayCompleteColon
         if bAsync
-            inoremap <silent> <buffer> : :
-                        \<C-r>=<SID>CompleteByCharAsync(':')<CR>
+            inoremap <silent> <buffer> : 
+                    \:<C-r>=<SID>CompleteByCharAsync(':')<CR>
         else
             inoremap <silent> <buffer> : 
-                        \<C-r>=<SID>SetOpts()<CR>
-                        \<C-r>=<SID>CompleteByChar(':')<CR>
-                        \<C-r>=<SID>RestoreOpts()<CR>
+                    \<C-r>=<SID>SetOpts()<CR>
+                    \<C-r>=<SID>CompleteByChar(':')<CR>
+                    \<C-r>=<SID>RestoreOpts()<CR>
         endif
     endif
 
     if g:VIMCCC_ItemSelectionMode > 4
         inoremap <silent> <buffer> <C-n> 
-                    \<C-r>=<SID>CheckIfSetOpts()<CR>
-                    \<C-r>=<SID>LaunchCodeCompletion()<CR>
-                    \<C-r>=<SID>RestoreOpts()<CR>
+                \<C-r>=<SID>CheckIfSetOpts()<CR>
+                \<C-r>=<SID>LaunchCodeCompletion()<CR>
+                \<C-r>=<SID>RestoreOpts()<CR>
     else
         "inoremap <silent> <buffer> <C-n> 
-                    "\<C-r>=<SID>SetOpts()<CR>
-                    "\<C-r>=<SID>LaunchCodeCompletion()<CR>
-                    "\<C-r>=<SID>RestoreOpts()<CR>
+                "\<C-r>=<SID>SetOpts()<CR>
+                "\<C-r>=<SID>LaunchCodeCompletion()<CR>
+                "\<C-r>=<SID>RestoreOpts()<CR>
     endif
 
     if g:VIMCCC_MapReturnToDispCalltips
-        "inoremap <silent> <expr> <buffer> <CR> pumvisible() ? 
-                    "\"\<C-y>\<C-r>=<SID>RequestCalltips(1)\<Cr>" : 
-                    "\"\<CR>"
         inoremap <silent> <expr> <buffer> <CR> pumvisible() ? 
-                    \"\<C-y><C-r>=<SID>StartQucikCalltips()\<Cr>" : 
-                    \"\<CR>"
+                \"\<C-y><C-r>=<SID>StartQucikCalltips()\<Cr>" : 
+                \"\<CR>"
     endif
 
     exec 'nnoremap <silent> <buffer> ' . g:VIMCCC_GotoDeclarationKey 
-                \. ' :call <SID>VIMCCCGotoDeclaration()<CR>'
+            \. ' :call <SID>VIMCCCGotoDeclaration()<CR>'
 
     exec 'nnoremap <silent> <buffer> ' . g:VIMCCC_GotoImplementationKey 
-                \. ' :call <SID>VIMCCCSmartJump()<CR>'
+            \. ' :call <SID>VIMCCCSmartJump()<CR>'
 
     if bAsync
         " 真正的异步补全实现
@@ -908,10 +963,7 @@ function! VIMCCCInit(...) "{{{2
         endif
     endif
 
-    if a:0 > 0 && a:1
-        " 可控制不 '冷启动'
-    else
-        " '冷启动'
+    if bUpdTu
         py VIMCCCIndex.AsyncUpdateTranslationUnit(vim.eval("expand('%:p')"))
     endif
 
@@ -1183,6 +1235,7 @@ endfunction
 "}}}
 function! VIMClangCodeCompletion(findstart, base) "{{{2
     if a:findstart
+        if !s:enable | return -1 | endif
         "call vlutils#TimerStart() " 计时
         return VIMCCCSearchStartColumn(1)
     endif
@@ -1248,6 +1301,7 @@ function! s:VIMCCCUpdateClangQuickFix(sFileName) "{{{2
 endfunction
 "}}}
 function! s:VIMCCCGotoDeclaration() "{{{2
+    if !s:enable | return '' | endif
     let sFileName = expand('%:p')
     let nFileLineCount = line('$')
 
@@ -1330,6 +1384,7 @@ endfunction
 "}}}
 " 智能跳转, 可跳转到包含的文件, 符号的实现处
 function! s:VIMCCCSmartJump() "{{{2
+    if !s:enable | return '' | endif
     let sLine = getline('.')
     if matchstr(sLine, '^\s*#\s*include') !=# ''
         " 跳转到包含的文件
@@ -1366,6 +1421,7 @@ function! s:GotoLocation(dLocation) "{{{2
     endif
 endfunction
 "}}}
+" 调用此函数后，生成全局变量 VIMCCCIndex
 function! s:InitPythonInterfaces() "{{{2
     if !s:bFirstInit
         return
@@ -1431,5 +1487,8 @@ VIMCCCIndex = VIMClangCCIndex()
 PYTHON_EOF
 endfunction
 "}}}
+
+" 最后才初始化...
+call VIMCCCInitEarly()
 
 " vim: fdm=marker fen et sts=4 fdl=1

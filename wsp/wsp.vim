@@ -252,7 +252,9 @@ let s:WspConfTmpl = {
 \ }
 
 " 需要重启的选项
-let s:WspConfTmplRestart = {}
+let s:WspConfTmplRestart = {
+    \ '.videm.cc.Current'   : '',
+\ }
 
 " 备份的设置，一般用于保存全局的配置
 let s:WspConfBakp = {}

@@ -56,7 +56,8 @@ endfunction
 " 3. 只有进入插入模式时，才开始更新翻译单元的线程
 function! videm#plugin#vimccc#InitFacilities() "{{{2
     let g:VIMCCC_Enable = 1 " 保证初始化成功
-    call VIMCCCInit(1) " 先初始化默认的 clang index
+    " 先初始化默认的 clang index
+    call VIMCCCInitEarly()
     py OrigVIMCCCIndex = VIMCCCIndex
     let g:VIMCCC_Enable = 0 " 再禁用 VIMCCC
 endfunction
@@ -214,6 +215,8 @@ function! s:ThisInit() "{{{2
     let g:VIMCCC_PythonModulePath = g:VidemPyDir
     call s:InitPythonIterfaces()
     py VidemWorkspace.wsp_ntf.Register(VidemWspVIMCCCHook, 0, None)
+    call videm#plugin#vimccc#InitFacilities()
+    " 替换自动命令
     augroup VidemCCVIMCCC
         autocmd!
         autocmd! FileType c,cpp call <SID>VIMCCCInitExt()
@@ -268,12 +271,13 @@ function! videm#plugin#vimccc#Disable() "{{{2
     augroup VidemCCVIMCCC
         autocmd!
     augroup END
-    augroup! VidemCCVIMCCC
+    silent! augroup! VidemCCVIMCCC
     call VidemWspSetCreateHookUnregister('videm#plugin#vimccc#WspSetHook', 0)
     aunmenu &Videm.VIMCCC\ Settings\.\.\.
     " 清理 python 全局数据
-    "py VIMCCCIndex = OrigVIMCCCIndex
+    py VIMCCCIndex = OrigVIMCCCIndex
     py ws.clangIndices.clear()
+    call VIMCCCExit()
     let s:enable = 0
 endfunction
 "}}}
@@ -331,7 +335,7 @@ def HandleHeaderIssue(sHeaderFile):
 
 def VidemWspVIMCCCHook(event, wsp, ins):
     if   event == 'open_post':
-        vim.command("call videm#plugin#vimccc#InitFacilities()")
+        pass
     elif event == 'close_post':
         pass
     return Notifier.OK

@@ -69,8 +69,17 @@ function! vlcalltips#Register(func, data) "{{{2
     if type(a:func) == type("")
         let Cbk = function(a:func)
     endif
+    silent! unlet s:VLCalltips.callback
     let s:VLCalltips.callback = Cbk
+    silent! unlet s:VLCalltips.callbackData
     let s:VLCalltips.callbackData = a:data
+endfunction
+"}}}
+function! vlcalltips#Unregister(func) "{{{2
+    silent! unlet s:VLCalltips.callback
+    let s:VLCalltips.callback = 0
+    silent! unlet s:VLCalltips.callbackData
+    let s:VLCalltips.callbackData = 0
 endfunction
 "}}}
 function! vlcalltips#Start() "{{{2
