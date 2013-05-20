@@ -4507,7 +4507,7 @@ endfunction
 "===============================================================================
 "===============================================================================
 
-function g:VLWVersion() "{{{2
+function VidemVersion() "{{{2
     if s:bHadInited
         py vim.command("return %d" % VIMLITE_VER)
     else
