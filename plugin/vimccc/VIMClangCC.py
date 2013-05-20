@@ -212,6 +212,7 @@ class VIMClangCCIndex(object):
         except RuntimeError:
             pass
 
+        # NOTE: sAbsFileName 不允许为非法的文件（空或其他）
         self.updateThread = UpdateTUThread(sAbsFileName,
                                            self.lArgs,
                                            lUnsavedFiles,

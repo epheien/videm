@@ -2,7 +2,7 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2011-12-16
-" Change:   2013-01-23
+" Change:   2013-05-21
 
 if !has('python')
     echohl ErrorMsg
@@ -819,6 +819,24 @@ function! VIMCCCInitEarly() "{{{2
     endif
     let s:bFirstInit = 0
 
+    " 特性检查
+    if g:VIMCCC_AutoPopupMenu && (empty(v:servername) || !has('clientserver'))
+        echohl WarningMsg
+        echom '-------------------- VIMCCC --------------------'
+        if empty(v:servername)
+            echom "Please start vim as server, eg. vim --servername {name}"
+            echom "Auto popup menu feature will be disabled this time"
+        else
+            echom 'Auto popup menu feature required vim compiled vim with '
+                    \ . '+clientserver'
+            echom 'The feature will be disabled this time'
+        endif
+        echom "You can run ':let g:VIMCCC_AutoPopupMenu = 0' to diable this "
+                \ . "message"
+        echohl None
+        call getchar()
+    endif
+
     " 全局命令
     command! -nargs=0 -bar VIMCCCQuickFix
             \ call <SID>VIMCCCUpdateClangQuickFix(expand('%:p'))
@@ -851,23 +869,17 @@ endfunction
 function! VIMCCCInit(...) "{{{2
     let bUpdTu = get(a:000, 0, 1)
 
-    let bAsync = g:VIMCCC_AutoPopupMenu
+    " TODO 表示缓冲区已经初始化 vimccc
+    "       主要作用是保存一个新的文件后，再初始化
+    "       暂不实现
+    "let b:init = 1
 
-    " 特性检查
+    if (&ft !=# 'c' && &ft !=# 'cpp') || empty(expand('%'))
+        return
+    endif
+
+    let bAsync = g:VIMCCC_AutoPopupMenu
     if bAsync && (empty(v:servername) || !has('clientserver'))
-        echohl WarningMsg
-        echom '-------------------- VIMCCC --------------------'
-        if empty(v:servername)
-            echom "Please start vim as server, eg. vim --servername {name}"
-            echom "Auto popup menu feature will be disabled this time"
-        else
-            echom 'Auto popup menu feature required vim compiled vim with '
-                    \ . '+clientserver'
-            echom 'The feature will be disabled this time'
-        endif
-        echom "You can run ':let g:VIMCCC_AutoPopupMenu = 0' to diable this "
-                \ . "message"
-        echohl None
         let bAsync = 0
     endif
 
@@ -1421,7 +1433,7 @@ function! s:GotoLocation(dLocation) "{{{2
     endif
 endfunction
 "}}}
-" 调用此函数后，生成全局变量 VIMCCCIndex
+" NOTE: 调用此函数后，生成全局变量 VIMCCCIndex
 function! s:InitPythonInterfaces() "{{{2
     if !s:bFirstInit
         return
