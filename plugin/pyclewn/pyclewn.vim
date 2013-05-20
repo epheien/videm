@@ -62,7 +62,8 @@ function! s:DbgStart(...) "{{{2
     if !s:DbgHadStarted() && !s:dbgStandalone
         " 检查
         py if not ws.VLWIns.GetActiveProjectName(): vim.command(
-                \'call s:echow("There is no active project!") | return')
+                \ 'call vlutils#EchoWarnMsg("There is no active project!") | '
+                \ 'return')
 
         " Windows 平台暂时有些问题没有解决
         if vlutils#IsWindowsOS()
@@ -157,7 +158,7 @@ endfunction
 function! s:DbgToggleBreakpoint(...) "{{{2
     let bHardwareBp = a:0 > 0 ? a:1 : 0
     if !s:DbgHadStarted()
-        call s:echow('Please start the debugger firstly.')
+        call vlutils#EchoWarnMsg('Please start the debugger firstly.')
         return
     endif
     let nCurLine = line('.')
@@ -170,7 +171,7 @@ function! s:DbgToggleBreakpoint(...) "{{{2
     let nIsDelBp = 0
 
     let sCursorSignName = ''
-    for sLine in split(g:GetCmdOutput('sign list'), "\n")
+    for sLine in split(vlutils#GetCmdOutput('sign list'), "\n")
         if sLine =~# '^sign '
             if matchstr(sLine, '\Ctext==>') !=# ''
                 let sCursorSignName = matchstr(sLine, '\C^sign \zs\w\+\>')
@@ -190,7 +191,8 @@ function! s:DbgToggleBreakpoint(...) "{{{2
         let nSigintFlag = 1
     endif
 
-    for sLine in split(g:GetCmdOutput('sign place buffer=' . bufnr('%')), "\n")
+    for sLine in split(vlutils#GetCmdOutput('sign place buffer=' . bufnr('%')),
+            \                               "\n")
         if sLine =~# '^\s\+line='
             let nSignLine = str2nr(matchstr(sLine, '\Cline=\zs\d\+'))
             let sSignName = matchstr(sLine, '\Cname=\zs\w\+\>')
@@ -199,7 +201,7 @@ function! s:DbgToggleBreakpoint(...) "{{{2
                 "let nID = str2nr(matchstr(sLine, '\Cid=\zs\d\+'))
                 " 获取断点的名字, 按名字删除
                 let sName = matchstr(sLine, '\Cid=\zs\w\+')
-                for sLine2 in split(g:GetCmdOutput('sign list'), "\n")
+                for sLine2 in split(vlutils#GetCmdOutput('sign list'), "\n")
                     "if matchstr(sLine2, '\C^sign ' . nID) !=# ''
                     if matchstr(sLine2, '\C^sign ' . sName) !=# ''
                         let sBpID = matchstr(sLine2, '\Ctext=\zs\d\+')
@@ -489,7 +491,7 @@ function! s:Autocmd_Quit() "{{{2
                         \"There %s %d running background thread%s, " 
                         \. "please wait...", 
                         \nCnt == 1 ? 'is' : 'are', nCnt, nCnt > 1 ? 's' : '')
-            call s:echow(sMsg)
+            call vlutils#EchoWarnMsg(sMsg)
         else
             break
         endif

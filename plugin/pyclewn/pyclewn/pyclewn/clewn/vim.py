@@ -368,6 +368,8 @@ class Vim(object):
 
         # check pyclewn version
         pyclewn_version = 'pyclewn-' + __tag__
+        # disable version checking by fanhe
+        version = pyclewn_version
         if version != pyclewn_version:
             raise ClewnError('pyclewn.vim version does not match pyclewn\'s:\n'\
                         '\t\tpyclewn version: "%s"\n'\

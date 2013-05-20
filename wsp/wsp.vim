@@ -4528,7 +4528,7 @@ function! s:InitPythonInterfaces() "{{{2
 endfunction
 "}}}2
 function! s:LoadPlugin() "{{{2
-    let sPluginPath = expand('~/.vim/autoload/videm/plugin')
+    let sPluginPath = s:os.path.join(s:os.path.dirname(s:sfile), 'plugin')
     let lPlugin = split(globpath(sPluginPath, "*.vim"), '\n')
     for sFile in lPlugin
         let sName = fnamemodify(sFile, ':t:r')

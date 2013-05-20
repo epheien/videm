@@ -8,6 +8,9 @@ if exists("s:did_pyclewn")
 endif
 let s:did_pyclewn = 1
 
+" import os
+let s:os = vlutils#os
+
 let s:start_err = "Error: pyclewn failed to start, "
 let s:start_err .= "run the 'pyclewn' program to get the cause of the problem."
 
@@ -15,11 +18,14 @@ let s:start_err .= "run the 'pyclewn' program to get the cause of the problem."
 " the ':Pyclewn' vim command is run.
 " They may be changed to match your preferences.
 
-if has('win32') || has('win64')
-    let s:pgm = fnamemodify(g:VidemDir . '\bin\pyclewn', ":p")
-else
-    let s:pgm = fnamemodify(g:VidemDir . "/bin/pyclewn", ":p")
+if !exists('g:VPyclewnProgram')
+    if exists('g:VidemDir')
+        let g:VPyclewnProgram = s:os.path.join(g:VidemDir, 'bin', 'pyclewn')
+    else
+        let g:VPyclewnProgram = 'pyclewn'
+    endif
 endif
+let s:pgm = g:VPyclewnProgram
 
 if !exists('g:VLWDbgFrameSignBackground')
     let g:VLWDbgFrameSignBackground = 'DarkMagenta'

@@ -56,7 +56,7 @@ endfunction
 " 3. 只有进入插入模式时，才开始更新翻译单元的线程
 function! videm#plugin#vimccc#InitFacilities() "{{{2
     let g:VIMCCC_Enable = 1 " 保证初始化成功
-    call VIMClangCodeCompletionInit(1) " 先初始化默认的 clang index
+    call VIMCCCInit(1) " 先初始化默认的 clang index
     py OrigVIMCCCIndex = VIMCCCIndex
     let g:VIMCCC_Enable = 0 " 再禁用 VIMCCC
 endfunction
@@ -101,7 +101,7 @@ PYTHON_EOF
 
     py del project
 
-    call VIMClangCodeCompletionInit()
+    call VIMCCCInit()
     let g:VIMCCC_Enable = bak
 endfunction
 "}}}

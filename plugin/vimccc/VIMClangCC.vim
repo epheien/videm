@@ -24,7 +24,7 @@ if has('clientserver')
 endif
 
 augroup VidemCCVIMCCC
-    autocmd! FileType c,cpp call VIMClangCodeCompletionInit()
+    autocmd! FileType c,cpp call VIMCCCInit()
 augroup END
 
 " 标识是否第一次初始化
@@ -690,7 +690,7 @@ endfunction
 function! s:VIMCCCInitForcibly() "{{{2
     let bak = g:VIMCCC_Enable
     let g:VIMCCC_Enable = 1
-    call VIMClangCodeCompletionInit()
+    call VIMCCCInit()
     let g:VIMCCC_Enable = bak
 endfunction
 "}}}
@@ -780,7 +780,7 @@ function! s:FirstInit() "{{{2
 endfunction
 "}}}
 " 可选参数存在且非零，不 '冷启动'(异步新建不存在的当前文件对应的翻译单元)
-function! VIMClangCodeCompletionInit(...) "{{{2
+function! VIMCCCInit(...) "{{{2
     " 是否使用，可用于外部控制
     call s:InitVariable('g:VIMCCC_Enable', 0)
     if !g:VIMCCC_Enable

@@ -1964,6 +1964,9 @@ class VimLiteWorkspace:
                 return 0
         return -1
 
+    def IsOpen(self):
+        return self.VLWIns.IsOpen()
+
     def GetNodePathByFileName(self, fileName):
         '''
         fileName:   必须是绝对路径

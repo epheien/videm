@@ -372,6 +372,7 @@ function! videm#plugin#omnicpp#Enable() "{{{2
         return
     endif
     call s:ThisInit()
+    py if ws.IsOpen(): VidemWspOmniCppHook('open_post', ws, videm_cc_omnicpp)
     let s:enable = 1
 endfunction
 "}}}
@@ -392,6 +393,7 @@ function! videm#plugin#omnicpp#Disable() "{{{2
     " NOTE: 保存工作区的时候可能触发这个事件，然后这里卸载hook，会造成不一致
     call VidemWspSetCreateHookUnregister('videm#plugin#omnicpp#WspSetHook', 0)
     aunmenu &Videm.OmniCpp\ Tags\ Settings\.\.\.
+    py if ws.IsOpen(): VidemWspOmniCppHook('close_post', ws, videm_cc_omnicpp)
     let s:enable = 0
 endfunction
 "}}}

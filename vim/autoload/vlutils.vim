@@ -440,6 +440,27 @@ function! vlutils#EditTextSaveCbk(dlg, data) "{{{2
     call a:data.owner.RefreshCtl(a:data)
 endfunction
 "}}}
+function! vlutils#GetCmdOutput(sCmd) "{{{2
+    let bak_lang = v:lang
+
+    " 把消息统一为英文
+    exec ":lan mes en_US.UTF-8"
+
+    try
+        redir => sOutput
+        silent! exec a:sCmd
+    catch
+        " 把错误消息设置为最后的 ':' 后的字符串?
+        "let v:errmsg = substitute(v:exception, '^[^:]\+:', '', '')
+    finally
+        redir END
+    endtry
+
+    exec ":lan mes " . bak_lang
+
+    return sOutput
+endfunction
+"}}}
 " linux 内核通知链的 vim 版本
 let vlutils#Notifier = {}
 let vlutils#Notifier.DONE = 0
