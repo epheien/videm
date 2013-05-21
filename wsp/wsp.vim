@@ -236,6 +236,7 @@ let s:WspConfTmplRestart = {
 
 " 备份的设置，一般用于保存全局的配置
 let s:WspConfBakp = {}
+let g:WspConfBakp = s:WspConfBakp
 
 " NOTE: 这个 hook 不能注册进 videm#settings，否则无限递归
 function! videm#wsp#SettingsHook(event, data, priv) "{{{2
@@ -326,8 +327,6 @@ function! s:InitSettings() "{{{2
         call s:InitCompatSettings()
     endif
     call videm#settings#Init(s:DefaultSettings)
-    " FIXME 备份全局配置
-    call videm#wsp#WspConfSave(s:WspConfBakp)
 endfunction
 "}}}2
 
@@ -579,6 +578,9 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
 
     " 载入插件，应该在初始化所有公共设施后、初始化任何工作区实例前执行
     call s:LoadPlugin()
+
+    " 备份全局配置，这个动作要在载入所有插件之后
+    call videm#wsp#WspConfSave(s:WspConfBakp)
 
     " 打开工作区文件，初始化全局变量
     "py ws = VimLiteWorkspace(vim.eval('sFile'))
