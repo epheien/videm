@@ -312,16 +312,18 @@ class VimLiteWorkspace:
             VidemWorkspace.wsp_ntf.CallChain('open_post', self)
 
     def CloseWorkspace(self):
+        if not self.IsOpen():
+            return
         VidemWorkspace.wsp_ntf.CallChain('close_pre', self)
         vim.command('doautocmd VLWorkspace VimLeave *')
         vim.command('redraw | echo ""') # 清理输出...
         self.VLWIns.CloseWorkspace()
+        VidemWorkspace.wsp_ntf.CallChain('close_post', self)
         # 还原配置
-        VLWRestoreConfigToGlobal()
+        vim.command('call videm#wsp#WspConfRestore()')
         # 还原后缀设置
         Utils.CSrcExtReset()
         Utils.CppSrcExtReset()
-        VidemWorkspace.wsp_ntf.CallChain('close_post', self)
 
     def ReloadWorkspace(self):
         VidemWorkspace.wsp_ntf.CallChain('reload_pre', self)
@@ -357,9 +359,7 @@ class VimLiteWorkspace:
                             % ToVimEval(self.VLWSettings.localConfig))
 
     def SaveWspSettings(self):
-        if self.VLWSettings.Save():
-            pass
-            #self.LoadWspSettings()
+        return self.VLWSettings.Save()
 
     def InstallPopupMenu(self):
         for idx, value in enumerate(self.popupMenuW):
@@ -1616,8 +1616,6 @@ class VimLiteWorkspace:
                     self.CloseWorkspace()
                     self.OpenWorkspace(fileName)
                     self.RefreshBuffer()
-                    if vim.eval('g:VLWorkspaceEnableCscope') != '0':
-                        vim.command('call s:ConnectCscopeDatabase()')
             elif choice == 'Close Workspace':
                 self.CloseWorkspace()
                 self.RefreshBuffer()

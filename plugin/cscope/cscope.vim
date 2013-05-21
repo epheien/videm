@@ -331,7 +331,7 @@ function! videm#plugin#cscope#Disable() "{{{2
     " 命令
     delcommand VLWInitCscopeDatabase
     delcommand VLWUpdateCscopeDatabase
-    cs kill -1
+    silent! cs kill -1
     let s:enable = 0
 endfunction
 "}}}

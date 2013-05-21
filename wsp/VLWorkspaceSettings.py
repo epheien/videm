@@ -3,7 +3,9 @@
 
 import pickle
 import os.path
+import json
 from Misc import ConfTree
+from Misc import Obj2Dict, Dict2Obj
 
 class VLWorkspaceSettings:
     '''工作空间设置'''
@@ -67,6 +69,12 @@ class VLWorkspaceSettings:
 
         # 如果指定了 fileName, 从文件载入, 不论成功与否
         self.Load()
+
+    def ToDict(self):
+        return Obj2Dict(self, set(['conf', 'fileName']))
+
+    def FromDict(self, d):
+        Dict2Obj(self, d, (['conf', 'fileName']))
 
     def SetFileName(self, fileName):
         self.fileName = fileName
@@ -157,7 +165,7 @@ class VLWorkspaceSettings:
         '''把 localConfig 字典转为可读的形式'''
         li = []
         for k, v in self.localConfig.iteritems():
-            if isinstance(v, str):
+            if isinstance(v, (str, unicode)):
                 li.append("%s = '%s'" % (k, v.replace("'", "''")))
             else:
                 li.append("%s = %d" % (k, v))
@@ -175,19 +183,24 @@ class VLWorkspaceSettings:
         if not fileName and not self.fileName:
             return False
 
+        if not fileName:
+            fileName = self.fileName
+
+        isjson = False
         ret = False
         obj = None
         try:
-            if not fileName:
-                fileName = self.fileName
             f = open(fileName, 'rb')
             obj = pickle.load(f)
             f.close()
         except IOError:
             #print 'IOError:', fileName
             return False
+        except:
+            f.close()
+            isjson = True
 
-        if obj:
+        if not isjson and obj:
             #self.fileName = obj.fileName # 不需要保存文件名信息
             self.includePaths = obj.includePaths
             self.excludePaths = obj.excludePaths
@@ -212,33 +225,44 @@ class VLWorkspaceSettings:
             del obj
             ret = True
 
+        if isjson:
+            try:
+                f = open(fileName, 'rb')
+                d = json.load(f)
+                f.close()
+                self.FromDict(d)
+            except IOError:
+                return False
+            except:
+                f.close()
+                return False
+            ret = True
+
         return ret
 
     def Save(self, fileName = ''):
         if not fileName and not self.fileName:
             return False
+        if not fileName:
+            fileName = self.fileName
 
         ret = False
-        bak = self.fileName
+        d = self.ToDict()
+        dirName = os.path.dirname(fileName)
+
         try:
-            if not fileName:
-                fileName = self.fileName
-            dirName = os.path.dirname(fileName)
             if not os.path.exists(dirName):
                 os.makedirs(dirName)
+        except:
+            return False
+
+        try:
             f = open(fileName, 'wb')
-            self.fileName = '' # 不保存文件名
-            pickle.dump(self, f)
-            self.fileName = bak # 恢复原始的文件名
+            json.dump(d, f, indent=4, sort_keys=True, ensure_ascii=True)
             f.close()
             ret = True
         except IOError:
-            self.fileName = bak
             print 'IOError:', fileName
-            return False
-        except:
-            print 'Error', fileName
-            self.fileName = bak
             return False
 
         return ret

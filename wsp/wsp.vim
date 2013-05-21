@@ -225,25 +225,6 @@ let s:CompatSettings = {
     \ 'g:VLWorkspaceHighlightSourceFile'    : '.videm.wsp.HlSourceFile',
     \ 'g:VLWorkspaceActiveProjectHlGroup'   : '.videm.wsp.ActProjHlGroup',
 \ }
-
-function! s:InitCompatSettings() "{{{2
-    for item in items(s:CompatSettings)
-        call videm#settings#Set(item[1], {item[0]})
-    endfor
-    call s:RefreshBackwardOptions()
-endfunction
-"}}}2
-function! s:InitSettings() "{{{2
-    if videm#settings#Get('.videm.Compatible')
-        call s:InitCompatSettings()
-    endif
-    call videm#settings#Init(s:DefaultSettings)
-endfunction
-"}}}2
-
-" 这里就直接初始化配置，无须等待到正式打开工作区的时候了
-call s:InitSettings()
-
 " ============================================================================
 " 工作区可局部配置的信息 {{{1
 let s:WspConfTmpl = {
@@ -258,6 +239,7 @@ let s:WspConfTmplRestart = {
 
 " 备份的设置，一般用于保存全局的配置
 let s:WspConfBakp = {}
+let g:WspConfBakp = s:WspConfBakp
 
 " NOTE: 这个 hook 不能注册进 videm#settings，否则无限递归
 function! videm#wsp#SettingsHook(event, data, priv) "{{{2
@@ -320,12 +302,28 @@ function! videm#wsp#WspConfSave(conf) "{{{2
     endfor
 endfunction
 "}}}
-" 先备份全局配置
-call videm#wsp#WspConfSave(s:WspConfBakp)
-
 "}}}
 " ============================================================================
+function! s:InitCompatSettings() "{{{2
+    for item in items(s:CompatSettings)
+        call videm#settings#Set(item[1], {item[0]})
+    endfor
+    call s:RefreshBackwardOptions()
+endfunction
+"}}}2
+function! s:InitSettings() "{{{2
+    if videm#settings#Get('.videm.Compatible')
+        call s:InitCompatSettings()
+    endif
+    call videm#settings#Init(s:DefaultSettings)
+    " FIXME 备份全局配置
+    call videm#wsp#WspConfSave(s:WspConfBakp)
+endfunction
+"}}}2
 
+" 这里就直接初始化配置，无须等待到正式打开工作区的时候了
+call s:InitSettings()
+" ============================================================================
 " 标识是否第一次初始化
 let s:bHadInited = 0
 

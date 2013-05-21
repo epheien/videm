@@ -234,7 +234,7 @@ function! videm#plugin#gtags#Disable() "{{{2
     augroup END
     augroup! VidemSyndbGtags
     " kill all symdb
-    cs kill -1
+    py if ws.IsOpen(): vim.command("silent! cs kill -1")
     let s:enable = 0
 endfunction
 "}}}
@@ -246,7 +246,8 @@ function! videm#plugin#gtags#Enable() "{{{2
     if ret
         return ret
     endif
-    call videm#plugin#gtags#ConnectGtagsDatabase()
+    py if ws.IsOpen():
+            \ vim.command("call videm#plugin#gtags#ConnectGtagsDatabase()")
     let s:enable = 1
 endfunction
 "}}}
@@ -258,7 +259,7 @@ def VidemWspGtagsHook(event, wsp, unused):
     if event == 'open_post':
         vim.command("call videm#plugin#gtags#ConnectGtagsDatabase()")
     elif event == 'close_post':
-        pass
+        vim.command("silent! cs kill GTAGS")
     return Notifier.OK
 PYTHON_EOF
 endfunction

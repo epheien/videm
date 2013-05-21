@@ -187,7 +187,7 @@ function! videm#plugin#vimccc#WspSetHook(event, data, priv) "{{{2
                 \ "Add search paths for the vlctags and libclang parser:")
         let ctls['IncludePaths'] = ctl
         call ctl.SetIndent(4)
-        py vim.command("let includePaths = %s" % ws.VLWSettings.includePaths)
+        py vim.command("let includePaths = %s" % ToVimEval(ws.VLWSettings.includePaths))
         call ctl.SetValue(includePaths)
         call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
         call dlg.AddControl(ctl)
@@ -196,12 +196,12 @@ function! videm#plugin#vimccc#WspSetHook(event, data, priv) "{{{2
                 \ "Use with Global Settings (Only For Search Paths):")
         let ctls['IncPathFlag'] = ctl
         call ctl.SetIndent(4)
-        py vim.command("let lItems = %s" % ws.VLWSettings.GetIncPathFlagWords())
+        py vim.command("let lItems = %s" % ToVimEval(ws.VLWSettings.GetIncPathFlagWords()))
         for sI in lItems
             call ctl.AddItem(sI)
         endfor
-        py vim.command("call ctl.SetValue('%s')" % 
-                \ ToVimStr(ws.VLWSettings.GetCurIncPathFlagWord()))
+        py vim.command("call ctl.SetValue(%s)" % 
+                \ ToVimEval(ws.VLWSettings.GetCurIncPathFlagWord()))
         call dlg.AddControl(ctl)
         call dlg.AddBlankLine()
     elseif event ==# 'save' && !empty(ctls)
@@ -331,7 +331,7 @@ def HandleHeaderIssue(sHeaderFile):
         if swapFiles:
             # 简单处理，只取第一个
             srcFile = swapFiles[0]
-            vim.command("call VIMCCCSetRelatedFile('%s')" % ToVimStr(srcFile))
+            vim.command("call VIMCCCSetRelatedFile(%s)" % ToVimEval(srcFile))
 
 def VidemWspVIMCCCHook(event, wsp, ins):
     if   event == 'open_post':

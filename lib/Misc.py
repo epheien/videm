@@ -178,23 +178,27 @@ class DirSaver:
         os.chdir(self.curDir)
         #print 'back to', self.curDir
 
-def Obj2Dict(obj):
+def Obj2Dict(obj, exclude=set()):
     '''常规对象转为字典
     把所有公共属性（不包含方法）作为键，把属性值作为值
     NOTE: 不会递归转换，也就是只转一层'''
     d = {}
     for k in dir(obj):
+        if k in exclude:
+            continue
         v = getattr(obj, k)
         if callable(v) or k.startswith("_"):
             continue
         d[k] = v
     return d
 
-def Dict2Obj(obj, d):
+def Dict2Obj(obj, d, exclude=set()):
     '''把字典转为对象
     字典的键对应对象的属性，字典的值对应对象的属性值
     NOTE: 不会递归转换，也就是只转一层'''
     for k, v in d.iteritems():
+        if k in exclude:
+            continue
         if isinstance(v, unicode):
             # 统一转成 utf-8 编码的字符串，唉，python2 的软肋
             v = v.encode('utf-8')
