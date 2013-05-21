@@ -3462,7 +3462,7 @@ comment while writing a single line script.
     s += '''\
 
 == Wrokspace Local Configurations ==
-current support configuration variables:
+Supported configuration variables:
 '''
     conf = vim.eval("s:WspConfTmpl")
     li = conf.keys()
@@ -3480,7 +3480,7 @@ current support configuration variables:
         s += '\n'
 
     s += '''
-Variables which with trailing '*' need to restart VimLite to take effect.
+Variables which start with '*' need to restart Videm to take effect.
 '''
 
     return s
