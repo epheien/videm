@@ -228,18 +228,14 @@ let s:CompatSettings = {
 " ============================================================================
 " 工作区可局部配置的信息 {{{1
 let s:WspConfTmpl = {
-    \ '.videm.cc.Current'   : '',
-    \ '.videm.symdb.Current' : '',
 \ }
 
 " 需要重启的选项
 let s:WspConfTmplRestart = {
-    \ '.videm.cc.Current'   : '',
 \ }
 
 " 备份的设置，一般用于保存全局的配置
 let s:WspConfBakp = {}
-let g:WspConfBakp = s:WspConfBakp
 
 " NOTE: 这个 hook 不能注册进 videm#settings，否则无限递归
 function! videm#wsp#SettingsHook(event, data, priv) "{{{2
@@ -287,6 +283,20 @@ function! videm#wsp#WspConfSetCurr(conf, ...) "{{{2
                     \                   refresh)
         endif
     endfor
+endfunction
+"}}}
+function! videm#wsp#WspOptRegister(opt, val) "{{{2
+    let s:WspConfTmpl[a:opt] = a:val
+endfunction
+"}}}
+function! videm#wsp#WspRestartOptRegister(opt) "{{{2
+    let s:WspConfTmplRestart[a:opt] = ''
+endfunction
+"}}}
+function! videm#wsp#WspOptUnregister(opt) "{{{2
+    if has_key(s:WspConfTmpl, a:opt)
+        unlet s:WspConfTmpl[a:opt]
+    endif
 endfunction
 "}}}
 " 还原为全局配置
@@ -3405,7 +3415,17 @@ function! s:SaveWspSettingsCbk(dlg, data) "{{{2
                     exec 'let conf[li[0]] =' li[1]
                 endif
             endfor
-            py ws.VLWSettings.localConfig = vim.eval('conf')
+            py ws.VLWSettings.localConfig.clear()
+            " vim.eval() 无法无损传递整数类型变量，需要处理
+            for item in items(conf)
+                if type(item[1]) == type(0)
+                    py ws.VLWSettings.localConfig[vim.eval('item[0]')] =
+                            \ int(vim.eval('item[1]'))
+                else
+                    py ws.VLWSettings.localConfig[vim.eval('item[0]')] =
+                            \ vim.eval('item[1]')
+                endif
+            endfor
         endif
     endfor
     " 回调
@@ -3448,9 +3468,13 @@ current support configuration variables:
     restart_conf = vim.eval("s:WspConfTmplRestart")
     for k in li:
         v = conf[k]
-        s += '  %s' % k
+        # 处理数字
+        if vim.eval('type(s:WspConfTmpl[%s]) == type(0)' % ToVimEval(k)) == '1':
+            v = int(v)
         if restart_conf.has_key(k):
-            s += '*'
+            s += '* %s = %s' % (k, ToVimEval(v))
+        else:
+            s += '  %s = %s' % (k, ToVimEval(v))
         s += '\n'
 
     s += '''

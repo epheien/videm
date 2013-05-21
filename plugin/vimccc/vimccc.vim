@@ -247,6 +247,9 @@ endfunction
 function! videm#plugin#vimccc#Init() "{{{2
     call s:InitSettings()
     call videm#settings#RegisterHook('videm#plugin#vimccc#SettingsHook', 0, 0)
+    call videm#wsp#WspOptRegister('.videm.cc.vimccc.Enable',
+            \                     videm#settings#Get('.videm.cc.vimccc.Enable'))
+    call videm#wsp#WspRestartOptRegister('.videm.cc.vimccc.Enable')
     if !videm#settings#Get('.videm.cc.vimccc.Enable', 0)
         return
     endif

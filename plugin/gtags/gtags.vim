@@ -210,6 +210,8 @@ endfunction
 function! videm#plugin#gtags#Init() "{{{2
     call s:InitSettings()
     call videm#settings#RegisterHook('videm#plugin#gtags#SettingsHook', 0, 0)
+    call videm#wsp#WspOptRegister('.videm.symdb.gtags.Enable',
+            \                   videm#settings#Get('.videm.symdb.gtags.Enable'))
     if !videm#settings#Get('.videm.symdb.gtags.Enable', 0)
         return
     endif

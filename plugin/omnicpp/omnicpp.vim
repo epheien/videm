@@ -360,6 +360,9 @@ endfunction
 function! videm#plugin#omnicpp#Init() "{{{2
     call s:InitSettings()
     call videm#settings#RegisterHook('videm#plugin#omnicpp#SettingsHook', 0, 0)
+    call videm#wsp#WspOptRegister('.videm.cc.omnicpp.Enable',
+            \                   videm#settings#Get('.videm.cc.omnicpp.Enable'))
+    call videm#wsp#WspRestartOptRegister('.videm.cc.omnicpp.Enable')
     if !videm#settings#Get('.videm.cc.omnicpp.Enable', 0)
         return
     endif
