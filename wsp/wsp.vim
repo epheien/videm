@@ -829,13 +829,6 @@ function! s:InstallCommands() "{{{2
     command! -nargs=0 -bar VLWBuildAndRunActiveProject 
                 \                           call <SID>BuildAndRunActiveProject()
 
-    command! -nargs=* -complete=file VLWParseFiles  
-                \                               call <SID>ParseFiles(<f-args>)
-    command! -nargs=0 -bar VLWParseCurrentFile
-                \                               call <SID>ParseCurrentFile(0)
-    command! -nargs=0 -bar VLWDeepParseCurrentFile
-                \                               call <SID>ParseCurrentFile(1)
-
     command! -nargs=0 -bar VLWEnvVarSetttings   call <SID>EnvVarSettings()
     command! -nargs=0 -bar VLWCompilersSettings call <SID>CompilersSettings()
     command! -nargs=0 -bar VLWBuildersSettings  call <SID>BuildersSettings()
@@ -884,36 +877,6 @@ function! s:InstallToolBarMenu() "{{{2
 endfunction
 
 
-function! s:ParseCurrentFile(...) "可选参数为是否解析包含的头文件 {{{2
-    let deep = 0
-    if a:0 > 0
-        let deep = a:1
-    endif
-    let curFile = expand("%:p")
-    let files = [curFile]
-    if deep
-        py l_project = ws.VLWIns.GetProjectByFileName(vim.eval('curFile'))
-        py l_searchPaths = ws.GetTagsSearchPaths()
-        py if l_project: l_searchPaths += ws.GetProjectIncludePaths(
-                    \l_project.GetName())
-        py ws.ParseFiles(vim.eval('files') 
-                    \+ IncludeParser.GetIncludeFiles(vim.eval('curFile'),
-                    \   l_searchPaths))
-        py del l_searchPaths
-        py del l_project
-    else
-        py ws.ParseFiles(vim.eval('files'), False)
-    endif
-endfunction
-"}}}
-function! s:ParseFiles(files) "{{{2
-    py ws.ParseFiles(vim.eval("a:files"))
-endfunction
-"}}}
-function! s:AsyncParseFiles(files, ...) "{{{2
-    py ws.AsyncParseFiles(vim.eval("a:files"))
-endfunction
-"}}}
 "}}}1
 "===============================================================================
 "===============================================================================

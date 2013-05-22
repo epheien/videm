@@ -151,8 +151,15 @@ function! s:SaveTagsSettingsCbk(dlg, data) "{{{2
     py del ins
 endfunction
 
+function! s:GetTagsSettingsHelpText() "{{{2
+    let s = "Run the following command to get gcc search paths:\n"
+    let s .= "  gcc -v -x c++ /dev/null -fsyntax-only\n"
+    return s
+endfunction
+"}}}
 function! s:CreateTagsSettingsDialog() "{{{2
     let dlg = g:VimDialog.New('== VIMCCC Settings ==')
+    call dlg.SetExtraHelpContent(s:GetTagsSettingsHelpText())
     py ins = TagsSettingsST.Get()
 
 "===============================================================================

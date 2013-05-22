@@ -140,6 +140,36 @@ PYTHON_EOF
     endif
 endfunction
 "}}}
+function! s:ParseFiles(...) "{{{2
+    if empty(a:000)
+        return
+    endif
+    py videm_cc_omnicpp.ParseFiles(ws, vim.eval("a:000"))
+endfunction
+"}}}
+function! s:ParseCurrentFile(...) "可选参数为是否解析包含的头文件 {{{2
+    let deep = get(a:000, 0, 0)
+    let curFile = expand("%:p")
+    if empty(curFile)
+        return
+    endif
+
+    let files = [curFile]
+    if deep
+        py l_project = ws.VLWIns.GetProjectByFileName(vim.eval('curFile'))
+        py l_searchPaths = ws.GetTagsSearchPaths()
+        py if l_project: l_searchPaths += ws.GetProjectIncludePaths(
+                    \l_project.GetName())
+        py videm_cc_omnicpp.ParseFiles(ws, vim.eval('files') 
+                    \+ IncludeParser.GetIncludeFiles(vim.eval('curFile'),
+                    \   l_searchPaths))
+        py del l_searchPaths
+        py del l_project
+    else
+        py videm_cc_omnicpp.ParseFiles(ws, vim.eval('files'), False)
+    endif
+endfunction
+"}}}
 function! s:InstallCommands() "{{{2
     " 异步解析当前文件，并且会强制解析，无论是否修改过
     command! -nargs=0 -bar VLWAsyncParseCurrentFile
@@ -148,12 +178,22 @@ function! s:InstallCommands() "{{{2
     command! -nargs=0 -bar VLWDeepAsyncParseCurrentFile
             \                           call <SID>AsyncParseCurrentFile(0, 1)
     command! -nargs=0 -bar VLWTagsSetttings     call <SID>TagsSettings()
+
+    command! -nargs=* -complete=file VLWParseFiles  
+            \                                   call <SID>ParseFiles(<f-args>)
+    command! -nargs=0 -bar VLWParseCurrentFile
+            \                                   call <SID>ParseCurrentFile(0)
+    command! -nargs=0 -bar VLWDeepParseCurrentFile
+            \                                   call <SID>ParseCurrentFile(1)
 endfunction
 "}}}
 function! s:UninstallCommands() "{{{2
     delcommand VLWAsyncParseCurrentFile
     delcommand VLWDeepAsyncParseCurrentFile
     delcommand VLWTagsSetttings
+    delcommand VLWParseFiles
+    delcommand VLWParseCurrentFile
+    delcommand VLWDeepParseCurrentFile
 endfunction
 "}}}
 " =================== tags 设置 ===================
@@ -186,9 +226,16 @@ function! s:SaveTagsSettingsCbk(dlg, data) "{{{2
     " 重新初始化 OmniCpp 类型替换字典
     py OmniCppUpdateTypesVar(ws)
 endfunction
-
+"}}}
+function! s:GetTagsSettingsHelpText() "{{{2
+    let s = "Run the following command to get gcc search paths:\n"
+    let s .= "  gcc -v -x c++ /dev/null -fsyntax-only\n"
+    return s
+endfunction
+"}}}
 function! s:CreateTagsSettingsDialog() "{{{2
     let dlg = g:VimDialog.New('== OmniCpp Tags Settings ==')
+    call dlg.SetExtraHelpContent(s:GetTagsSettingsHelpText())
     py ins = TagsSettingsST.Get()
 
 "===============================================================================
