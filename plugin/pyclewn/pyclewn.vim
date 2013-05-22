@@ -10,24 +10,45 @@ let s:PyclewnSettings = {
     \ '.videm.dbg.pyclewn.DisableNeedlessTools' : 1,
     \ '.videm.dbg.pyclewn.WatchVarKey'          : '<C-w>',
     \ '.videm.dbg.pyclewn.PrintVarKey'          : '<C-p>',
+    \ '.videm.dbg.pyclewn.ConfName'             : 'VLWDbg.conf',
 \ }
 
-function! s:InitSettings()
+let s:CompatSettings = {
+    \ 'g:VLWDbgSaveBreakpointsInfo' : '.videm.dbg.pyclewn.SaveBpInfo',
+    \ 'g:VLWDisableUnneededTools'   : '.videm.dbg.pyclewn.DisableNeedlessTools',
+    \ 'g:VLWDbgWatchVarKey'         : '.videm.dbg.pyclewn.WatchVarKey',
+    \ 'g:VLWDbgPrintVarKey'         : '.videm.dbg.pyclewn.PrintVarKey',
+    \ 'g:VLWorkspaceDbgConfName'    : '.videm.dbg.pyclewn.ConfName',
+\ }
+
+function! s:InitCompatSettings() "{{{2
+    for item in items(s:CompatSettings)
+        if !exists(item[0])
+            continue
+        endif
+        call videm#settings#Set(item[1], {item[0]})
+    endfor
+endfunction
+"}}}2
+function! s:InitSettings() "{{{2
+    if videm#settings#Get('.videm.Compatible')
+        call s:InitCompatSettings()
+    endif
     call videm#settings#Init(s:PyclewnSettings)
 endfunction
-
+"}}}2
 "{{{1
 let s:dbgProjectName = ''
 let s:dbgProjectDirName = ''
 let s:dbgProjectConfName = ''
 let s:dbgProjectFile = ''
-let s:dbgSavedPos = []
+let s:dbgSavedPos = {}
+let g:dbgSavedPos = s:dbgSavedPos
 let s:dbgSavedUpdatetime = &updatetime
 let s:dbgFirstStart = 1
 let s:dbgStandalone = 0 " 独立运行
 function! s:Autocmd_DbgRestoreCursorPos() "{{{2
-    normal! `Z
-    call setpos("'Z", s:dbgSavedPos)
+    call vlutils#SetPos('.', s:dbgSavedPos)
     au! AU_VLWDbgTemp CursorHold *
     augroup! AU_VLWDbgTemp
     let &updatetime = s:dbgSavedUpdatetime
@@ -55,10 +76,10 @@ function! s:DbgHadStarted() "{{{2
     endif
 endfunction
 "}}}
-" 可选参数 a:1 弱存在且非零，则表示为独立运行
+" 可选参数 a:1 若存在且非零，则表示为独立运行
 function! s:DbgStart(...) "{{{2
-    let s:dbgStandalone = a:0 > 0 ? a:1 : 0
-    " TODO: pyclewn 首次运行, pyclewn 运行中, pyclewn 一次调试完毕后
+    let s:dbgStandalone = get(a:000, 0, 0)
+    " TODO pyclewn 首次运行, pyclewn 运行中, pyclewn 一次调试完毕后
     if !s:DbgHadStarted() && !s:dbgStandalone
         " 检查
         py if not ws.VLWIns.GetActiveProjectName(): vim.command(
@@ -82,12 +103,13 @@ function! s:DbgStart(...) "{{{2
         endif
 
         if videm#settings#Get('.videm.dbg.pyclewn.SaveBpInfo')
+            let ConfName = videm#settings#Get('.videm.dbg.pyclewn.ConfName')
             py proj = ws.VLWIns.FindProjectByName(
                         \ws.VLWIns.GetActiveProjectName())
-            py if proj: vim.command("let s:dbgProjectFile = '%s'" % ToVimStr(
+            py if proj: vim.command("let s:dbgProjectFile = %s" % ToVimEval(
                         \os.path.join(
                         \   proj.dirName, ws.VLWIns.GetActiveProjectName() 
-                        \       + '_' + vim.eval("g:VLWorkspaceDbgConfName"))))
+                        \       + '_' + vim.eval("ConfName"))))
             " 设置保存的断点
             py vim.command("let s:dbgProjectName = %s" % ToVimEval(proj.name))
             py vim.command("let s:dbgProjectDirName = %s" % 
@@ -109,10 +131,8 @@ function! s:DbgStart(...) "{{{2
             " 初始未修改的未命名缓冲区的话，就不需要恢复位置了
             let bNeedRestorePos = 0
         endif
-        let s:dbgSavedPos = getpos("'Z")
-        if bNeedRestorePos
-            normal! mZ
-        endif
+        let s:dbgSavedPos = vlutils#GetPos('.')
+        let g:dbgSavedPos = s:dbgSavedPos
         silent VPyclewn
         " BUG:? 运行 ws.DebugActiveProject() 前必须运行一条命令,
         " 否则出现灵异事件. 这条命令会最后才运行
@@ -122,8 +142,10 @@ function! s:DbgStart(...) "{{{2
         " 再 source
         if g:VLWDbgSaveBreakpointsInfo
             exec 'Csource' fnameescape(s:dbgProjectFile)
+            " TODO 应该等待 pyclewn 通知
             if bNeedRestorePos
                 " 这个办法是没办法的办法...
+                let s:dbgSavedUpdatetime = &updatetime
                 set updatetime=1000
                 augroup AU_VLWDbgTemp
                     autocmd!
@@ -242,17 +264,21 @@ def DbgSaveBreakpoints(data):
     ins.SetBreakpoints(data['s:dbgProjectConfName'],
                        DumpBreakpointsFromFile(data['s:dbgProjectFile'],
                                                data['s:dbgProjectDirName']))
-    return ins.Save(data['sSettingsFile'])
-def SaveDbgBpsFunc(data):
+    if ins.Save(data['sSettingsFile']):
+        return 0
+    return -1
+def SaveDbgBpsFunc(data, baseTime = int(time.time())):
+    # TODO 应该等待信号来通知，而不是轮询检查
+    ret = -1
     dbgProjectFile = data['s:dbgProjectFile']
     if not dbgProjectFile:
         return
-    baseTime = time.time()
     for i in xrange(10): # 顶多试十次
         modiTime = GetMTime(dbgProjectFile)
-        if modiTime > baseTime:
+        # 同步等待调试器保存project文件成功
+        if modiTime >= baseTime:
             # 开工
-            DbgSaveBreakpoints(data)
+            ret = DbgSaveBreakpoints(data)
             try:
                 # 删除文件
                 os.remove(dbgProjectFile)
@@ -260,17 +286,24 @@ def SaveDbgBpsFunc(data):
                 pass
             break
         time.sleep(0.5)
+    return ret
 PYTHON_EOF
     if s:DbgHadStarted()
         silent Cstop
         " 保存断点信息
         if videm#settings#Get('.videm.dbg.pyclewn.SaveBpInfo')
+            " FIXME 秒的精度是否足够？
+            let nBaseTime = localtime()
             exec 'Cproject' fnameescape(s:dbgProjectFile)
             " 要用异步的方式保存...
             "py Misc.RunSimpleThread(SaveDbgBpsFunc, 
                         "\              vim.eval('s:GenSaveDbgBpsFuncData()'))
             " 还是用同步的方式保存比较靠谱，懒得处理同步问题
-            py SaveDbgBpsFunc(vim.eval('s:GenSaveDbgBpsFuncData()'))
+            echo 'Saving debugger info to file ...'
+            py if SaveDbgBpsFunc(vim.eval('s:GenSaveDbgBpsFuncData()'),
+                    \            int(vim.eval('nBaseTime'))) != 0:
+                    \ vim.command('call vlutils#EchoWarnMsg('
+                    \             '"Save breakpoints failed!")')
         endif
         silent nbclose
         let g:VLWDbgProjectFile = ''
@@ -401,28 +434,31 @@ def DbgLoadBreakpointsToFile(pyclewnProjFile):
                                 vim.eval('s:dbgProjectName') + '.projsettings')
     #print settingsFile
     if not settingsFile:
-        return False
+        return -1
     ds = DirSaver()
     os.chdir(vim.eval('s:dbgProjectDirName'))
     ins = VLProjectSettings()
     if not ins.Load(settingsFile):
-        return False
+        return -1
 
     try:
         f = open(pyclewnProjFile, 'wb')
         for d in ins.GetBreakpoints(vim.eval('s:dbgProjectConfName')):
-            f.write('break %s:%d\n' % (os.path.abspath(d['file']), int(d['line'])))
+            f.write('break %s:%d\n' % (os.path.abspath(d['file']),
+                                       int(d['line'])))
     except IOError:
-        return False
+        return -1
     f.close()
 
-    return True
+    return 0
 PYTHON_EOF
     let sPyclewnProjFile = a:sPyclewnProjFile
     if sPyclewnProjFile ==# ''
         return
     endif
-    py DbgLoadBreakpointsToFile(vim.eval('sPyclewnProjFile'))
+    py if DbgLoadBreakpointsToFile(vim.eval('sPyclewnProjFile')) != 0:
+            \ vim.command(
+            \  'call vlutils#EchoWarnMsg("Load breakpoints from file failed!")')
 endfunction
 "}}}2
 function! s:DbgEnableToolBar() "{{{2
@@ -483,20 +519,6 @@ endfunction
 "}}}1
 function! s:Autocmd_Quit() "{{{2
     call s:DbgStop()
-    while 1
-        py vim.command('let nCnt = %d' % GetBgThdCnt())
-        if nCnt != 0
-            redraw
-            let sMsg = printf(
-                        \"There %s %d running background thread%s, " 
-                        \. "please wait...", 
-                        \nCnt == 1 ? 'is' : 'are', nCnt, nCnt > 1 ? 's' : '')
-            call vlutils#EchoWarnMsg(sMsg)
-        else
-            break
-        endif
-        sleep 500m
-    endwhile
 endfunction
 "}}}
 function! s:InstallCommands() "{{{2
@@ -574,17 +596,17 @@ function! s:ThisInit() "{{{2
     call s:InstallCommands()
 endfunction
 "}}}2
-function! videm#plugin#pyclewn#Init()
+function! videm#plugin#pyclewn#Init() "{{{2
     call s:InitSettings()
     if !videm#settings#Get('.videm.dbg.pyclewn.Enable', 0)
         return
     endif
     call s:ThisInit()
 endfunction
-
-function! s:InitPythonIterfaces()
+"}}}
+function! s:InitPythonIterfaces() "{{{2
 python << PYTHON_EOF
 PYTHON_EOF
 endfunction
-
+"}}}
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1

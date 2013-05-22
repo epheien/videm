@@ -461,6 +461,57 @@ function! vlutils#GetCmdOutput(sCmd) "{{{2
     return sOutput
 endfunction
 "}}}
+" 扩展的位置获取的恢复函数，尽量准确的恢复光标到原来的位置
+function! vlutils#GetPos(expr) "{{{2
+    let lPos = getpos(a:expr)
+    let pos = {}
+    let pos.orgbuf = bufnr('%')
+    let pos.bufnum = lPos[0]
+    let pos.lnum = lPos[1]
+    let pos.col = lPos[2]
+    let pos.off = lPos[3]
+    let pos.winnum = winnr()
+    let pos.wincnt = winnr('$')
+    return pos
+endfunction
+"}}}
+function! vlutils#SetPos(expr, pos) "{{{2
+    let pos = a:pos
+    let lPos = [pos.bufnum, pos.lnum, pos.col, pos.off]
+    " 1. 先跳回原来的窗口
+    if !(pos.wincnt == winnr('$') && winnr() == pos.winnum)
+    " 窗口增减或者光标跳动过
+        if pos.winnum > winnr('$')
+            " 原来的窗口已经关闭...，不知道怎么继续，返回错误
+            return -1
+        endif
+        let nWinNr = pos.winnum
+        " 如果窗口变动过，那么优先使用 bufwinnr() 的结果
+        if pos.wincnt != winnr('$')
+            let nTmp = bufwinnr(pos.orgbuf)
+            if nTmp != -1
+                let nWinNr = nTmp
+            endif
+        endif
+        call vlutils#ExecNoau(nWinNr . 'wincmd w')
+    endif
+
+    " 2. 再切换到原来的缓冲区
+    if bufnr('%') != pos.orgbuf
+        " 切到指定的缓冲区
+        try
+            exec 'b' pos.orgbuf
+        catch
+            if bJmpWin
+                call vlutils#ExecNoau('wincmd p')
+            endif
+            return -1
+        endtry
+    endif
+    " 3. 最后恢复到原来的光标的位置
+    return setpos(a:expr, lPos)
+endfunction
+"}}}
 " linux 内核通知链的 vim 版本
 let vlutils#Notifier = {}
 let vlutils#Notifier.DONE = 0

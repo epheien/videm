@@ -40,6 +40,23 @@ function! s:GetSFuncRef(sFuncName) " 获取局部于脚本的函数的引用 {{{
     return function('<SNR>'.s:sid.'_'.sFuncName)
 endfunction
 "}}}
+" 需要等待后台线程完成
+function! s:Autocmd_Quit() "{{{2
+    while 1
+        py vim.command('let nCnt = %d' % GetBgThdCnt())
+        if nCnt != 0
+            redraw
+            let sMsg = printf(
+                        \"There %s %d running background thread%s, " 
+                        \. "please wait...", 
+                        \nCnt == 1 ? 'is' : 'are', nCnt, nCnt > 1 ? 's' : '')
+            call vlutils#EchoWarnMsg(sMsg)
+        else
+            break
+        endif
+        sleep 500m
+    endwhile
+endfunction
 " NOTE: 用到了python的全局变量 ws
 function! s:AsyncParseCurrentFile(bFilterNotNeed, bIncHdr) "{{{2
     if !exists("s:AsyncParseCurrentFile_FirstEnter")
@@ -242,7 +259,8 @@ function! videm#plugin#omnicpp#WspSetHook(event, data, priv) "{{{2
                 \ "Add search paths for the vlctags and libclang parser:")
         let ctls['IncludePaths'] = ctl
         call ctl.SetIndent(4)
-        py vim.command("let includePaths = %s" % ws.VLWSettings.includePaths)
+        py vim.command("let includePaths = %s" %
+                \ ToVimEval(ws.VLWSettings.includePaths))
         call ctl.SetValue(includePaths)
         call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
         call dlg.AddControl(ctl)
@@ -251,12 +269,13 @@ function! videm#plugin#omnicpp#WspSetHook(event, data, priv) "{{{2
                 \ "Use with Global Settings (Only For Search Paths):")
         let ctls['IncPathFlag'] = ctl
         call ctl.SetIndent(4)
-        py vim.command("let lItems = %s" % ws.VLWSettings.GetIncPathFlagWords())
+        py vim.command("let lItems = %s" %
+                \ ToVimEval(ws.VLWSettings.GetIncPathFlagWords()))
         for sI in lItems
             call ctl.AddItem(sI)
         endfor
-        py vim.command("call ctl.SetValue('%s')" % 
-                \ ToVimStr(ws.VLWSettings.GetCurIncPathFlagWord()))
+        py vim.command("call ctl.SetValue(%s)" % 
+                \ ToVimEval(ws.VLWSettings.GetCurIncPathFlagWord()))
         call dlg.AddControl(ctl)
         call dlg.AddBlankLine()
 
@@ -273,7 +292,8 @@ function! videm#plugin#omnicpp#WspSetHook(event, data, priv) "{{{2
         let ctl = g:VCMultiText.New("Prepend Search Scopes (For OmniCpp):")
         let ctls['PrependNSInfo'] = ctl
         call ctl.SetIndent(4)
-        py vim.command("let prependNSInfo = %s" % ws.VLWSettings.GetUsingNamespace())
+        py vim.command("let prependNSInfo = %s" %
+                \ ToVimEval(ws.VLWSettings.GetUsingNamespace()))
         call ctl.SetValue(prependNSInfo)
         call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
         call dlg.AddControl(ctl)
@@ -282,7 +302,8 @@ function! videm#plugin#omnicpp#WspSetHook(event, data, priv) "{{{2
         let ctl = g:VCMultiText.New("Macro Files:")
         let ctls['MacroFiles'] = ctl
         call ctl.SetIndent(4)
-        py vim.command("let macroFiles = %s" % ws.VLWSettings.GetMacroFiles())
+        py vim.command("let macroFiles = %s" %
+                \ ToVimEval(ws.VLWSettings.GetMacroFiles()))
         call ctl.SetValue(macroFiles)
         call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
         call dlg.AddControl(ctl)
@@ -291,7 +312,8 @@ function! videm#plugin#omnicpp#WspSetHook(event, data, priv) "{{{2
         let ctl = g:VCMultiText.New("Macros:")
         let ctls['TagsTokens'] = ctl
         call ctl.SetIndent(4)
-        py vim.command("let tagsTokens = %s" % ws.VLWSettings.tagsTokens)
+        py vim.command("let tagsTokens = %s" %
+                \ ToVimEval(ws.VLWSettings.tagsTokens))
         call ctl.SetValue(tagsTokens)
         call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "cpp")
         call dlg.AddControl(ctl)
@@ -300,7 +322,8 @@ function! videm#plugin#omnicpp#WspSetHook(event, data, priv) "{{{2
         let ctl = g:VCMultiText.New("Types:")
         let ctls['TagsTypes'] = ctl
         call ctl.SetIndent(4)
-        py vim.command("let tagsTypes = %s" % ws.VLWSettings.tagsTypes)
+        py vim.command("let tagsTypes = %s" %
+                \ ToVimEval(ws.VLWSettings.tagsTypes))
         call ctl.SetValue(tagsTypes)
         call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
         call dlg.AddControl(ctl)
@@ -331,6 +354,7 @@ function! s:ThisInit() "{{{2
         autocmd!
         autocmd! FileType c,cpp call omnicpp#complete#Init()
         autocmd! BufWritePost * call <SID>AsyncParseCurrentFile(1, 1)
+        autocmd! VimLeave * call <SID>Autocmd_Quit()
     augroup END
     py OmniCppWMenuAction()
     " 工作区设置
@@ -462,13 +486,13 @@ def OmniCppUpdateTypesVar(wsp):
     vim.command("let g:dOCppTypes = {}")
     for i in (wsp.VLWSettings.tagsTypes + TagsSettingsST.Get().tagsTypes):
         li = i.partition('=')
-        path = vim.eval("omnicpp#utils#GetVariableType('%s').name" 
-                        % ToVimStr(li[0]))
-        vim.command("let g:dOCppTypes['%s'] = {}" % (ToVimStr(path),))
-        vim.command("let g:dOCppTypes['%s'].orig = '%s'" 
-                    % (ToVimStr(path), ToVimStr(li[0])))
-        vim.command("let g:dOCppTypes['%s'].repl = '%s'" 
-                    % (ToVimStr(path), ToVimStr(li[2])))
+        path = vim.eval("omnicpp#utils#GetVariableType(%s).name" 
+                        % ToVimEval(li[0]))
+        vim.command("let g:dOCppTypes[%s] = {}" % (ToVimEval(path),))
+        vim.command("let g:dOCppTypes[%s].orig = %s" 
+                    % (ToVimEval(path), ToVimEval(li[0])))
+        vim.command("let g:dOCppTypes[%s].repl = %s" 
+                    % (ToVimEval(path), ToVimEval(li[2])))
 
 def OmniCppWMenuAction(remove=False):
     # 菜单动作，只添加工作区菜单

@@ -66,7 +66,9 @@ endif
 let g:VidemPyDir = s:os.path.join(g:VidemDir, 'core')
 
 " 如果这个选项为零，所有后向兼容的选项都失效
-call videm#settings#Set('.videm.Compatible', 1)
+if !videm#settings#Has('.videm.Compatible')
+    call videm#settings#Set('.videm.Compatible', 1)
+endif
 
 call s:InitVariable("g:VLWorkspaceWinSize", 30)
 call s:InitVariable("g:VLWorkspaceWinPos", "left")
@@ -88,12 +90,6 @@ call s:InitVariable('g:VLWorkspaceSymbolDatabase', 'cscope')
 " 补全引擎选择，'none', 'omnicpp', 'vimccc'
 call s:InitVariable("g:VLWorkspaceCodeCompleteEngine", 'omnicpp')
 
-" 保存调试器信息
-call s:InitVariable("g:VLWDbgSaveBreakpointsInfo", 1)
-
-" 禁用不必要的工具图标
-call s:InitVariable("g:VLWDisableUnneededTools", 1)
-
 " 键绑定
 call s:InitVariable('g:VLWShowMenuKey', '.')
 call s:InitVariable('g:VLWPopupMenuKey', ',')
@@ -112,15 +108,9 @@ call s:InitVariable('g:VLWGotoPrevSibling', '<C-p>')
 call s:InitVariable('g:VLWRefreshBufferKey', 'R')
 call s:InitVariable('g:VLWToggleHelpInfo', '<F1>')
 
-" 用于调试器的键绑定
-call s:InitVariable('g:VLWDbgWatchVarKey', '<C-w>') " 仅用于可视模式下
-call s:InitVariable('g:VLWDbgPrintVarKey', '<C-p>') " 仅用于可视模式下
-
 "=======================================
 " 标记是否已经运行
 call s:InitVariable("g:VLWorkspaceHasStarted", 0)
-
-call s:InitVariable("g:VLWorkspaceDbgConfName", "VLWDbg.conf")
 
 " 模板所在路径
 call s:InitVariable("g:VLWorkspaceTemplatesPath",
@@ -317,6 +307,9 @@ endfunction
 " ============================================================================
 function! s:InitCompatSettings() "{{{2
     for item in items(s:CompatSettings)
+        if !exists(item[0])
+            continue
+        endif
         call videm#settings#Set(item[1], {item[0]})
     endfor
     call s:RefreshBackwardOptions()

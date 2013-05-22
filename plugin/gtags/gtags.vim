@@ -41,6 +41,9 @@ let s:CompatSettings = {
 
 function! s:InitCompatSettings() "{{{2
     for item in items(s:CompatSettings)
+        if !exists(item[0])
+            continue
+        endif
         call videm#settings#Set(item[1], {item[0]})
     endfor
 endfunction
