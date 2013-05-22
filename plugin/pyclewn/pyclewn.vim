@@ -418,6 +418,7 @@ function! s:DbgSaveBreakpoints(sPyclewnProjFile) "{{{2
                     \      vim.eval('s:dbgProjectName') + '.projsettings')))
         "echomsg sSettingsFile
         py l_ins = VLProjectSettings()
+        py l_ins.Load(vim.eval('sSettingsFile'))
         py l_ins.SetBreakpoints(vim.eval('s:dbgProjectConfName'), 
                     \   DumpBreakpointsFromFile(
                     \                   vim.eval('sPyclewnProjFile'), 
