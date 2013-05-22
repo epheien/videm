@@ -8,22 +8,6 @@ import os.path
 import subprocess
 import vim
 
-# TODO
-def VimEval(expr):
-    '''增强的vim.eval，用于处理数字的转换'''
-    result = vim.eval(expr)
-    if isinstance(result, str):
-        if vim.eval('type(%s) == type(0)' % expr) == '1':
-            result = int(result)
-        elif vim.eval('type(%s) == type(0.0)' % expr) == '1':
-            result = float(result)
-    elif isinstance(result, list):
-        result = [VimEval(i) for i in result]
-    elif isinstance(result, dict):
-        for k, v in result.iteritems():
-            result[k] = VimEval(v)
-    return result
-
 # FIXME: 还不可用
 class VimExcHdr:
     vim_has_gui_running = True
