@@ -89,7 +89,7 @@ class StartEdit:
             % (self.bufnr, self.bak_ma))
 
 
-class VimLiteWorkspace:
+class VimLiteWorkspace(object):
     '''VimLite 工作空间对象，主要用于操作缓冲区和窗口
     
     所有操作假定已经在工作空间缓冲区'''
@@ -307,7 +307,11 @@ class VimLiteWorkspace:
         if fileName:
             VidemWorkspace.wsp_ntf.CallChain('open_pre', self)
             self.VLWIns.OpenWorkspace(fileName)
+            self.VLWIns._SetStatus(type(self.VLWIns).STATUS_CLOSED)
+            # 这里载入工作区设置的时候，工作区应该是CLOSE状态
+            # 实现问题，因为获取配置文件需要先打开工作区
             self.LoadWspSettings()
+            self.VLWIns._SetStatus(type(self.VLWIns).STATUS_OPEN)
             self.HlActiveProject()
             VidemWorkspace.wsp_ntf.CallChain('open_post', self)
 

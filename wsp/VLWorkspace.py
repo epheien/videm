@@ -183,8 +183,12 @@ CONSTANT_OFFSET = 2
 # TODO: 处理工作空间节点
 # NOTE: getAttribute() 等从 xml 获取的字符串全是 unicode 字符串, 
 #       需要 encode('utf-8') 转为普通字符串以供 vim 解析
-class VLWorkspace:
+class VLWorkspace(object):
     '''工作空间对象，保存一个工作空间的数据结构'''
+
+    STATUS_CLOSED   = 0x1
+    STATUS_OPEN     = 0x2
+
     def __init__(self, fileName = ''):
         self.doc = None
         self.rootNode = None
@@ -207,6 +211,9 @@ class VLWorkspace:
         # Build Matrix，实时缓存，用于提高访问效率，代价是载入变慢
         self.buildMatrix = None
 
+        # 状态
+        self.status = type(self).STATUS_CLOSED
+            
         if fileName:
             try:
                 self.doc = minidom.parse(fileName)
@@ -220,7 +227,7 @@ class VLWorkspace:
             self.dirName, self.baseName = os.path.split(self.fileName)
             
             self.modifyTime = GetMTime(fileName)
-            
+
             ds = DirSaver()
             os.chdir(self.dirName)
             for i in self.rootNode.childNodes:
@@ -265,6 +272,8 @@ class VLWorkspace:
             # 载入 Build Matrix
             self.buildMatrix = BuildMatrix(
                 XmlUtils.FindFirstByTagName(self.rootNode, 'BuildMatrix'))
+            # 更新状态
+            self._SetStatus(type(self).STATUS_OPEN)
         else:
             # 默认的工作空间, fileName 为空
             self.doc = minidom.parseString('''\
@@ -281,6 +290,8 @@ class VLWorkspace:
             # 载入 Build Matrix
             self.buildMatrix = BuildMatrix(
                 XmlUtils.FindFirstByTagName(self.rootNode, 'BuildMatrix'))
+            # 更新状态
+            self._SetStatus(type(self).STATUS_CLOSED)
 
     def IsIgnoredFile(self, datum):
         '''为了效率，不进行任何检查'''
@@ -1755,14 +1766,15 @@ class VLWorkspace:
                     + PROJECT_FILE_SUFFIX
             i.Save(newFileName)
 
+    def _SetStatus(self, status):
+        self.status = status
 
-    
     #===========================================================================
     # 常规操作接口 ===== 结束
     #===========================================================================
 
     def IsOpen(self):
-        return bool(self.fileName)
+        return self.status == type(self).STATUS_OPEN
 
 #===============================================================================
 # 外部用接口 ===== 结束

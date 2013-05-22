@@ -44,6 +44,9 @@ let s:CompatSettings = {
 
 function! s:InitCompatSettings() "{{{2
     for item in items(s:CompatSettings)
+        if !exists(item[0])
+            continue
+        endif
         call videm#settings#Set(item[1], {item[0]})
     endfor
 endfunction
@@ -321,7 +324,9 @@ function! videm#plugin#cscope#Enable() "{{{2
         return
     endif
     call s:ThisInit()
-    call videm#plugin#cscope#ConnectCscopeDatabase()
+    
+    py if ws.IsOpen():
+            \ vim.command('call videm#plugin#cscope#ConnectCscopeDatabase()')
     let s:enable = 1
 endfunction
 "}}}
