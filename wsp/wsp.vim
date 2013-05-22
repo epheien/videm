@@ -268,7 +268,7 @@ function! videm#wsp#WspConfSetCurr(conf, ...) "{{{2
     for item in items(a:conf)
         " 只允许设置指定的选项
         if has_key(s:WspConfTmpl, item[0])
-            call videm#settings#Set(item[0], item[1])
+            call videm#settings#Set(item[0], item[1], refresh)
             " hook
             call videm#wsp#SettingsHook('set', {'opt': item[0], 'val': item[1]},
                     \                   refresh)
