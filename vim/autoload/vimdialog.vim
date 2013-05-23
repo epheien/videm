@@ -458,7 +458,8 @@ function! g:VCSingleText.GetDispText()
 	let s = ""
 	let l:indentSpace = repeat(" ", self.indent)
 	let l:labelLen = strdisplaywidth(self.label)
-	let l:textLen = strdisplaywidth(self.value)
+    let text = vlutils#ExpandTabs(self.value, &tabstop)
+	let l:textLen = strdisplaywidth(text)
 
 	"NOTE: 条件判断必须为整数，如果为字符串，会有奇怪的错误！
 	if self.isSingleLine != 0
@@ -478,7 +479,7 @@ function! g:VCSingleText.GetDispText()
 
 		let s = s . l:indentSpace . repeat(' ', strdisplaywidth(l:label)) 
 					\ . '+' . repeat('-', l:textCtlLen - 2) . '+' . "\n"
-		let s = s . l:indentSpace . l:label . '|' . self.value 
+		let s = s . l:indentSpace . l:label . '|' . text 
 					\ . repeat(' ', l:textCtlLen - l:textLen - 2) . '|' . "\n"
 		let s = s . l:indentSpace . repeat(' ', strdisplaywidth(l:label)) 
 					\ . '+' . repeat('-', l:textCtlLen - 2) . '+'
@@ -508,8 +509,8 @@ function! g:VCSingleText.GetDispText()
 						\ . "+\n"
 
 			let i = 0
-			while i < strlen(self.value)
-				let l:content = strpart(self.value, i, l:contentLen)
+			while i < strlen(text)
+				let l:content = strpart(text, i, l:contentLen)
 				let l:curLen = strdisplaywidth(l:content)
 				let s = s . l:indentSpace . "|" . l:content
 							\ . repeat(" ", l:contentLen - l:curLen) . "|\n"
@@ -525,7 +526,7 @@ function! g:VCSingleText.GetDispText()
 
 			let s = s . l:indentSpace . "+" . repeat("-", l:contentLen)
 						\ . "+\n"
-			let s = s . l:indentSpace . "|" . self.value
+			let s = s . l:indentSpace . "|" . text
 						\ . repeat(" ", l:contentLen - l:textLen) . "|\n"
 			let s = s . l:indentSpace . "+" . repeat("-", l:contentLen) . "+"
 		endif
@@ -634,6 +635,7 @@ function! g:VCMultiText.GetDispText() "{{{2
 	let s = s . l:indentSpace . "+" . repeat("-", l:contentLen) . "+\n"
 	for text in texts
 		"逐行显示
+        let text = vlutils#ExpandTabs(text, &tabstop)
 		let l:textLen = strdisplaywidth(text)
 		if l:textLen > l:contentLen
 			"行太长, 揭短并在末尾添加 '@'
@@ -714,7 +716,8 @@ endfunction
 function! g:VCComboBox.GetDispText()
 	let s = ""
 
-	let l:textLen = strdisplaywidth(self.value)
+    let text = vlutils#ExpandTabs(self.value, &tabstop)
+	let l:textLen = strdisplaywidth(text)
 	if l:textLen <= s:VC_MAXLINELEN - 4 - self.indent
 		let l:spaceLen = s:VC_MAXLINELEN - 4 - self.indent
 	else
@@ -729,7 +732,7 @@ function! g:VCComboBox.GetDispText()
 
 	let s = s . l:indentSpace . "+" . repeat("-", l:spaceLen)
 				\ . "+-+\n"
-	let s = s . l:indentSpace . "|" . self.value
+	let s = s . l:indentSpace . "|" . text
 				\ . repeat(" ", l:spaceLen - l:textLen) . "|v|\n"
 	let s = s . l:indentSpace . "+" . repeat("-", l:spaceLen) . "+-+"
 
@@ -1267,14 +1270,17 @@ function! g:VCTable.GetDispText() "{{{2
 					let content = repeat(' ', colWidths[index])
 					"填充空内容，以便索引
 					call add(line, '')
-				elseif strdisplaywidth(line[index]) <= colWidths[index]
-					"空间足够显示
-					let content = line[index] . repeat(' ', 
-								\colWidths[index] - strdisplaywidth(line[index]))
-				else
-					"空间不足显示
-					let content = strpart(line[index], 0, 
-								\colWidths[index] - 1) . '@'
+                else
+                    let text = vlutils#ExpandTabs(line[index], &tabstop)
+                    if strdisplaywidth(text) <= colWidths[index]
+                        "空间足够显示
+                        let content = text . repeat(' ', 
+                                \ colWidths[index] - strdisplaywidth(text))
+                    else
+                        "空间不足显示
+                        let content = strpart(text, 0, colWidths[index] - 1)
+                                \     . '@'
+                    endif
 				endif
 			endif
 			call add(colContents, content)

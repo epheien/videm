@@ -512,6 +512,32 @@ function! vlutils#SetPos(expr, pos) "{{{2
     return setpos(a:expr, lPos)
 endfunction
 "}}}
+" TODO 处理多字节字符
+function! vlutils#ExpandTabs(str, tabsize) "{{{2
+    let str = a:str
+    let tabsize = a:tabsize
+    let out = ''
+    let j = 0
+    for idx in range(len(str))
+        let char = str[idx]
+        if char ==# "\t"
+            " 补上必要的空白
+            if tabsize > 0
+                let pads = tabsize - (j % tabsize)
+                let out .= repeat(' ', pads)
+                let j += pads
+            endif
+        else
+            let out .= char
+            let j += 1
+            if char ==# "\n" || char ==# "\r"
+                let j = 0
+            endif
+        endif
+    endfor
+    return out
+endfunction
+"}}}
 " linux 内核通知链的 vim 版本
 let vlutils#Notifier = {}
 let vlutils#Notifier.DONE = 0
