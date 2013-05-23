@@ -512,14 +512,20 @@ function! vlutils#SetPos(expr, pos) "{{{2
     return setpos(a:expr, lPos)
 endfunction
 "}}}
-" TODO 处理多字节字符
+" NOTE: 已经处理了多字节字符
 function! vlutils#ExpandTabs(str, tabsize) "{{{2
     let str = a:str
     let tabsize = a:tabsize
     let out = ''
     let j = 0
-    for idx in range(len(str))
-        let char = str[idx]
+    let idx = 0
+    for charidx in range(strchars(str))
+        let byteidx = byteidx(str, charidx + 1)
+        if byteidx == -1
+            let char = str[idx : -1]
+        else
+            let char = str[idx : byteidx-1]
+        endif
         if char ==# "\t"
             " 补上必要的空白
             if tabsize > 0
@@ -529,11 +535,12 @@ function! vlutils#ExpandTabs(str, tabsize) "{{{2
             endif
         else
             let out .= char
-            let j += 1
+            let j += strwidth(char)
             if char ==# "\n" || char ==# "\r"
                 let j = 0
             endif
         endif
+        let idx = byteidx
     endfor
     return out
 endfunction
