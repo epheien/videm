@@ -147,26 +147,41 @@ function! s:ParseFiles(...) "{{{2
     py videm_cc_omnicpp.ParseFiles(ws, vim.eval("a:000"))
 endfunction
 "}}}
-function! s:ParseCurrentFile(...) "可选参数为是否解析包含的头文件 {{{2
-    let deep = get(a:000, 0, 0)
+function! s:ParseCurrentFile(bFilterNotNeed, bIncHdr)
+    let bFilterNotNeed = a:bFilterNotNeed
+    let bIncHdr = a:bIncHdr
     let curFile = expand("%:p")
     if empty(curFile)
         return
     endif
 
     let files = [curFile]
-    if deep
+    if bIncHdr
         py l_project = ws.VLWIns.GetProjectByFileName(vim.eval('curFile'))
         py l_searchPaths = ws.GetTagsSearchPaths()
         py if l_project: l_searchPaths += ws.GetProjectIncludePaths(
-                    \l_project.GetName())
-        py videm_cc_omnicpp.ParseFiles(ws, vim.eval('files') 
-                    \+ IncludeParser.GetIncludeFiles(vim.eval('curFile'),
-                    \   l_searchPaths))
+                \ l_project.GetName())
+        if bFilterNotNeed
+            py videm_cc_omnicpp.ParseFiles(ws, vim.eval('files') 
+                    \       + IncludeParser.GetIncludeFiles(vim.eval('curFile'),
+                    \                                       l_searchPaths),
+                    \   filterNotNeed=True)
+        else
+            py videm_cc_omnicpp.ParseFiles(ws, vim.eval('files') 
+                    \       + IncludeParser.GetIncludeFiles(vim.eval('curFile'),
+                    \                                       l_searchPaths),
+                    \   filterNotNeed=False)
+        endif
         py del l_searchPaths
         py del l_project
     else
-        py videm_cc_omnicpp.ParseFiles(ws, vim.eval('files'), False)
+        if bFilterNotNeed
+            py videm_cc_omnicpp.ParseFiles(ws, vim.eval('files'), False,
+                    \                      filterNotNeed=True)
+        else
+            py videm_cc_omnicpp.ParseFiles(ws, vim.eval('files'), False,
+                    \                      filterNotNeed=False)
+        endif
     endif
 endfunction
 "}}}
@@ -182,9 +197,9 @@ function! s:InstallCommands() "{{{2
     command! -nargs=* -complete=file VLWParseFiles  
             \                                   call <SID>ParseFiles(<f-args>)
     command! -nargs=0 -bar VLWParseCurrentFile
-            \                                   call <SID>ParseCurrentFile(0)
+            \                                   call <SID>ParseCurrentFile(0, 0)
     command! -nargs=0 -bar VLWDeepParseCurrentFile
-            \                                   call <SID>ParseCurrentFile(1)
+            \                                   call <SID>ParseCurrentFile(0, 1)
 endfunction
 "}}}
 function! s:UninstallCommands() "{{{2

@@ -156,13 +156,14 @@ class VimTagsManager:
         self.parseThread.start()
 
     def ParseFiles(self, files, macrosFiles = [], indicator = None,
-                   onlyCpp = False):
+                   filterNotNeed = True, onlyCpp = False):
         # 需要等待 parse 线程
         try:
             self.parseThread.join()
         except RuntimeError:
             pass
         TagsStorage.ParseFilesAndStore(self.storage, files, macrosFiles, 
+                                       filterNotNeed = filterNotNeed,
                                        indicator = indicator,
                                        onlyCpp = onlyCpp)
 

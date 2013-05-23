@@ -769,7 +769,6 @@ class VimLiteWorkspace(object):
         if type(names) != type([]) or not names or not names[0]:
             return
 
-        print names
         row = int(row)
         # 确保节点展开
         self.ExpandNode()

@@ -75,7 +75,8 @@ class OmniCpp:
         else:
             self.ParseFiles(wsp, parseFiles, extraMacros=extraMacros)
 
-    def ParseFiles(self, wsp, files, indicate = True, extraMacros = []):
+    def ParseFiles(self, wsp, files, indicate = True, extraMacros = [],
+                   filterNotNeed = True):
         ds = DirSaver()
         try:
             # 为了 macroFiles 中的相对路径有效
@@ -95,17 +96,19 @@ class OmniCpp:
             f.write('\n'.join(macros))
         if indicate:
             vim.command("redraw")
-            self.tagmgr.ParseFiles(files, macroFiles, IndicateProgress)
+            self.tagmgr.ParseFiles(files, macroFiles, IndicateProgress,
+                                   filterNotNeed)
             vim.command("redraw | echo 'Done.'")
         else:
-            self.tagmgr.ParseFiles(files, macroFiles, None)
+            self.tagmgr.ParseFiles(files, macroFiles, None, filterNotNeed)
         try:
             os.close(tmpfd)
             os.remove(tmpf)
         except:
             pass
 
-    def AsyncParseFiles(self, wsp, files, extraMacros = [], filterNotNeed = True):
+    def AsyncParseFiles(self, wsp, files, extraMacros = [],
+                        filterNotNeed = True):
         def RemoveTmp(arg):
             os.close(arg[0])
             os.remove(arg[1])
