@@ -102,8 +102,13 @@ function! g:VTMParseFiles(...) "{{{2
 
     py vtm.ParseFiles(vim.eval('a:000'))
 endfunction
-
-
+"}}}
+function! vltagmgr#GetTagsBySql(sql) "{{{2
+    py vim.command("let tags = %s"
+            \       % ToVimEval(vtm.GetTagsBySql(vim.eval("a:sql"))))
+    return tags
+endfunction
+"}}}
 function! vltagmgr#OpenDatabase(dbFile) "{{{2
     if !s:hasStarted
         call vltagmgr#Init()

@@ -140,6 +140,9 @@ class VimTagsManager:
     def RecreateDatabase(self):
         self.storage.RecreateDatabase()
 
+    def GetTagsBySql(self, sql):
+        return self.storage.GetTagsBySql(sql)
+
     def AsyncParseFiles(self, files, macrosFiles = [],
                         PostCallback = None, callbackPara = None,
                         filterNotNeed = True, onlyCpp = False):

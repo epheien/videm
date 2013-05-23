@@ -2,6 +2,7 @@
 # -*- encoding:utf-8 -*-
 
 import re
+from Misc import Obj2Dict, Dict2Obj
 
 CKinds = {
     'c': "class",     
@@ -74,7 +75,7 @@ class TagEntry():
         self.name = ''              # Tag name (short name, excluding any scope 
                                     # names)
         self.file = ''              # File this tag is found
-        self.lineNumber = -1        # Line number
+        self.line = -1              # Line number
         self.text = ''              # code text
 
         self.pattern = ''           # A pattern that can be used to locate the 
@@ -85,7 +86,7 @@ class TagEntry():
         self.path = ''              # Tag full path
         self.scope = ''             # Scope
 
-        self.extFields = {}         # Additional extension fields
+        self.exts = {}              # Additional extension fields
 
         self.differOnByLineNumber = False
 
@@ -101,7 +102,7 @@ class TagEntry():
                 #and self.GetAccess() == rhs.GetAccess() \
                 #and self.GetSignature() == rhs.GetSignature() \
                 #and self.GetTyperef() == rhs.GetTyperef()
-        #res = res2 and self.lineNumber == rhs.lineNumber
+        #res = res2 and self.line == rhs.line
 
         #if res2 and not res:
             ## the entries are differs only in the line numbers
@@ -109,18 +110,23 @@ class TagEntry():
 
         #return res
 
-    def Create(self, name, fileName, lineNumber, text, kind, extFields,
-               pattern = ''):
+    def ToDict(self):
+        return Obj2Dict(self, set(['differOnByLineNumber']))
+
+    def FromDict(self, d):
+        Dict2Obj(self, d)
+
+    def Create(self, name, fileName, line, text, kind, exts, pattern = ''):
         self.SetId(-1)
         self.SetName(name)
         self.SetFile(fileName)
-        self.SetLine(lineNumber)
+        self.SetLine(line)
         self.SetText(text)
         if kind:
             self.SetKind(kind)
         else:
             self.SetKind('<unknown>')
-        self.extFields = extFields
+        self.exts = exts
         self.SetPattern(pattern) # unused
 
         # Check if we can get full name (including path)
@@ -208,11 +214,11 @@ class TagEntry():
         # TODO: 变量的 typeref 域
 
 
-    def FromLine(self, line):
-        strLine = line
-        lineNumber = -1
+    def FromLine(self, strLine):
+        strLine = strLine
+        line = -1
         text = ''
-        extFields = {}
+        exts = {}
 
         # get the token name
         partStrList = strLine.partition('\t')
@@ -244,7 +250,7 @@ class TagEntry():
             # dealing with macros in C++
             pattern = partStrList[0].strip()
             strLine = '\t' + partStrList[2]
-            lineNumber = int(pattern)
+            line = int(pattern)
 
         # next is the kind of the token
         if strLine.startswith('\t'):
@@ -260,11 +266,11 @@ class TagEntry():
                 val = i.partition(':')[2].strip()
 
                 if key == 'line' and val:
-                    lineNumber = int(val)
+                    line = int(val)
                 elif key == 'text': # 不把 text 放到扩展域里面
                     text = val
                 else:
-                    extFields[key] = val
+                    exts[key] = val
 
         # 真的需要?
         #kind = kind.strip()
@@ -282,17 +288,17 @@ class TagEntry():
             # then patch the enum field to lift the enumerator into the 
             # enclosing scope.
             # watch out for anonymous enums -- leave their typeref field blank.
-            if extFields.has_key('enum'):
-                typeref = extFields['enum']
+            if exts.has_key('enum'):
+                typeref = exts['enum']
                 # comment on 2012-05-17
-                #extFields['enum'] = \
-                        #extFields['enum'].rpartition(':')[0].rpartition(':')[0]
+                #exts['enum'] = \
+                        #exts['enum'].rpartition(':')[0].rpartition(':')[0]
                 if not typeref.rpartition(':')[2].startswith('__anon'):
                     # watch out for anonymous enums
                     # just leave their typeref field blank.
-                    extFields['typeref'] = 'enum:%s' % typeref
+                    exts['typeref'] = 'enum:%s' % typeref
 
-        self.Create(name, fileName, lineNumber, text, kind, extFields, pattern)
+        self.Create(name, fileName, line, text, kind, exts, pattern)
 
     def IsOk(self):
         return self.GetKind() != "<unknown>"
@@ -375,9 +381,9 @@ class TagEntry():
         self.file = file
 
     def GetLine(self):
-        return self.lineNumber
+        return self.line
     def SetLine(self, line):
-        self.lineNumber = line
+        self.line = line
 
     def GetPattern(self):
         # since ctags's pattern is regex, forward slashes are escaped. 
@@ -433,7 +439,7 @@ class TagEntry():
     def GetParentType(self):
         return self.GetExtField('parent_type')
     def SetParentType(self, parentType):
-        self.extFields['parent_type'] = parentType
+        self.exts['parent_type'] = parentType
 
     def GetQualifiers(self):
         return self.qualifiers
@@ -443,27 +449,27 @@ class TagEntry():
     def GetAccess(self):
         return self.GetExtField("access")
     def SetAccess(self, access):
-        self.extFields["access"] = access
+        self.exts["access"] = access
 
     def GetSignature(self):
         return self.GetExtField("signature")
     def SetSignature(self, sig):
-        self.extFields["signature"] = sig
+        self.exts["signature"] = sig
 
     def SetInherits(self, inherits):
-        self.extFields["inherits"] = inherits
+        self.exts["inherits"] = inherits
     def GetInherits(self):
         return self.GetInheritsAsString()
 
     def GetTemplate(self):
         return self.GetExtField("template")
     def SetTemplate(self, template):
-        self.extFields['template'] = template
+        self.exts['template'] = template
 
     def GetTyperef(self):
         return self.GetExtField("typeref")
     def SetTyperef(self, typeref):
-        self.extFields["typeref"] = typeref
+        self.exts["typeref"] = typeref
 
     def GetInheritsAsString(self):
         return self.GetExtField('inherits')
@@ -527,7 +533,7 @@ class TagEntry():
     def GetReturn(self):
         return self.GetExtField('return')
     def SetReturn(self, retVal):
-        self.extFields["return"] = retVal
+        self.exts["return"] = retVal
 
     def GetScope(self):
         return self.scope
@@ -597,8 +603,8 @@ class TagEntry():
     #  Extenstion fields
     # ------------------------------------------
     def GetExtField(self, extField):
-        if self.extFields.has_key(extField):
-            return self.extFields[extField]
+        if self.exts.has_key(extField):
+            return self.exts[extField]
         else:
             return ''
 
@@ -617,7 +623,7 @@ class TagEntry():
         print 'Path:\t\t' + self.GetPath()
         print 'Scope:\t\t' + self.GetScope()
         print ' ---- Ext fields: ---- '
-        for k, v in self.extFields.iteritems():
+        for k, v in self.exts.iteritems():
             print k + ':\t\t' + v
         print '======================================'
 

@@ -93,6 +93,18 @@ class TagsStorageSQLite(ITagsStorage):
     def GetVersion(self):
         return tagsDatabaseVersion
 
+    def GetTagsBySql(self, sql):
+        '''外部/调试接口，返回元素为字典的列表'''
+        if not sql:
+            return []
+        tags = self.DoFetchTags(sql)
+        if not tags:
+            return []
+        li = []
+        for tag in tags:
+            li.append(tag.ToDict())
+        return li
+
     def Begin(self):
         if self.db:
             try:

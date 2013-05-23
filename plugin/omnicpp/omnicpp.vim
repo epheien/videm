@@ -147,7 +147,7 @@ function! s:ParseFiles(...) "{{{2
     py videm_cc_omnicpp.ParseFiles(ws, vim.eval("a:000"))
 endfunction
 "}}}
-function! s:ParseCurrentFile(bFilterNotNeed, bIncHdr)
+function! s:ParseCurrentFile(bFilterNotNeed, bIncHdr) "{{{2
     let bFilterNotNeed = a:bFilterNotNeed
     let bIncHdr = a:bIncHdr
     let curFile = expand("%:p")
@@ -200,6 +200,8 @@ function! s:InstallCommands() "{{{2
             \                                   call <SID>ParseCurrentFile(0, 0)
     command! -nargs=0 -bar VLWDeepParseCurrentFile
             \                                   call <SID>ParseCurrentFile(0, 1)
+    command! -nargs=+ VidemOmniCppGetTagsBySql
+            \                               echo vltagmgr#GetTagsBySql(<q-args>)
 endfunction
 "}}}
 function! s:UninstallCommands() "{{{2
@@ -209,6 +211,7 @@ function! s:UninstallCommands() "{{{2
     delcommand VLWParseFiles
     delcommand VLWParseCurrentFile
     delcommand VLWDeepParseCurrentFile
+    delcommand VidemOmniCppGetTagsBySql
 endfunction
 "}}}
 " =================== tags 设置 ===================
