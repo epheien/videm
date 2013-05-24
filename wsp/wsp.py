@@ -312,6 +312,7 @@ class VimLiteWorkspace(object):
             # 实现问题，因为获取配置文件需要先打开工作区
             self.LoadWspSettings()
             self.VLWIns._SetStatus(type(self.VLWIns).STATUS_OPEN)
+            self.RefreshStatusLine()
             self.HlActiveProject()
             VidemWorkspace.wsp_ntf.CallChain('open_post', self)
 
@@ -322,6 +323,7 @@ class VimLiteWorkspace(object):
         vim.command('doautocmd VLWorkspace VimLeave *')
         vim.command('redraw | echo ""') # 清理输出...
         self.VLWIns.CloseWorkspace()
+        self.RefreshStatusLine()
         VidemWorkspace.wsp_ntf.CallChain('close_post', self)
         # 还原配置
         vim.command('call videm#wsp#WspConfRestore()')

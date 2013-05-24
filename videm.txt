@@ -1,4 +1,4 @@
-*videm.txt*                 Vim's IDE Mode
+*videm.txt*                   Vim's IDE Mode
 
                        _   _______ ____  _______   __~
                       | | / /_  _// __ \/ ____/ | / |~
@@ -10,45 +10,45 @@
 
                             videm User Manual
 ==============================================================================
-CONTENTS                                *VimLite-Contents*
+CONTENTS                                *videm-Contents*
 
-1. Introduction                         |VimLite-Introduction|
-2. Download                             |VimLite-Download|
-3. Prerequisites                        |VimLite-Prerequisites|
-4. Project Manager                      |VimLite-ProjectManager|
-    4.1. KeyMappings                    |VimLite-ProjectManager-KeyMappings|
-    4.2. Commands                       |VimLite-ProjectManager-Commands|
-    4.3. Cscope                         |VimLite-ProjectManager-Cscope|
-5. Code Completion                      |VimLite-CodeCompletion|
-    5.1. OmniCpp                        |VimLite-CodeCompletion-OmniCpp|
-        5.1.1. Commands                 |VimLite-CodeCompletion-OmniCpp-Cmds|
-        5.1.2. Macros Handling          |VimLite-CodeCompletion-OmniCpp-Macros|
-        5.1.3. Limitation               |VimLite-CodeCompletion-OmniCpp-Limit|
-    5.2. VIMCCC                         |VimLite-CodeCompletion-VIMCCC|
-6. Debugger                             |VimLite-Debugger|
-    6.1. KeyMappings                    |VimLite-Debugger-KeyMappings|
-    6.2. Commands                       |VimLite-Debugger-Commands|
-7. Options                              |VimLite-Options|
-    7.1. Project Manager Options        |VimLite-Options-ProjectManager|
-    7.2. Calltips Options               |VimLite-Options-Calltips|
-    7.3. OmniCpp Options                |VimLite-Options-OmniCpp|
-    7.4. VIMCCC Options                 |VimLite-Options-VIMCCC|
-    7.5. Debugger Options               |VimLite-Options-Debugger|
-8. Tips                                 |VimLite-Tips|
-    8.1. Configuration Sample           |VimLite-ConfigSample|
-    8.2. Use cl.exe On Windows          |VimLite-Windows|
-    8.3. Search Paths For Parser        |VimLite-TagsSettings|
-9. Limitation                           |VimLite-Limitation|
+1. Introduction                         |videm-Introduction|
+2. Download                             |videm-Download|
+3. Prerequisites                        |videm-Prerequisites|
+4. Project Manager                      |videm-ProjectManager|
+    4.1. KeyMappings                    |videm-ProjectManager-KeyMappings|
+    4.2. Commands                       |videm-ProjectManager-Commands|
+    4.3. Cscope                         |videm-ProjectManager-Cscope|
+5. Code Completion                      |videm-CodeCompletion|
+    5.1. OmniCpp                        |videm-CodeCompletion-OmniCpp|
+        5.1.1. Commands                 |videm-CodeCompletion-OmniCpp-Cmds|
+        5.1.2. Macros Handling          |videm-CodeCompletion-OmniCpp-Macros|
+        5.1.3. Limitation               |videm-CodeCompletion-OmniCpp-Limit|
+    5.2. VIMCCC                         |videm-CodeCompletion-VIMCCC|
+6. Debugger                             |videm-Debugger|
+    6.1. KeyMappings                    |videm-Debugger-KeyMappings|
+    6.2. Commands                       |videm-Debugger-Commands|
+7. Options                              |videm-Options|
+    7.1. Project Manager Options        |videm-Options-ProjectManager|
+    7.2. Calltips Options               |videm-Options-Calltips|
+    7.3. OmniCpp Options                |videm-Options-OmniCpp|
+    7.4. VIMCCC Options                 |videm-Options-VIMCCC|
+    7.5. Debugger Options               |videm-Options-Debugger|
+8. Tips                                 |videm-Tips|
+    8.1. Configuration Sample           |videm-ConfigSample|
+    8.2. Use cl.exe On Windows          |videm-Windows|
+    8.3. Search Paths For Parser        |videm-TagsSettings|
+9. Limitation                           |videm-Limitation|
 
 ==============================================================================
-1. Introduction                         *VimLite-Introduction*
+1. Introduction                         *videm-Introduction*
 
-VimLite is a C/C++ IDE.
+Videm is a C/C++ IDE based on vim.
 
-VimLite consists mainly of the following three modules:
+Videm consists mainly of the following modules:
 
     * Project Manager:                  The project manager module is 
-                                        compatible with CodeLite. It auto
+                                        compatible with CodeLite. It can
                                         generates makefile for you.
 
     * Code Completion:                  An enhanced OmniCpp plugin and a clang 
@@ -63,32 +63,35 @@ VimLite consists mainly of the following three modules:
                                         supports mostly accurate code
                                         completion.
 
+    * Symbol Database                   Cscope and gnu global.
+
     * Debugger Integration:             Gdb integration, by pyclewn. 
 
 ==============================================================================
-2. Download                             *VimLite-Download*
+2. Download                             *videm-Download*
 
-The latest release of VimLite can be found from this url:
+The latest release of videm can be found from this url:
 
     http://www.vim.org/scripts/script.php?script_id=3647
 
-And VimLite in google code can be found from this url:
+And videm in google code can be found from this url:
 
-    http://code.google.com/p/vimlite/
+    http://code.google.com/p/videm/
 
 ==============================================================================
-3. Prerequisites                        *VimLite-Prerequisites*
+3. Prerequisites                        *videm-Prerequisites*
 
-VimLite depends following software: >
+videm depends following software: >
     python
     python-lxml (optional)
     make
     cscope
+    global
     gcc
     gdb
 <
 On ubuntu 10.04, just run: >
-    sudo apt-get install python python-lxml build-essential gdb cscope
+    sudo apt-get install python python-lxml build-essential gdb cscope global
 <
 Make sure your vim compile with this features: >
     +python
@@ -100,7 +103,7 @@ And make sure you have these settings in your vimrc file: >
     syntax on
 <
 ==============================================================================
-4. Project Manager                      *VimLite-ProjectManager*
+4. Project Manager                      *videm-ProjectManager*
 
 Workspaces and Projects~
 
@@ -124,15 +127,15 @@ Also, a project contains no information about the workspace, and thus one
 project can be part of multiple workspaces. The workspace holds pointers to
 the projects which are members of that workspace.
 
-The workspace information file is <workspace-name>.workspace.
+The workspace information file is <workspace-name>.vlworkspace.
 
-The project information file is <project-name>.project.
+The project information file is <project-name>.vlproject.
 
 Configurations~
 
 Each project has at least two build configurations: Debug and Release. In
 practice you can have many more configurations. You can select what
-configuration the project is using by selecting 'Settings' on project popup
+configuration the project is using by selecting 'Settings...' on project popup
 menu.
 
 This information is global among all the projects in the workspace and so is
@@ -140,10 +143,11 @@ kept in the workspace information file. This means all projects be in the same
 configuration in a workspace.
 
 
-NOTE: Almost all commands are listed in popup menu, please help info around.
+NOTE: Almost all commands are listed in popup menu, please read help info
+      around.
 
 ------------------------------------------------------------------------------
-4.1. KeyMappings                        *VimLite-ProjectManager-KeyMappings*
+4.1. KeyBinding                        *videm-ProjectManager-KeyBinding*
 
 Press <F1> in workspace buffer for quick help information.
 
@@ -234,11 +238,11 @@ mouse. >
     let g:VLWToggleHelpInfo = '<F1>'
 
 ------------------------------------------------------------------------------
-4.2. Commands                           *VimLite-ProjectManager-Commands*
+4.2. Commands                           *videm-ProjectManager-Commands*
 
     VLWorkspaceOpen [workspace_file]    Open a workspace file or default
                                         workspace. If without specify a
-                                        workspace file and VimLite had
+                                        workspace file and videm had
                                         started, the command will open the
                                         current workspace.
 
@@ -265,15 +269,15 @@ mouse. >
                                         cursor in '#include' line.
 
 ------------------------------------------------------------------------------
-4.3. Cscope                             *VimLite-ProjectManager-Cscope*
+4.3. Cscope                             *videm-ProjectManager-Cscope*
 
-VimLite uses cscope database to achieve some features, such as jump to
+videm uses cscope database to achieve some features, such as jump to
 definition, jump to declaration, search workspace files, etc.
 Run ':h cscope' for more info.
 
 Commands:~
 
-    VLWInitCscopeDatabase               Initialize cscope database. VimLite
+    VLWInitCscopeDatabase               Initialize cscope database. videm
                                         will generate database forcibly.
 
     VLWUpdateCscopeDatabase             Update database. Only be valided when
@@ -282,7 +286,7 @@ Commands:~
 
 
 ==============================================================================
-5. Code Completion                      *VimLite-CodeCompletion*
+5. Code Completion                      *videm-CodeCompletion*
 
 Popup menu format: ~
 >
@@ -355,7 +359,7 @@ No match because a global completion from an empty base is not allowed.
 Member Completion~
 
 You can complete members of a container(class, struct, namespace, enum).
-VimLite Code Completion will auto popup complete menu when you type ':' or '.'
+videm Code Completion will auto popup complete menu when you type ':' or '.'
 or '>'. Of cause you can use <C-x><C-o> to start completing.
 
 eg: >
@@ -375,14 +379,14 @@ eg: >
                 +--------------------------------+
 
 ------------------------------------------------------------------------------
-5.1. OmniCpp                            *VimLite-CodeCompletion-OmniCpp*
+5.1. OmniCpp                            *videm-CodeCompletion-OmniCpp*
 
 OmniCpp needs a tags database to support completion, you need parse the
 workspace before starting code completion. Put the cursor on workspace line
 in VLWorkspace buffer window, popup the menu, select "Parse Workspace (Quick)".
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5.1.1. Commands                         *VimLite-CodeCompletion-OmniCpp-Cmds*
+5.1.1. Commands                         *videm-CodeCompletion-OmniCpp-Cmds*
 
     VLWParseFiles <file1> <file2> ...   Parse files.
 
@@ -418,17 +422,17 @@ in VLWorkspace buffer window, popup the menu, select "Parse Workspace (Quick)".
     VLWBuildersSettings                 Open 'Builders Settings' dialog.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5.1.2. Macros Handling                  *VimLite-CodeCompletion-OmniCpp-Macros*
+5.1.2. Macros Handling                  *videm-CodeCompletion-OmniCpp-Macros*
 
-List in 'VimLite -> TagsSettings -> Macros' are to be pre-processed by OmniCpp
+List in 'videm -> TagsSettings -> Macros' are to be pre-processed by OmniCpp
 parser. Usually, you would like to add new macros which confuse the parse.
 
 Usually, you will add gcc predefined macros if you use gcc, run (On Linux) >
     cpp -dM /dev/null
-and put the outputs to 'VimLite -> TagsSettings -> Macros'.
+and put the outputs to 'videm -> TagsSettings -> Macros'.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5.1.3. Limitation                       *VimLite-CodeCompletion-OmniCpp-Limit*
+5.1.3. Limitation                       *videm-CodeCompletion-OmniCpp-Limit*
 
 OmniCpp is not a C/C++ compiler, so...
 Some C++ features are not supported, some implemented features may not work
@@ -448,7 +452,7 @@ Here is a list for whiches are not supported:~
 7. Does not support '.' and '->' overload for performance considerations. 
 
 ------------------------------------------------------------------------------
-5.1. VIMCCC                             *VimLite-CodeCompletion-VIMCCC*
+5.1. VIMCCC                             *videm-CodeCompletion-VIMCCC*
 
 You can set g:VLWorkspaceCodeCompleteEngine to "vimccc" to enable clang code
 completion. >
@@ -477,16 +481,16 @@ There are several commands for VIMCCC.
                                         can set the search paths for clang.
 
 ==============================================================================
-6. Debugger                             *VimLite-Debugger*
+6. Debugger                             *videm-Debugger*
 
-VimLite integrate pyclewn in it.
+videm integrate pyclewn in it.
 Start to debug the active projcet, just press the icon in toolbar or run: >
     :VLWDbgStart
 <
 NOTE: You must start degger before setting a breakpoint.
 
 ------------------------------------------------------------------------------
-6.1. KeyMappings                        *VimLite-Debugger-KeyMappings*
+6.1. KeyMappings                        *videm-Debugger-KeyMappings*
 
     <CR>
     <2-LeftMouse>                       Fold and unfold the watching var.
@@ -507,7 +511,7 @@ NOTE: You must start degger before setting a breakpoint.
                                         be changed by var g:VLWDbgWatchVarKey.
 
 ------------------------------------------------------------------------------
-6.2. Commands                           *VimLite-Debugger-Commands*
+6.2. Commands                           *videm-Debugger-Commands*
 
     VLWDbgStart                         Start debugger.
 
@@ -532,14 +536,14 @@ Because of avoiding conflicts with official pyclewn, currently the help file
 of pyclewn.txt rename to vpyclewn.txt and do not put into vim's doc folder.
 
 ==============================================================================
-7. Options                              *VimLite-Options*
+7. Options                              *videm-Options*
 
 Right hand side is the default value, you can modify other values for the same
 type. If type of the right hand side value is integer, 0 for False, non-zero
 for True. 
 
 ------------------------------------------------------------------------------
-7.1. Project Manager Options            *VimLite-Options-ProjectManager*
+7.1. Project Manager Options            *videm-Options-ProjectManager*
 
 Workspace window width. >
     let g:VLWorkspaceWinSize = 30
@@ -554,7 +558,7 @@ If not 0, when the curser put on one source file buffer, the cursor of
 worksapce buffer's cursor will go the the corresponding source file line. >
     let g:VLWorkspaceLinkToEidtor = 1
 
-Will install a menu named 'VimLite'. >
+Will install a menu named 'videm'. >
     let g:VLWorkspaceEnableMenuBarMenu = 1
 
 Will install some toolbar icons. >
@@ -562,7 +566,7 @@ Will install some toolbar icons. >
 
 Symbol Database, 0 -> none, 1 -> cscope, 2 -> GNU global
 NOTE: Cscope will not update symbol database automatically but GNU global do,
-      when VimLite just connect a valid symbol database
+      when videm just connect a valid symbol database
 NOTE: GNU global has a bug when a directory is a symbol link, so if you use
       symbol links in your project, do *NOT* use GNU global.  >
     let g:VLWorkspaceSymbolDatabase = 1
@@ -570,7 +574,7 @@ NOTE: GNU global has a bug when a directory is a symbol link, so if you use
 Cscope progam path, you can specify another value such as /usr/local/cscope >
     let g:VLWorkspaceCscopeProgram = &cscopeprg
 
-If not 0, VimLite will pass all project's include search paths to cscope, so
+If not 0, videm will pass all project's include search paths to cscope, so
 cscope will generate a datebase which contains all headers. >
     let g:VLWorkspaceCscopeContainExternalHeader = 1
 
@@ -607,7 +611,7 @@ Only work for files belong to workspace and OmniCpp. >
     let g:VLWorkspaceParseFileAfterSave = 1
 
 ------------------------------------------------------------------------------
-7.2. Calltips Options                   *VimLite-Options-Calltips*
+7.2. Calltips Options                   *videm-Options-Calltips*
 
 The key to trigger function calltips. >
     let g:VLCalltips_DispCalltipsKey = '<A-p>'
@@ -627,7 +631,7 @@ function calltips in your vim crash your speed, you may not set this to 1. >
     let g:VLCalltips_EnableSyntaxTest = 0
 
 ------------------------------------------------------------------------------
-7.3. OmniCpp Options                    *VimLite-Options-OmniCpp*
+7.3. OmniCpp Options                    *videm-Options-OmniCpp*
 
 Auto trigger code completion when input '.' (dot). >
     let g:VLOmniCpp_MayCompleteDot = 1
@@ -680,9 +684,9 @@ For example, if this option value is not 0, the following code will include
     let g:VimTagsManager_InclAllCondCmplBrch = 1
 
 ------------------------------------------------------------------------------
-7.4. VIMCCC Options                     *VimLite-Options-VIMCCC*
+7.4. VIMCCC Options                     *videm-Options-VIMCCC*
 
-If enable VIMCCC without VimLite. >
+If enable VIMCCC without videm. >
     let g:VIMCCC_Enable = 0
 
 Clang library path. >
@@ -690,9 +694,9 @@ Clang library path. >
 
 VIMCCC python module path, make sure you set it correctly.
 On Linux, the default value is: >
-    let g:VIMCCC_PythonModulePath = '~/.vimlite/VimLite'
+    let g:VIMCCC_PythonModulePath = '~/.vimlite/videm'
 On Windows, the default value is: >
-    let g:VIMCCC_PythonModulePath = $VIM . '\vimlite\VimLite'
+    let g:VIMCCC_PythonModulePath = $VIM . '\vimlite\videm'
 
 If equal to 1, it will periodically update the quickfix window. >
     let g:VIMCCC_PeriodicQuickFix = 0
@@ -758,22 +762,22 @@ trigger an code completion.
     let g:VIMCCC_TriggerCharCount = 2
 
 ------------------------------------------------------------------------------
-7.5. Debugger Options                   *VimLite-Options-Debugger*
+7.5. Debugger Options                   *videm-Options-Debugger*
 
 The frame sign background color, can be #xxxxxx format. >
     let g:VLWDbgFrameSignBackground = 'DarkMagenta'
 
-Save breakpoints. Currently, VimLite can only treats all breakpoints as
-normal location breakpoint, it means VimLite only saves breakpoints as
+Save breakpoints. Currently, videm can only treats all breakpoints as
+normal location breakpoint, it means videm only saves breakpoints as
 command "break {file}:{line}". So the condition of breakpoint will be lost. >
     let g:VLWDbgSaveBreakpointsInfo = 1
 
 ==============================================================================
-8. Tips                                 *VimLite-Tips*
+8. Tips                                 *videm-Tips*
 ------------------------------------------------------------------------------
-8.1. Configuration Sample               *VimLite-ConfigSample*
+8.1. Configuration Sample               *videm-ConfigSample*
 
-Configuration sample of VimLite >
+Configuration sample of videm >
     let g:VLWorkspaceSaveAllBeforeBuild = 1
     let g:VLOmniCpp_ItemSelectionMode = 10
     let g:VLWorkspaceParseFileAfterSave = 1
@@ -787,7 +791,7 @@ If use VIMCCC >
     let g:VIMCCC_CompleteMacros = 1
 
 ------------------------------------------------------------------------------
-8.2. Use cl.exe On Windows              *VimLite-Windows*
+8.2. Use cl.exe On Windows              *videm-Windows*
 
 Run :VLWCompilersSettings to open settings dialog, select VC++ compiler and
 set 'Environment Setup Command:' to following (I have installed VS 2010 in
@@ -796,13 +800,13 @@ set 'Environment Setup Command:' to following (I have installed VS 2010 in
 
 And then you can use cl.exe in project, just select 'VC++' compiler.
 
-NOTE: Currently, OmniCpp of VimLite can not support code completion with
+NOTE: Currently, OmniCpp of videm can not support code completion with
       headers of Visual Studio, use VIMCCC instead.
-NOTE: Compile the program with cl.exe, this implies that VimLite can not debug
+NOTE: Compile the program with cl.exe, this implies that videm can not debug
       the program with gdb, use windbg instead.
 
 ------------------------------------------------------------------------------
-8.3. Search Paths For Parser            *VimLite-TagsSettings*
+8.3. Search Paths For Parser            *videm-TagsSettings*
 
 If you update gcc, the search paths for parser will need to be updated also.
 Run the following command and find the search list of gcc, and then update the
@@ -810,7 +814,7 @@ search paths for parser in "Tags And Clang Settings". >
      echo "" | gcc -v -x c++ - -fsyntax-only 2>&1
 
 ==============================================================================
-9. Limitation                           *VimLite-Limitation*
+9. Limitation                           *videm-Limitation*
 ------------------------------------------------------------------------------
 On Windows, a general file and path which pattern is '[A-Za-z0-9_\-+.]\+' are
 supported only. Any special file and path name will cause some problems,

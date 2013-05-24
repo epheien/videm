@@ -90,24 +90,6 @@ call s:InitVariable('g:VLWorkspaceSymbolDatabase', 'cscope')
 " 补全引擎选择，'none', 'omnicpp', 'vimccc'
 call s:InitVariable("g:VLWorkspaceCodeCompleteEngine", 'omnicpp')
 
-" 键绑定
-call s:InitVariable('g:VLWShowMenuKey', '.')
-call s:InitVariable('g:VLWPopupMenuKey', ',')
-call s:InitVariable('g:VLWOpenNodeKey', 'o')
-call s:InitVariable('g:VLWOpenNode2Key', 'go')
-call s:InitVariable('g:VLWOpenNodeInNewTabKey', 't')
-call s:InitVariable('g:VLWOpenNodeInNewTab2Key', 'T')
-call s:InitVariable('g:VLWOpenNodeSplitKey', 'i')
-call s:InitVariable('g:VLWOpenNodeSplit2Key', 'gi')
-call s:InitVariable('g:VLWOpenNodeVSplitKey', 's')
-call s:InitVariable('g:VLWOpenNodeVSplit2Key', 'gs')
-call s:InitVariable('g:VLWGotoParentKey', 'p')
-call s:InitVariable('g:VLWGotoRootKey', 'P')
-call s:InitVariable('g:VLWGotoNextSibling', '<C-n>')
-call s:InitVariable('g:VLWGotoPrevSibling', '<C-p>')
-call s:InitVariable('g:VLWRefreshBufferKey', 'R')
-call s:InitVariable('g:VLWToggleHelpInfo', '<F1>')
-
 "=======================================
 " 标记是否已经运行
 call s:InitVariable("g:VLWorkspaceHasStarted", 0)
@@ -214,6 +196,23 @@ let s:CompatSettings = {
     \ 'g:VLWorkspaceSaveAllBeforeBuild'     : '.videm.wsp.SaveBeforeBuild',
     \ 'g:VLWorkspaceHighlightSourceFile'    : '.videm.wsp.HlSourceFile',
     \ 'g:VLWorkspaceActiveProjectHlGroup'   : '.videm.wsp.ActProjHlGroup',
+    \
+    \ 'g:VLWShowMenuKey'            : '.videm.wsp.keybind.ShowMenu',
+    \ 'g:VLWPopupMenuKey'           : '.videm.wsp.keybind.PopupMenu',
+    \ 'g:VLWOpenNodeKey'            : '.videm.wsp.keybind.OpenNode',
+    \ 'g:VLWOpenNode2Key'           : '.videm.wsp.keybind.OpenNode2',
+    \ 'g:VLWOpenNodeInNewTabKey'    : '.videm.wsp.keybind.OpenNodeNewTab',
+    \ 'g:VLWOpenNodeInNewTab2Key'   : '.videm.wsp.keybind.OpenNodeNewTab2',
+    \ 'g:VLWOpenNodeSplitKey'       : '.videm.wsp.keybind.OpenNodeSplit',
+    \ 'g:VLWOpenNodeSplit2Key'      : '.videm.wsp.keybind.OpenNodeSplit2',
+    \ 'g:VLWOpenNodeVSplitKey'      : '.videm.wsp.keybind.OpenNodeVSplit',
+    \ 'g:VLWOpenNodeVSplit2Key'     : '.videm.wsp.keybind.OpenNodeVSplit2',
+    \ 'g:VLWGotoParentKey'          : '.videm.wsp.keybind.GotoParent',
+    \ 'g:VLWGotoRootKey'            : '.videm.wsp.keybind.GotoRoot',
+    \ 'g:VLWGotoNextSibling'        : '.videm.wsp.keybind.GotoNextSibling',
+    \ 'g:VLWGotoPrevSibling'        : '.videm.wsp.keybind.GotoPrevSibling',
+    \ 'g:VLWRefreshBufferKey'       : '.videm.wsp.keybind.RefreshBuffer',
+    \ 'g:VLWToggleHelpInfo'         : '.videm.wsp.keybind.ToggleHelpInfo',
 \ }
 " ============================================================================
 " 工作区可局部配置的信息 {{{1
@@ -673,50 +672,66 @@ endfunction
 
 
 function! s:SetupKeyMappings() "设置键盘映射 {{{2
-    exec 'nnoremap <silent> <buffer>' g:VLWShowMenuKey 
-                \':call <SID>ShowMenu()<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.ShowMenu')
+            \ ':call <SID>ShowMenu()<CR>'
 
-    exec 'nnoremap <silent> <buffer>' g:VLWPopupMenuKey 
-                \':call <SID>OnRightMouseClick()<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.PopupMenu')
+            \ ':call <SID>OnRightMouseClick()<CR>'
 
     nnoremap <silent> <buffer> <2-LeftMouse> :call <SID>OnMouseDoubleClick()<CR>
     nnoremap <silent> <buffer> <CR> :call <SID>OnMouseDoubleClick()<CR>
 
-    exec 'nnoremap <silent> <buffer>' g:VLWOpenNodeKey 
-                \':call <SID>OnMouseDoubleClick(g:VLWOpenNodeKey)<CR>'
-    exec 'nnoremap <silent> <buffer>' g:VLWOpenNode2Key 
-                \':call <SID>OnMouseDoubleClick(g:VLWOpenNode2Key)<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.OpenNode')
+            \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeKey)<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.OpenNode2')
+            \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNode2Key)<CR>'
 
-    exec 'nnoremap <silent> <buffer>' g:VLWOpenNodeInNewTabKey 
-                \':call <SID>OnMouseDoubleClick(g:VLWOpenNodeInNewTabKey)<CR>'
-    exec 'nnoremap <silent> <buffer>' g:VLWOpenNodeInNewTab2Key 
-                \':call <SID>OnMouseDoubleClick(g:VLWOpenNodeInNewTab2Key)<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeNewTab')
+            \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeInNewTabKey)<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeNewTab2')
+            \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeInNewTab2Key)<CR>'
 
-    exec 'nnoremap <silent> <buffer>' g:VLWOpenNodeSplitKey 
-                \':call <SID>OnMouseDoubleClick(g:VLWOpenNodeSplitKey)<CR>'
-    exec 'nnoremap <silent> <buffer>' g:VLWOpenNodeSplit2Key 
-                \':call <SID>OnMouseDoubleClick(g:VLWOpenNodeSplit2Key)<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeSplit')
+            \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeSplitKey)<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeSplit2')
+            \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeSplit2Key)<CR>'
 
-    exec 'nnoremap <silent> <buffer>' g:VLWOpenNodeVSplitKey 
-                \':call <SID>OnMouseDoubleClick(g:VLWOpenNodeVSplitKey)<CR>'
-    exec 'nnoremap <silent> <buffer>' g:VLWOpenNodeVSplit2Key 
-                \':call <SID>OnMouseDoubleClick(g:VLWOpenNodeVSplit2Key)<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeVSplit')
+            \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeVSplitKey)<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeVSplit2')
+            \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeVSplit2Key)<CR>'
 
-    exec 'nnoremap <silent> <buffer>' g:VLWGotoParentKey 
-                \':call <SID>GotoParent()<CR>'
-    exec 'nnoremap <silent> <buffer>' g:VLWGotoRootKey 
-                \':call <SID>GotoRoot()<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.GotoParent')
+            \ ':call <SID>GotoParent()<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.GotoRoot')
+            \ ':call <SID>GotoRoot()<CR>'
 
-    exec 'nnoremap <silent> <buffer>' g:VLWGotoNextSibling 
-                \':call <SID>GotoNextSibling()<CR>'
-    exec 'nnoremap <silent> <buffer>' g:VLWGotoPrevSibling 
-                \':call <SID>GotoPrevSibling()<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.GotoNextSibling')
+            \ ':call <SID>GotoNextSibling()<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.GotoPrevSibling')
+            \ ':call <SID>GotoPrevSibling()<CR>'
 
-    exec 'nnoremap <silent> <buffer>' g:VLWRefreshBufferKey 
-                \':call <SID>RefreshBuffer()<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.RefreshBuffer')
+            \ ':call <SID>RefreshBuffer()<CR>'
 
-    exec 'nnoremap <silent> <buffer>' g:VLWToggleHelpInfo 
-                \':call <SID>ToggleHelpInfo()<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.ToggleHelpInfo')
+            \ ':call <SID>ToggleHelpInfo()<CR>'
 endfunction
 
 
