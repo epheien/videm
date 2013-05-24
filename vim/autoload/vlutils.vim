@@ -15,7 +15,7 @@ let s:loaded = 1
 
 " 初始化
 function! vlutils#Init() "{{{2
-    return 1
+    return 0
 endfunction
 "}}}2
 " 初始化变量, 仅在没有变量定义时才赋值

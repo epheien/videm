@@ -12,10 +12,10 @@ if !has('python')
     finish
 endif
 
-if exists("g:loaded_VIMClangCC")
+if exists('s:loaded')
     finish
 endif
-let g:loaded_VIMClangCC = 1
+let s:loaded = 1
 
 " 在 console 跑的 vim 没法拥有这个特性...
 let s:has_clientserver = 0
@@ -65,6 +65,11 @@ else
     let s:sDefaultPyModPath = fnamemodify("~/.videm/core", ":p")
 endif
 
+function! vimccc#core#Init() "{{{2
+    return 0
+endfunction
+"}}}
+
 function! s:InitVariable(varName, defaultVal) "{{{2
     if !exists(a:varName)
         let {a:varName} = a:defaultVal
@@ -74,8 +79,6 @@ function! s:InitVariable(varName, defaultVal) "{{{2
     endif
 endfunction
 "}}}
-
-command! -nargs=0 -bar VIMCCCInitForcibly call <SID>VIMCCCInitForcibly()
 
 " 临时启用选项函数 {{{2
 function! s:SetOpts()
@@ -694,10 +697,10 @@ function! VIMCCCAsyncCCPost() "{{{2
 endfunction
 "}}}
 " 强制启动
-function! s:VIMCCCInitForcibly() "{{{2
+function! vimccc#core#InitForcibly() "{{{2
     let bak = g:VIMCCC_Enable
     let g:VIMCCC_Enable = 1
-    call VIMCCCInitEarly()
+    call vimccc#core#InitEarly()
     let g:VIMCCC_Enable = bak
     call VIMCCCInit()
 endfunction
@@ -803,7 +806,7 @@ function! VIMCCCExit() "{{{2
 endfunction
 "}}}
 " 最早阶段的初始化，只初始化一些基本设施
-function! VIMCCCInitEarly() "{{{2
+function! vimccc#core#InitEarly() "{{{2
     " 是否使用，可用于外部控制
     call s:InitVariable('g:VIMCCC_Enable', 0)
     if !g:VIMCCC_Enable
@@ -1499,8 +1502,4 @@ VIMCCCIndex = VIMClangCCIndex()
 PYTHON_EOF
 endfunction
 "}}}
-
-" 最后才初始化...
-call VIMCCCInitEarly()
-
 " vim: fdm=marker fen et sts=4 fdl=1

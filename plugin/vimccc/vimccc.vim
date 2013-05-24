@@ -60,7 +60,7 @@ endfunction
 function! videm#plugin#vimccc#InitFacilities() "{{{2
     let g:VIMCCC_Enable = 1 " 保证初始化成功
     " 先初始化默认的 clang index
-    call VIMCCCInitEarly()
+    call vimccc#core#InitEarly()
     py OrigVIMCCCIndex = VIMCCCIndex
     let g:VIMCCC_Enable = 0 " 再禁用 VIMCCC
 endfunction
