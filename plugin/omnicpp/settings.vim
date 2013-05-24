@@ -16,9 +16,6 @@ endfunction
 let s:sfile = expand('<sfile>')
 
 function! omnicpp#settings#Init() "{{{1
-    " Show all class members (static, public, protected and private)
-    call s:InitVariable('g:VLOmniCpp_ShowAllClassMember', 0)
-
     " Show the access symbol (+,#,-)
     call s:InitVariable('g:VLOmniCpp_ShowAccessSymbol', 1)
 
@@ -59,10 +56,10 @@ function! omnicpp#settings#Init() "{{{1
     " libCxxParser.so 所在的路径
     if has('win32') || has('win64')
         call s:InitVariable('g:VLOmniCpp_LibCxxParserPath', 
-                    \       $VIM . '\vimlite\lib\libCxxParser.dll')
+                    \       $VIM . '\videm\lib\libCxxParser.dll')
     else
         call s:InitVariable('g:VLOmniCpp_LibCxxParserPath', 
-                    \       $HOME . "/.vimlite/lib/libCxxParser.so")
+                    \       $HOME . "/.videm/lib/libCxxParser.so")
     endif
 
     " 跳转至符号声明处的快捷键

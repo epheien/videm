@@ -4,16 +4,41 @@
 " Create:   2013-05-18
 " Change:   2013-05-19
 
+" import library
+let s:os = vlutils#os
+
 " 工作区设置的控件字典
 let s:ctls = {}
 
 let s:enable = 0
 
+" 备用，暂时还没有起作用
 let s:OmniCppSettings = {
-    \ '.videm.cc.omnicpp.Enable'            : 1,
+    \ '.videm.cc.omnicpp.Enable'                : 1,
+    \ '.videm.cc.omnicpp.ShowAccessSymbol'      : 1,
+    \ '.videm.cc.omnicpp.MayCompleteDot'        : 1,
+    \ '.videm.cc.omnicpp.MayCompleteArrow'      : 1,
+    \ '.videm.cc.omnicpp.MayCompleteColon'      : 1,
+    \ '.videm.cc.omnicpp.EnableSyntaxTest'      : 1,
+    \ '.videm.cc.omnicpp.ReturnToCalltips'      : 1,
+    \ '.videm.cc.omnicpp.ItemSelectMode'        : 2,
+    \ '.videm.cc.omnicpp.GotoDeclKey'           : '<C-p>',
+    \ '.videm.cc.omnicpp.GotoImplKey'           : '<C-]>',
+    \ '.videm.cc.omnicpp.LibCxxParserPath'      : s:os.path.join(g:VidemDir,
+    \                                                   '/lib/libCxxParser.so'),
 \ }
 
 let s:CompatSettings = {
+    \ 'g:VLOmniCpp_ShowAccessSymbol'    : '.videm.cc.omnicpp.ShowAccessSymbol',
+    \ 'g:VLOmniCpp_MayCompleteDot'      : '.videm.cc.omnicpp.MayCompleteDot',
+    \ 'g:VLOmniCpp_MayCompleteArrow'    : '.videm.cc.omnicpp.MayCompleteArrow',
+    \ 'g:VLOmniCpp_MayCompleteColon'    : '.videm.cc.omnicpp.MayCompleteColon',
+    \ 'g:VLOmniCpp_EnableSyntaxTest'    : '.videm.cc.omnicpp.EnableSyntaxTest',
+    \ 'g:VLOmniCpp_MapReturnToDispCalltips' : '.videm.cc.omnicpp.ReturnToCalltips',
+    \ 'g:VLOmniCpp_ItemSelectionMode'   : '.videm.cc.omnicpp.ItemSelectMode',
+    \ 'g:VLOmniCpp_GotoDeclarationKey'  : '.videm.cc.omnicpp.GotoDeclKey',
+    \ 'g:VLOmniCpp_GotoImplementationKey'   : '.videm.cc.omnicpp.GotoImplKey',
+    \ 'g:VLOmniCpp_LibCxxParserPath'    : '.videm.cc.omnicpp.LibCxxParserPath',
 \ }
 
 function! s:InitCompatSettings() "{{{2
@@ -29,7 +54,13 @@ function! s:InitSettings() "{{{2
     if videm#settings#Get('.videm.Compatible')
         call s:InitCompatSettings()
     endif
+    if vlutils#IsWindowsOS() &&
+            \ !videm#settings#Has('.videm.cc.omnicpp.LibCxxParserPath')
+        call videm#settings#Set('.videm.cc.omnicpp.LibCxxParserPath',
+                \           s:os.path.join(g:VidemDir, 'lib\libCxxParser.dll'))
+    endif
     call videm#settings#Init(s:OmniCppSettings)
+    " 设置为这个
 endfunction
 "}}}
 function! s:SID() "获取脚本 ID {{{2
