@@ -558,7 +558,7 @@ If not 0, when the curser put on one source file buffer, the cursor of
 worksapce buffer's cursor will go the the corresponding source file line. >
     let g:VLWorkspaceLinkToEidtor = 1
 
-Will install a menu named 'videm'. >
+Will install a menu named 'Videm'. >
     let g:VLWorkspaceEnableMenuBarMenu = 1
 
 Will install some toolbar icons. >

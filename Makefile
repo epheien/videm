@@ -26,12 +26,15 @@ install: skel_dir
 	@find $(DESTDIR) -depth -name '.svn' -exec rm -rf {} \;
 # clean '.*.swp'
 	@find $(DESTDIR) -name '.*.swp' -exec rm -f {} \;
+# help doc
+	@cp videm.txt $(VIMDIR)/doc
 
 skel_dir:
 	@mkdir -p $(PYDIR)
 	@mkdir -p $(VIMDIR)
 	@mkdir -p $(VIMDIR)/plugin
 	@mkdir -p $(VIMDIR)/autoload
+	@mkdir -p $(VIMDIR)/doc
 	@mkdir -p $(VIDEMDIR)/bin
 	@mkdir -p $(VIDEMDIR)/config
 	@mkdir -p $(VIDEMDIR)/lib
