@@ -157,10 +157,11 @@ let s:DefaultSettings = {
     \ '.videm.wsp.LinkToEditor'     : 1,
     \ '.videm.wsp.EnableMenuBar'    : 1,
     \ '.videm.wsp.EnableToolBar'    : 1,
-    \ '.videm.wsp.DispWspName'      : 1,
+    \ '.videm.wsp.ShowWspName'      : 1,
     \ '.videm.wsp.SaveBeforeBuild'  : 1,
     \ '.videm.wsp.HlSourceFile'     : 1,
     \ '.videm.wsp.ActProjHlGroup'   : 'SpecialKey',
+    \ '.videm.wsp.ShowBriefHelp'    : 1,
     \
     \ '.videm.wsp.keybind.ShowMenu'         : '.',
     \ '.videm.wsp.keybind.PopupMenu'        : ',',
@@ -192,7 +193,7 @@ let s:CompatSettings = {
     \ 'g:VLWorkspaceLinkToEidtor'           : '.videm.wsp.LinkToEditor',
     \ 'g:VLWorkspaceEnableMenuBarMenu'      : '.videm.wsp.EnableMenuBar',
     \ 'g:VLWorkspaceEnableToolBarMenu'      : '.videm.wsp.EnableToolBar',
-    \ 'g:VLWorkspaceDispWspNameInTitle'     : '.videm.wsp.DispWspName',
+    \ 'g:VLWorkspaceDispWspNameInTitle'     : '.videm.wsp.ShowWspName',
     \ 'g:VLWorkspaceSaveAllBeforeBuild'     : '.videm.wsp.SaveBeforeBuild',
     \ 'g:VLWorkspaceHighlightSourceFile'    : '.videm.wsp.HlSourceFile',
     \ 'g:VLWorkspaceActiveProjectHlGroup'   : '.videm.wsp.ActProjHlGroup',
@@ -579,6 +580,9 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     py ws = VimLiteWorkspace()
     py ws.OpenWorkspace(vim.eval('sFile'))
     py ws.RefreshBuffer()
+    if videm#settings#Get('.videm.wsp.ShowBriefHelp')
+        call s:ToggleBriefHelp()
+    endif
 
     " 安装命令
     call s:InstallCommands()
@@ -603,7 +607,7 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     augroup END
 
     " 设置标题栏
-    if videm#settings#Get('.videm.wsp.DispWspName')
+    if videm#settings#Get('.videm.wsp.ShowWspName')
         set titlestring=%(<%{GetWspName()}>\ %)%t%(\ %M%)
                 \%(\ (%{expand(\"%:~:h\")})%)%(\ %a%)%(\ -\ %{v:servername}%)
     endif
@@ -1020,13 +1024,21 @@ function! s:RefreshBuffer() "{{{2
     let bNeedDispHelp = 0
     if exists('b:bHelpInfoOn') && b:bHelpInfoOn
         let bNeedDispHelp = 1
-        call s:ToggleHelpInfo()
+    endif
+    let bNeedBriefHelp = 0
+    if exists('b:bBriefHelpOn') && b:bBriefHelpOn
+        let bNeedBriefHelp = 1
     endif
 
+    call s:ToggleHelpInfo(0)
+    call s:ToggleBriefHelp(0)
     py ws.RefreshBuffer()
 
+    if bNeedBriefHelp
+        call s:ToggleBriefHelp(1)
+    endif
     if bNeedDispHelp
-        call s:ToggleHelpInfo()
+        call s:ToggleHelpInfo(1)
     endif
 
     call setpos('.', lOrigCursor)
@@ -1038,7 +1050,8 @@ function! s:RefreshBuffer() "{{{2
 endfunction
 
 
-function! s:ToggleHelpInfo() "{{{2
+function! s:ToggleHelpInfo(...) "{{{2
+    let flag = get(a:000, 0, -1)
     if !exists('b:bHelpInfoOn')
         let b:bHelpInfoOn = 0
     endif
@@ -1046,6 +1059,13 @@ function! s:ToggleHelpInfo() "{{{2
     if !b:bHelpInfoOn
         let b:dOrigView = winsaveview()
     endif
+
+    " FIXME videm#settings#Get 不能获取函数引用...
+    function! s:SGet(opt, ...)
+        let val = get(a:000, 0, 0)
+        return videm#settings#Get(a:opt, val)
+    endfunction
+    let prefix = '.videm.wsp.keybind.'
 
     let lHelpInfo = []
 
@@ -1059,21 +1079,22 @@ function! s:ToggleHelpInfo() "{{{2
     call add(lHelpInfo, sLine)
     let sLine = '" <CR>,'
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNodeKey.': open file gracefully'
+    let sLine = printf('" %s: open file gracefully', s:SGet(prefix.'OpenNode'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNode2Key.': preview'
+    let sLine = printf('" %s: preview', s:SGet(prefix.'OpenNode2'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNodeInNewTabKey.': open in new tab'
+    let sLine = printf('" %s: open in new tab', s:SGet(prefix.'OpenNodeNewTab'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNodeInNewTab2Key.': open in new tab silently'
+    let sLine = printf('" %s: open in new tab silently',
+            \          s:SGet(prefix.'OpenNodeNewTab2'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNodeSplitKey.': open split'
+    let sLine = printf('" %s: open split', s:SGet(prefix.'OpenNodeSplit'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNodeSplit2Key.': preview split'
+    let sLine = printf('" %s: preview split', s:SGet(prefix.'OpenNodeSplit2'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNodeVSplitKey.': open vsplit'
+    let sLine = printf('" %s: open vsplit', s:SGet(prefix.'OpenNodeVSplit'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNodeVSplit2Key.': preview vsplit'
+    let sLine = printf('" %s: preview vsplit', s:SGet(prefix.'OpenNodeVSplit2'))
     call add(lHelpInfo, sLine)
     call add(lHelpInfo, '')
 
@@ -1085,7 +1106,7 @@ function! s:ToggleHelpInfo() "{{{2
     call add(lHelpInfo, sLine)
     let sLine = '" <CR>,'
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNodeKey.': open & close node'
+    let sLine = printf('" %s: open & close node', s:SGet(prefix.'OpenNode'))
     call add(lHelpInfo, sLine)
     call add(lHelpInfo, '')
 
@@ -1097,7 +1118,7 @@ function! s:ToggleHelpInfo() "{{{2
     call add(lHelpInfo, sLine)
     let sLine = '" <CR>,'
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNodeKey.': open & close node'
+    let sLine = printf('" %s: open & close node', s:SGet(prefix.'OpenNode'))
     call add(lHelpInfo, sLine)
     call add(lHelpInfo, '')
 
@@ -1109,7 +1130,7 @@ function! s:ToggleHelpInfo() "{{{2
     call add(lHelpInfo, sLine)
     let sLine = '" <CR>,'
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWOpenNodeKey.': show build config menu'
+    let sLine = printf('" %s: show build config menu', s:SGet(prefix.'OpenNode'))
     call add(lHelpInfo, sLine)
     call add(lHelpInfo, '')
 
@@ -1117,13 +1138,15 @@ function! s:ToggleHelpInfo() "{{{2
     call add(lHelpInfo, sLine)
     let sLine = '" Tree navigation mappings~'
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWGotoRootKey.': go to root'
+    let sLine = printf('" %s: go to root', s:SGet(prefix.'GotoRoot'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWGotoParentKey.': go to parent'
+    let sLine = printf('" %s: go to parent', s:SGet(prefix.'GotoParent'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWGotoNextSibling.': go to next sibling'
+    let sLine = printf('" %s: go to next sibling',
+            \          s:SGet(prefix.'GotoNextSibling'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWGotoPrevSibling.': go to prev sibling'
+    let sLine = printf('" %s: go to prev sibling',
+            \          s:SGet(prefix.'GotoPrevSibling'))
     call add(lHelpInfo, sLine)
     call add(lHelpInfo, '')
 
@@ -1131,39 +1154,103 @@ function! s:ToggleHelpInfo() "{{{2
     call add(lHelpInfo, sLine)
     let sLine = '" Other mappings~'
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWPopupMenuKey.': popup menu'
+    let sLine = printf('" %s: popup menu', s:SGet(prefix.'PopupMenu'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWShowMenuKey.': show text menu'
+    let sLine = printf('" %s: show text menu', s:SGet(prefix.'ShowMenu'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWRefreshBufferKey.': refresh buffer'
+    let sLine = printf('" %s: refresh buffer', s:SGet(prefix.'RefreshBuffer'))
     call add(lHelpInfo, sLine)
-    let sLine = '" '.g:VLWToggleHelpInfo.': toggle help info'
+    let sLine = printf('" %s: toggle help info',
+            \          s:SGet(prefix.'ToggleHelpInfo'))
     call add(lHelpInfo, sLine)
     call add(lHelpInfo, '')
 
+    delfunction s:SGet
 
-    setlocal ma
-    if b:bHelpInfoOn
+    if flag == 0
+        " off
+        if !b:bHelpInfoOn
+            return
+        endif
         let b:bHelpInfoOn = 0
+        setlocal modifiable
         exec 'silent! 1,'.(1+len(lHelpInfo)-1) . ' delete _'
+        setlocal nomodifiable
         py ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() - 
-                    \int(vim.eval('len(lHelpInfo)')))
+                \ int(vim.eval('len(lHelpInfo)')))
 
         if exists('b:dOrigView')
             call winrestview(b:dOrigView)
             unlet b:dOrigView
         endif
-    else
+    elseif flag > 0
+        " on
+        if b:bHelpInfoOn
+            return
+        endif
         let b:bHelpInfoOn = 1
+        setlocal modifiable
         call append(0, lHelpInfo)
+        setlocal nomodifiable
         py ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() + 
-                    \int(vim.eval('len(lHelpInfo)')))
+                \ int(vim.eval('len(lHelpInfo)')))
         call cursor(1, 1)
+    else
+        " toggle
+        if b:bHelpInfoOn
+            call s:ToggleHelpInfo(0)
+        else
+            call s:ToggleHelpInfo(1)
+        endif
     endif
-    setlocal noma
 endfunction
+"}}}
+function! s:ToggleBriefHelp(...) "{{{2
+    " -1: toggle, 0: disable, 1: enable
+    let flag = get(a:000, 0, -1)
+    if !exists('b:bBriefHelpOn')
+        let b:bBriefHelpOn = 0
+    endif
 
+    let lHelpInfo = []
+    let prefix = '.videm.wsp.keybind.'
 
+    let sLine = printf('" Press %s to display help',
+            \          videm#settings#Get(prefix.'ToggleHelpInfo'))
+    call add(lHelpInfo, sLine)
+    call add(lHelpInfo, '')
+
+    if flag == 0
+        " off
+        if !b:bBriefHelpOn
+            return
+        endif
+        let b:bBriefHelpOn = 0
+        setlocal modifiable
+        exec printf('silent! 1,%d delete _', len(lHelpInfo))
+        setlocal nomodifiable
+        py ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() - 
+                \ int(vim.eval('len(lHelpInfo)')))
+    elseif flag > 0
+        " on
+        if b:bBriefHelpOn
+            return
+        endif
+        let b:bBriefHelpOn = 1
+        setlocal modifiable
+        call append(0, lHelpInfo)
+        setlocal nomodifiable
+        py ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() + 
+                \ int(vim.eval('len(lHelpInfo)')))
+    else
+        if b:bBriefHelpOn
+            return s:ToggleBriefHelp(0)
+        else
+            return s:ToggleBriefHelp(1)
+        endif
+    endif
+endfunction
+"}}}
 "}}}1
 " =================== 构建操作 ===================
 "{{{1

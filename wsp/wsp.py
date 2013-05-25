@@ -443,16 +443,16 @@ class VimLiteWorkspace(object):
                        value))
 
     def RefreshBuffer(self):
-        '''根据内部数据刷新显示，必须保证内部数据是正确且完整的，否则没用'''
+        '''根据内部数据刷新显示，必须保证内部数据是正确且完整的，否则没用
+        只刷新工作区所属的行，其他行不刷新'''
         if not self.buffer or not self.window:
             return
 
         se = StartEdit()
 
         texts = self.VLWIns.GetAllDisplayTexts()
-        self.buffer[:] = [ i.encode('utf-8') for i in texts ]
-        # 重置偏移量
-        self.VLWIns.SetWorkspaceLineNum(1)
+        self.buffer[self.VLWIns.GetRootLineNum()-1:] = \
+                [ i.encode('utf-8') for i in texts ]
 
     def SetupStatusLine(self):
         vim.command('setlocal statusline=%!VLWStatusLine()')

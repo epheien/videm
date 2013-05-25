@@ -35,8 +35,8 @@ syn match VLWVirtualDirectory '\s[|`][+~].\+$'hs=s+3
 
 " 帮助信息
 syn match VLWFlag '\~'
-syn match VLWHelpKey '" \{1,2\}[^ ]*:'hs=s+2,he=e-1
-syn match VLWHelpKey '" \{1,2\}[^ ]*,'hs=s+2,he=e-1
+syn match VLWHelpKey '" \{1,2}[^ ]\+:'hs=s+2,he=e-1
+syn match VLWHelpKey '" \{1,2}[^ ]\+,'hs=s+2,he=e-1
 syn match VLWHelpTitle '" .*\~'hs=s+2,he=e-1 contains=VLWFlag
 syn match VLWHelp '^".*' contains=VLWHelpKey,VLWHelpTitle,VLWFlag
 

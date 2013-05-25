@@ -1414,12 +1414,17 @@ class VLWorkspace(object):
         return True
 
     def OpenWorkspace(self, fileName):
+        # lineOffset 需要一直保持
+        lineOffset = self.lineOffset
         self.__init__(fileName)
+        self.lineOffset = lineOffset
 
     def CloseWorkspace(self):
         if self.rootNode:
             self.Save()
+            lineOffset = self.lineOffset
             self.__init__()
+            self.lineOffset = lineOffset
 
     def ReloadWorkspace(self):
         self.OpenWorkspace(self.fileName)
