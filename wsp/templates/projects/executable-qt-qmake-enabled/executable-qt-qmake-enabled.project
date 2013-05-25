@@ -16,7 +16,7 @@
       <PreBuild/>
       <PostBuild/>
       <CustomBuild Enabled="yes">
-        <Target Name="QMake project">qmake -project</Target>
+        <Target Name="QMake-project">qmake -project</Target>
         <Target Name="QMake">qmake OBJECTS_DIR=./Debug CONFIG+=debug</Target>
         <CleanCommand>make clean</CleanCommand>
         <BuildCommand>make</BuildCommand>
@@ -45,7 +45,7 @@
       <PreBuild/>
       <PostBuild/>
       <CustomBuild Enabled="yes">
-        <Target Name="QMake project">qmake -project</Target>
+        <Target Name="QMake-project">qmake -project</Target>
         <Target Name="QMake">qmake OBJECTS_DIR=./Release</Target>
         <CleanCommand>make clean</CleanCommand>
         <BuildCommand>make</BuildCommand>
