@@ -1071,10 +1071,23 @@ function! s:ToggleHelpInfo(...) "{{{2
 
     let sLine = '" ============================'
     call add(lHelpInfo, sLine)
+    let sLine = '" Main mappings~'
+    call add(lHelpInfo, sLine)
+    let sLine = printf('" %s: popup menu', s:SGet(prefix.'PopupMenu'))
+    call add(lHelpInfo, sLine)
+    let sLine = printf('" %s: show text menu', s:SGet(prefix.'ShowMenu'))
+    call add(lHelpInfo, sLine)
+    let sLine = printf('" %s: refresh buffer', s:SGet(prefix.'RefreshBuffer'))
+    call add(lHelpInfo, sLine)
+    let sLine = printf('" %s: toggle help info',
+            \          s:SGet(prefix.'ToggleHelpInfo'))
+    call add(lHelpInfo, sLine)
+    call add(lHelpInfo, '')
 
+    let sLine = '" ----------------------------'
+    call add(lHelpInfo, sLine)
     let sLine = '" File node mappings~'
     call add(lHelpInfo, sLine)
-
     let sLine = '" <2-LeftMouse>,'
     call add(lHelpInfo, sLine)
     let sLine = '" <CR>,'
@@ -1147,21 +1160,6 @@ function! s:ToggleHelpInfo(...) "{{{2
     call add(lHelpInfo, sLine)
     let sLine = printf('" %s: go to prev sibling',
             \          s:SGet(prefix.'GotoPrevSibling'))
-    call add(lHelpInfo, sLine)
-    call add(lHelpInfo, '')
-
-    let sLine = '" ----------------------------'
-    call add(lHelpInfo, sLine)
-    let sLine = '" Other mappings~'
-    call add(lHelpInfo, sLine)
-    let sLine = printf('" %s: popup menu', s:SGet(prefix.'PopupMenu'))
-    call add(lHelpInfo, sLine)
-    let sLine = printf('" %s: show text menu', s:SGet(prefix.'ShowMenu'))
-    call add(lHelpInfo, sLine)
-    let sLine = printf('" %s: refresh buffer', s:SGet(prefix.'RefreshBuffer'))
-    call add(lHelpInfo, sLine)
-    let sLine = printf('" %s: toggle help info',
-            \          s:SGet(prefix.'ToggleHelpInfo'))
     call add(lHelpInfo, sLine)
     call add(lHelpInfo, '')
 
