@@ -3795,17 +3795,28 @@ function! s:CustomBuildTblAddCbk(ctl, data) "{{{2
     echohl Question
     let input = input("New Target:\n")
     echohl None
-    if input !=# ''
-        for lLine in ctl.table
-            if lLine[0] ==# input
-                echohl ErrorMsg
-                echo "Target '" . input . "' already exists!"
-                echohl None
-                return
-            endif
-        endfor
-        call ctl.AddLineByValues(input, '')
+    if empty(input)
+        return
     endif
+
+    let inputpat = '[-A-Za-z0-9_]'
+    if input !~# '^'.inputpat.'\+$'
+        echohl ErrorMsg
+        echo "\nA target name must consists of this letters:" inputpat
+        echohl None
+        call getchar()
+        return
+    endif
+
+    for lLine in ctl.table
+        if lLine[0] ==# input
+            echohl ErrorMsg
+            echo "Target '" . input . "' already exists!"
+            echohl None
+            return
+        endif
+    endfor
+    call ctl.AddLineByValues(input, '')
 endfunction
 "}}}2
 function! s:CustomBuildTblSelectionCbk(ctl, data) "{{{2
