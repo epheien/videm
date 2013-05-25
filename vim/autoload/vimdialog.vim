@@ -1906,8 +1906,9 @@ function! g:VimDialog.New(name, ...)
 	endwhile
 
 	"额外的帮助信息内容
-	let newVimDialog.extraHelpContent = repeat('=', s:VC_MAXLINELEN - 2) 
-				\. "\nExtra Help is not specified!"
+	"let newVimDialog.extraHelpContent = repeat('=', s:VC_MAXLINELEN - 2) 
+				"\. "\nExtra Help is not specified!"
+	let newVimDialog.extraHelpContent = ''
 	"显示额外帮助信息的标志，用于切换
 	let newVimDialog._showExtraHelp = 0
 
@@ -2268,7 +2269,9 @@ function! g:VimDialog.DisplayHelp() "{{{2
 		call add(texts, text)
 
 		let text = '" '
-		let text .= g:VimDialogToggleExtraHelpKey . ': Toggle Extra Help; '
+        if !empty(self.extraHelpContent)
+            let text .= g:VimDialogToggleExtraHelpKey . ': Toggle Extra Help; '
+        endif
 		if !self.asTextCtrl
 			let text .= g:VimDialogNextEditableCtlKey . ': Goto Next Control; '
 			let text .= g:VimDialogPrevEditableCtlKey . ': Goto Prev Control '
@@ -2295,8 +2298,10 @@ function! g:VimDialog.DisplayHelp() "{{{2
 						\g:VimDialogSaveAndQuitKey . "\\ze:'"
 			exec "syn match VimDialogHotKey '\\%<4l" . 
 						\g:VimDialogQuitKey . "\\ze:'"
-			exec "syn match VimDialogHotKey '\\%<4l" . 
-						\g:VimDialogToggleExtraHelpKey . "\\ze:'"
+            if !empty(self.extraHelpContent)
+                exec "syn match VimDialogHotKey '\\%<4l" .
+                        \ g:VimDialogToggleExtraHelpKey . "\\ze:'"
+            endif
 			exec "syn match VimDialogHotKey '\\%<4l" . 
 						\g:VimDialogNextEditableCtlKey . "\\ze:'"
 			exec "syn match VimDialogHotKey '\\%<4l" . 
@@ -2580,8 +2585,10 @@ function! g:VimDialog.SetupKeyMappings()
 					\" :call ".l:ins.".GotoNextEdiableCtl()<Cr>"
 		exec "nnoremap <silent> <buffer> " . g:VimDialogPrevEditableCtlKey . 
 					\" :call ".l:ins.".GotoPrevEdiableCtl()<Cr>"
-		exec "nnoremap <silent> <buffer> " . g:VimDialogToggleExtraHelpKey . 
-					\" :call ".l:ins.".ToggleExtraHelp()<Cr>"
+        if !empty(self.extraHelpContent)
+            exec "nnoremap <silent> <buffer> " . g:VimDialogToggleExtraHelpKey .
+                    \ " :call ".l:ins.".ToggleExtraHelp()<Cr>"
+        endif
 	endif
 
 	if !self.isPopup && !self.disableApply
@@ -2865,7 +2872,7 @@ function! g:VimDialog.GotoPrevEdiableCtl() "{{{2
 endfunction
 
 function! g:VimDialog.ToggleExtraHelp() "{{{2
-	if self.lock || self.extraHelpContent == ''
+	if self.lock || empty(self.extraHelpContent)
 		return
 	endif
 
