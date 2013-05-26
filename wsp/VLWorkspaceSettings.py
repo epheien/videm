@@ -61,8 +61,13 @@ class VLWorkspaceSettings:
         # 2013-01-23: 工作区配置信息，每个工作区可有自己的配置，覆盖全局配置
         self.enableLocalConfig = False  # 是否使用工作区自己的配置
         # 工作区配置信息
-        # '.videm.cc.Current': 'none', ...
-        self.localConfig = {}
+        # 配置样例
+        self.localConfig = {
+            '.videm.cc.omnicpp.Enable'      : 0,
+            '.videm.cc.vimccc.Enable'       : 1,
+            '.videm.symdb.cscope.Enable'    : 0,
+            '.videm.symdb.gtags.Enable'     : 1,
+        }
 
         # 统一的配置视图 on 2013-05-19
         self.conf = ConfTree()
