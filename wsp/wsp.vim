@@ -839,28 +839,28 @@ function! s:InstallCommands() "{{{2
         return
     endif
 
-    command! -nargs=0 -bar VLWBuildActiveProject    
+    command! -nargs=0 -bar VBuildActiveProject    
                 \                           call <SID>BuildActiveProject()
-    command! -nargs=0 -bar VLWCleanActiveProject    
+    command! -nargs=0 -bar VCleanActiveProject    
                 \                           call <SID>CleanActiveProject()
-    command! -nargs=0 -bar VLWRunActiveProject      
+    command! -nargs=0 -bar VRunActiveProject      
                 \                           call <SID>RunActiveProject()
-    command! -nargs=0 -bar VLWBuildAndRunActiveProject 
+    command! -nargs=0 -bar VBuildAndRunActiveProject 
                 \                           call <SID>BuildAndRunActiveProject()
 
-    command! -nargs=0 -bar VLWEnvVarSetttings   call <SID>EnvVarSettings()
-    command! -nargs=0 -bar VLWCompilersSettings call <SID>CompilersSettings()
-    command! -nargs=0 -bar VLWBuildersSettings  call <SID>BuildersSettings()
+    command! -nargs=0 -bar VEnvVarSetttings   call <SID>EnvVarSettings()
+    command! -nargs=0 -bar VCompilersSettings call <SID>CompilersSettings()
+    command! -nargs=0 -bar VBuildersSettings  call <SID>BuildersSettings()
 
-    command! -nargs=0 -bar VLWSwapSourceHeader  call <SID>SwapSourceHeader()
+    command! -nargs=0 -bar VSwapSourceHeader  call <SID>SwapSourceHeader()
 
-    command! -nargs=0 -bar VLWLocateCurrentFile 
+    command! -nargs=0 -bar VLocateCurrentFile 
                 \                           call <SID>LocateFile(expand('%:p'))
 
-    command! -nargs=? -bar VLWFindFiles         call <SID>FindFiles(<q-args>)
-    command! -nargs=? -bar VLWFindFilesIC       call <SID>FindFiles(<q-args>, 1)
+    command! -nargs=? -bar VFindFiles         call <SID>FindFiles(<q-args>)
+    command! -nargs=? -bar VFindFilesIC       call <SID>FindFiles(<q-args>, 1)
 
-    command! -nargs=? -bar VLWOpenIncludeFile   call <SID>OpenIncludeFile()
+    command! -nargs=? -bar VOpenIncludeFile   call <SID>OpenIncludeFile()
 endfunction
 "}}}
 function! s:InstallMenuBarMenu() "{{{2

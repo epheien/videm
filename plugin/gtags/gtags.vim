@@ -174,8 +174,8 @@ function! s:ThisInit() "{{{2
     call s:InitPythonIterfaces()
     py VidemWorkspace.wsp_ntf.Register(VidemWspGtagsHook, 0, None)
     " 命令
-    command! -nargs=0 VLWInitGtagsDatabase call <SID>InitVLWGtagsDatabase(0)
-    command! -nargs=0 VLWUpdateGtagsDatabase call <SID>UpdateVLWGtagsDatabase()
+    command! -nargs=0 VGtagsInitDatabase call <SID>InitVLWGtagsDatabase(0)
+    command! -nargs=0 VGtagsUpdateDatabase call <SID>UpdateVLWGtagsDatabase()
     " 自动命令
     if videm#settings#Get('.videm.symdb.gtags.UpdAfterSave')
         augroup VidemSyndbGtags
@@ -231,8 +231,8 @@ function! videm#plugin#gtags#Disable() "{{{2
     endif
     py VidemWorkspace.wsp_ntf.Unregister(VidemWspGtagsHook, 0)
     " 命令
-    delcommand VLWInitGtagsDatabase
-    delcommand VLWUpdateGtagsDatabase
+    delcommand VGtagsInitDatabase
+    delcommand VGtagsUpdateDatabase
     " 自动命令
     augroup VidemSyndbGtags
         autocmd!

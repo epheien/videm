@@ -34,7 +34,8 @@ let s:CompatSettings = {
     \ 'g:VLOmniCpp_MayCompleteArrow'    : '.videm.cc.omnicpp.MayCompleteArrow',
     \ 'g:VLOmniCpp_MayCompleteColon'    : '.videm.cc.omnicpp.MayCompleteColon',
     \ 'g:VLOmniCpp_EnableSyntaxTest'    : '.videm.cc.omnicpp.EnableSyntaxTest',
-    \ 'g:VLOmniCpp_MapReturnToDispCalltips' : '.videm.cc.omnicpp.ReturnToCalltips',
+    \ 'g:VLOmniCpp_MapReturnToDispCalltips'
+    \       : '.videm.cc.omnicpp.ReturnToCalltips',
     \ 'g:VLOmniCpp_ItemSelectionMode'   : '.videm.cc.omnicpp.ItemSelectMode',
     \ 'g:VLOmniCpp_GotoDeclarationKey'  : '.videm.cc.omnicpp.GotoDeclKey',
     \ 'g:VLOmniCpp_GotoImplementationKey'   : '.videm.cc.omnicpp.GotoImplKey',
@@ -218,31 +219,31 @@ endfunction
 "}}}
 function! s:InstallCommands() "{{{2
     " 异步解析当前文件，并且会强制解析，无论是否修改过
-    command! -nargs=0 -bar VLWAsyncParseCurrentFile
+    command! -nargs=0 -bar VOmniCppAsyncParseCurrFile
             \                           call <SID>AsyncParseCurrentFile(0, 0)
     " 同 VLWAsyncParseCurrentFile，除了这个会包括头文件外
-    command! -nargs=0 -bar VLWDeepAsyncParseCurrentFile
+    command! -nargs=0 -bar VOmniCppAsyncParseCurrFileDeep
             \                           call <SID>AsyncParseCurrentFile(0, 1)
-    command! -nargs=0 -bar VLWTagsSetttings     call <SID>TagsSettings()
+    command! -nargs=0 -bar VOmniCppTagsSetttings    call <SID>TagsSettings()
 
-    command! -nargs=* -complete=file VLWParseFiles  
-            \                                   call <SID>ParseFiles(<f-args>)
-    command! -nargs=0 -bar VLWParseCurrentFile
+    command! -nargs=0 -bar VOmniCppParseCurrFile
             \                                   call <SID>ParseCurrentFile(0, 0)
-    command! -nargs=0 -bar VLWDeepParseCurrentFile
+    command! -nargs=0 -bar VOmniCppParseCurrFileDeep
             \                                   call <SID>ParseCurrentFile(0, 1)
-    command! -nargs=+ VidemOmniCppGetTagsBySql
+    command! -nargs=* -complete=file VOmniCppParseFiles
+            \                                   call <SID>ParseFiles(<f-args>)
+    command! -nargs=+ VOmniCppGetTagsBySql
             \                               echo vltagmgr#GetTagsBySql(<q-args>)
 endfunction
 "}}}
 function! s:UninstallCommands() "{{{2
-    delcommand VLWAsyncParseCurrentFile
-    delcommand VLWDeepAsyncParseCurrentFile
-    delcommand VLWTagsSetttings
-    delcommand VLWParseFiles
-    delcommand VLWParseCurrentFile
-    delcommand VLWDeepParseCurrentFile
-    delcommand VidemOmniCppGetTagsBySql
+    delcommand VOmniCppAsyncParseCurrFile
+    delcommand VOmniCppAsyncParseCurrFileDeep
+    delcommand VOmniCppTagsSetttings
+    delcommand VOmniCppParseFiles
+    delcommand VOmniCppParseCurrFile
+    delcommand VOmniCppParseCurrFileDeep
+    delcommand VOmniCppGetTagsBySql
 endfunction
 "}}}
 " =================== tags 设置 ===================

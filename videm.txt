@@ -1,6 +1,6 @@
 *videm.txt*                   Vim's IDE Mode
 
-                       _   _______ ____  _______   __~
+                       _   _______ ____  _______   _~
                       | | / /_  _// __ \/ ____/ | / |~
                       | |/ / / / / / / / __/ /  |/  |~
                       | / /_/ /_/ /_/ / /___/ /|  | |~
@@ -13,12 +13,14 @@
 CONTENTS                                *videm-Contents*
 
 1. Introduction                         |videm-Introduction|
-2. Download                             |videm-Download|
-3. Prerequisites                        |videm-Prerequisites|
+2. Prerequisites                        |videm-Prerequisites|
+3. Installation                         |videm-Installation|
+    3.1 Upgrade from VimLite            |videm-Installation-Upgrade|
 4. Project Manager                      |videm-ProjectManager|
     4.1. KeyMappings                    |videm-ProjectManager-KeyMappings|
     4.2. Commands                       |videm-ProjectManager-Commands|
     4.3. Cscope                         |videm-ProjectManager-Cscope|
+    4.4. Gtags                          |videm-ProjectManager-Gtags|
 5. Code Completion                      |videm-CodeCompletion|
     5.1. OmniCpp                        |videm-CodeCompletion-OmniCpp|
         5.1.1. Commands                 |videm-CodeCompletion-OmniCpp-Cmds|
@@ -37,7 +39,7 @@ CONTENTS                                *videm-Contents*
 8. Tips                                 |videm-Tips|
     8.1. Configuration Sample           |videm-ConfigSample|
     8.2. Use cl.exe On Windows          |videm-Windows|
-    8.3. Search Paths For Parser        |videm-TagsSettings|
+    8.3. Search Paths For Parser        |videm-SearchPaths|
 9. Limitation                           |videm-Limitation|
 
 ==============================================================================
@@ -45,7 +47,7 @@ CONTENTS                                *videm-Contents*
 
 Videm is a C/C++ IDE based on vim.
 
-Videm consists mainly of the following modules:
+Videm mainly consists of the following modules:
 
     * Project Manager:                  The project manager module is 
                                         compatible with CodeLite. It can
@@ -65,21 +67,10 @@ Videm consists mainly of the following modules:
 
     * Symbol Database                   Cscope and gnu global.
 
-    * Debugger Integration:             Gdb integration, by pyclewn. 
+    * Debugger Integration:             Gdb integration, by pyclewn.
 
 ==============================================================================
-2. Download                             *videm-Download*
-
-The latest release of videm can be found from this url:
-
-    http://www.vim.org/scripts/script.php?script_id=3647
-
-And videm in google code can be found from this url:
-
-    http://code.google.com/p/videm/
-
-==============================================================================
-3. Prerequisites                        *videm-Prerequisites*
+2. Prerequisites                        *videm-Prerequisites*
 
 videm depends following software: >
     python
@@ -89,19 +80,46 @@ videm depends following software: >
     global
     gcc
     gdb
+    libclang (version 3.0, required by VIMCCC)
 <
-On ubuntu 10.04, just run: >
+On ubuntu (10.04), just run: >
     sudo apt-get install python python-lxml build-essential gdb cscope global
 <
-Make sure your vim compile with this features: >
+Make sure your vim's version is 7.3 or later and compile with this features: >
     +python
-    +netbeans_intg
+    +netbeans_intg (required by debugger)
 <
 And make sure you have these settings in your vimrc file: >
     set nocp
     filetype plugin on
     syntax on
 <
+==============================================================================
+3. Installation                         *videm-Installation*
+
+The latest release of videm can be found from this url:
+
+    http://www.vim.org/scripts/script.php?script_id=3647
+
+And videm in github will be comming soon...
+
+------------------------------------------------------------------------------
+3.1. Upgrade from VimLite               *videm-Installation-Upgrade*
+Videm compatible with VimLite, also include options. But videm has its new
+option subsystem. On VimLite, you can configure an option like this >
+    let g:VLWorkspaceWinSize = 30
+and on videm, you can do it like this: >
+    call videm#settings#Set('.videm.wsp.WinSize', 30)
+
+Currently either manner is valid, but new options only can be done by the new
+manner.
+
+If an option starts with '.', then it is a videm new option, only can be used
+with videm#settings module. Get it like this >
+    let output = videm#settings#Get({opt})
+and set it like this >
+    call videm#settings#Set({opt}, {val})
+
 ==============================================================================
 4. Project Manager                      *videm-ProjectManager*
 
@@ -233,57 +251,84 @@ The key to popup gui menu, often it is set '<RightRelease>' if you like to use
 mouse. >
     let g:VLWPopupMenuKey = ','
 <
+
                                         *g:VLWToggleHelpInfo*
->
+The key to toggle help info. >
     let g:VLWToggleHelpInfo = '<F1>'
+<
+
+*.videm.wsp.ShowBriefHelp*              number (default 1)
+    If set to 1, videm will display a brief help in workspace buffer.
 
 ------------------------------------------------------------------------------
 4.2. Commands                           *videm-ProjectManager-Commands*
 
-    VLWorkspaceOpen [workspace_file]    Open a workspace file or default
+    VidemOpen [workspace-file]          Open a workspace file or default
                                         workspace. If without specify a
                                         workspace file and videm had
                                         started, the command will open the
                                         current workspace.
 
-    VLWBuildActiveProject               Build active projcet.
+    VBuildActiveProject                 Build active projcet.
 
-    VLWCleanActiveProject               Clean active project.
+    VCleanActiveProject                 Clean active project.
 
-    VLWRunActiveProject                 Run active project.
+    VRunActiveProject                   Run active project.
 
-    VLWBuildAndRunActiveProject         Build active project and run if build
+    VBuildAndRunActiveProject           Build active project and run if build
                                         successfully.
 
-    VLWSwapSourceHeader                 Toggle editing source and header
+    VSwapSourceHeader                   Toggle editing source and header
 
-    VLWLocateCurrentFile                Locate editing file in the worksapce
+    VLocateCurrentFile                  Locate editing file in the worksapce
                                         buffer.
 
-    VLWFindFiles [name]                 Find workspace files
+    VFindFiles [name]                   Find workspace files
 
-    VLWFindFilesNoCase [name]           Find workspace files with no case
+    VFindFilesIC [name]                 Find workspace files with ignore case
                                         sensitive
 
-    VLWOpenIncludeFile                  Open included file when locates the
+    VOpenIncludeFile                    Open included file when locates the
                                         cursor in '#include' line.
+
+    VEnvVarSetttings                    Open 'Environment Variables Setting'
+                                        dialog.
+
+    VCompilersSettings                  Open 'Compilers Settings' dialog.
+
+    VBuildersSettings                   Open 'Builders Settings' dialog.
 
 ------------------------------------------------------------------------------
 4.3. Cscope                             *videm-ProjectManager-Cscope*
 
-videm uses cscope database to achieve some features, such as jump to
+Videm uses cscope database to achieve some features, such as jump to
 definition, jump to declaration, search workspace files, etc.
 Run ':h cscope' for more info.
 
 Commands:~
 
-    VLWInitCscopeDatabase               Initialize cscope database. videm
+    VCscopeInitDatabase                 Initialize cscope database. videm
                                         will generate database forcibly.
 
-    VLWUpdateCscopeDatabase             Update database. Only be valided when
+    VCscopeUpdateDatabase               Update database. Only be valided when
                                         has been connected to the workspace
                                         cscope database.
 
+------------------------------------------------------------------------------
+4.4. Gtags                              *videm-ProjectManager-Gtags*
+
+Videm can also uses gtags (gnu global) database to achieve some features, such
+as jump to definition, jump to declaration, search workspace files, etc.
+NOTE: You can not use cscope and gtags in the same time.
+
+Commands:~
+
+    VCscopeInitDatabase                 Initialize gtags database. videm
+                                        will generate database forcibly.
+
+    VCscopeUpdateDatabase               Update database. Only be valided when
+                                        has been connected to the workspace
+                                        gtags database.
 
 ==============================================================================
 5. Code Completion                      *videm-CodeCompletion*
@@ -388,48 +433,41 @@ in VLWorkspace buffer window, popup the menu, select "Parse Workspace (Quick)".
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 5.1.1. Commands                         *videm-CodeCompletion-OmniCpp-Cmds*
 
-    VLWParseFiles <file1> <file2> ...   Parse files.
+    VOmniCppParseFiles <file1> ...      Parse files.
 
-    VLWParseCurrentFile                 Parse current editing file.
+    VOmniCppParseCurrFile               Parse current editing file.
                                         NOTE: You ought to save current file
                                         before run this command.
-                                        DEPRECATED~
 
-    VLWDeepParseCurrentFile             Parse current editing file and the
+    VOmniCppParseCurrFileDeep           Parse current editing file and the
                                         files it includes.
                                         NOTE: You ought to save current file
                                         before run this command.
-                                        DEPRECATED~
 
-    VLWAsyncParseCurrentFile            Parse current editing file
+    VOmniCppAsyncParseCurrFile          Parse current editing file
                                         asynchronously.
                                         NOTE: You ought to save current file
                                         before run this command.
 
-    VLWDeepAsyncParseCurrentFile        Parse current editing file and the
+    VOmniCppAsyncParseCurrFileDeep      Parse current editing file and the
                                         files it includes asynchronously.
                                         NOTE: You ought to save current file
                                         before run this command.
 
-    VLWEnvVarSetttings                  Open 'Environment Variables Setting'
-                                        dialog.
-
-    VLWTagsSetttings                    Open 'Tags Setting' dialog. This also
-                                        can set the search paths for clang.
-
-    VLWCompilersSettings                Open 'Compilers Settings' dialog.
-
-    VLWBuildersSettings                 Open 'Builders Settings' dialog.
+    VOmniCppTagsSetttings               Open 'OmniCpp Tags Setting' dialog.
+                                        This also can set the search paths for
+                                        other parsers.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 5.1.2. Macros Handling                  *videm-CodeCompletion-OmniCpp-Macros*
 
-List in 'videm -> TagsSettings -> Macros' are to be pre-processed by OmniCpp
-parser. Usually, you would like to add new macros which confuse the parse.
+List in 'videm -> OmniCpp Tags Settings -> Macros' are to be pre-processed by
+OmniCpp parser. Usually, you would like to add new macros which confuse the
+parsing.
 
 Usually, you will add gcc predefined macros if you use gcc, run (On Linux) >
     cpp -dM /dev/null
-and put the outputs to 'videm -> TagsSettings -> Macros'.
+and put the outputs to 'videm -> OmniCpp Tags Settings -> Macros'.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 5.1.3. Limitation                       *videm-CodeCompletion-OmniCpp-Limit*
@@ -477,15 +515,15 @@ There are several commands for VIMCCC.
 
     VIMCCCPrintArgs                     Print clang compiler options
 
-    VLWTagsSetttings                    Open 'Tags Setting' dialog. This also
-                                        can set the search paths for clang.
+    VVIMCCCSettings                     Open 'VIMCCC Setting' dialog. This can
+                                        set the search paths for clang.
 
 ==============================================================================
 6. Debugger                             *videm-Debugger*
 
 videm integrate pyclewn in it.
 Start to debug the active projcet, just press the icon in toolbar or run: >
-    :VLWDbgStart
+    :VDbgStart
 <
 NOTE: You must start degger before setting a breakpoint.
 
@@ -513,25 +551,25 @@ NOTE: You must start degger before setting a breakpoint.
 ------------------------------------------------------------------------------
 6.2. Commands                           *videm-Debugger-Commands*
 
-    VLWDbgStart                         Start debugger.
+    VDbgStart                           Start debugger.
 
-    VLWDbgStop                          Stop debugger.
+    VDbgStop                            Stop debugger.
 
-    VLWDbgStepIn                        Step in.
+    VDbgStepIn                          Step in.
 
-    VLWDbgNext                          Next.
+    VDbgNext                            Next.
 
-    VLWDbgStepOut                       Step out.
+    VDbgStepOut                         Step out.
 
-    VLWDbgContinue                      Continue
+    VDbgContinue                        Continue
 
-    VLWDbgToggleBp [1]                  Toggle breakpoint of the cursor line.
+    VDbgToggleBp [1]                    Toggle breakpoint of the cursor line.
                                         If supples 1 as an argument, a
                                         hardware breakpoint will be added
                                         instead of a normal one.
 
-Please run ':view ~/.vimlite/doc/vpyclewn.txt' for more commands. If you are
-on Windows run ':view $VIM\vimlite\doc\vpyclewn.txt' instead.
+Please run ':view ~/.videm/doc/vpyclewn.txt' for more commands. If you are
+on Windows run ':view $VIM\videm\doc\vpyclewn.txt' instead.
 Because of avoiding conflicts with official pyclewn, currently the help file
 of pyclewn.txt rename to vpyclewn.txt and do not put into vim's doc folder.
 
@@ -549,7 +587,7 @@ Workspace window width. >
     let g:VLWorkspaceWinSize = 30
 
 Set the wrokspace buffer name. >
-    let g:VLWorkspaceBufName = '==VLWorkspace=='
+    let g:VLWorkspaceBufName = '== VidemWorkspace =='
 
 Highlight the workspace buffer cursor line. >
     let g:VLWrokspaceHighlightCursorline = 1
@@ -585,7 +623,6 @@ noticeably faster lookup performance for large projects. >
     let g:VLWorkspaceCreateCscopeInvertedIndex = 0
 
 GNU global configuration, you can read their manual for help. >
-    let g:VLWorkspaceGtagsGlobalProgram = "global"
     let g:VLWorkspaceGtagsProgram = "gtags"
     let g:VLWorkspaceGtagsCscopeProgram = "gtags-cscope"
 
@@ -659,7 +696,7 @@ first if you want it. >
     let g:VLOmniCpp_UseLibCxxParser = 0
 
 The libCxxParser.so path. On Windows, you need set this variable correctly. >
-    let g:VLOmniCpp_LibCxxParserPath = $HOME . "/.vimlite/lib/libCxxParser.so"
+    let g:VLOmniCpp_LibCxxParserPath = $HOME . "/.videm/lib/libCxxParser.so"
 
 Goto declaration of symbols key.
 It does not need cscope and is more accurate.
@@ -691,15 +728,6 @@ If enable VIMCCC without videm. >
 
 Clang library path. >
     let g:VIMCCC_ClangLibraryPath = ''
-
-VIMCCC python module path, make sure you set it correctly.
-On Linux, the default value is: >
-    let g:VIMCCC_PythonModulePath = '~/.vimlite/videm'
-On Windows, the default value is: >
-    let g:VIMCCC_PythonModulePath = $VIM . '\vimlite\videm'
-
-If equal to 1, it will periodically update the quickfix window. >
-    let g:VIMCCC_PeriodicQuickFix = 0
 
 If equal to 1, clang should complete preprocessor macros and constants. >
     let g:VIMCCC_CompleteMacros = 0
@@ -793,7 +821,9 @@ If use VIMCCC >
 ------------------------------------------------------------------------------
 8.2. Use cl.exe On Windows              *videm-Windows*
 
-Run :VLWCompilersSettings to open settings dialog, select VC++ compiler and
+NOTE: This have not been test currently.
+
+Run :VCompilersSettings to open settings dialog, select VC++ compiler and
 set 'Environment Setup Command:' to following (I have installed VS 2010 in
                                                'D:\Program Files' folder): >
     "D:\Program Files\Microsoft Visual Studio 10.0\Common7\Tools\vsvars32.bat"
@@ -806,11 +836,11 @@ NOTE: Compile the program with cl.exe, this implies that videm can not debug
       the program with gdb, use windbg instead.
 
 ------------------------------------------------------------------------------
-8.3. Search Paths For Parser            *videm-TagsSettings*
+8.3. Search Paths For Parser            *videm-SearchPaths*
 
 If you update gcc, the search paths for parser will need to be updated also.
 Run the following command and find the search list of gcc, and then update the
-search paths for parser in "Tags And Clang Settings". >
+search paths for parser in 'videm -> (OmniCpp Tags|VIMCCC) Settings' . >
      echo "" | gcc -v -x c++ - -fsyntax-only 2>&1
 
 ==============================================================================

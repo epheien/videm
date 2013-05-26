@@ -237,6 +237,7 @@ function! s:ThisInit() "{{{2
     " 菜单
     anoremenu <silent> 200 &Videm.VIMCCC\ Settings\.\.\. 
             \ :call <SID>TagsSettings()<CR>
+    command! -nargs=0 -bar VVIMCCCSettings  call <SID>TagsSettings()
 endfunction
 "}}}
 function! videm#plugin#vimccc#SettingsHook(event, data, priv) "{{{2
@@ -287,6 +288,7 @@ function! videm#plugin#vimccc#Disable() "{{{2
     silent! augroup! VidemCCVIMCCC
     call VidemWspSetCreateHookUnregister('videm#plugin#vimccc#WspSetHook', 0)
     aunmenu &Videm.VIMCCC\ Settings\.\.\.
+    delcommand VVIMCCCSettings
     " 清理 python 全局数据
     py VIMCCCIndex = OrigVIMCCCIndex
     py ws.clangIndices.clear()

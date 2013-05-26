@@ -36,8 +36,10 @@ let s:CscopeSettings = {
 
 let s:CompatSettings = {
     \ 'g:VLWorkspaceCscopeProgram'          : '.videm.symdb.cscope.Program',
-    \ 'g:VLWorkspaceCscopeContainExternalHeader'    : '.videm.symdb.cscope.IncExtHdr',
-    \ 'g:VLWorkspaceCreateCscopeInvertedIndex'      : '.videm.symdb.cscope.GenInvIdx',
+    \ 'g:VLWorkspaceCscopeContainExternalHeader'
+    \       : '.videm.symdb.cscope.IncExtHdr',
+    \ 'g:VLWorkspaceCreateCscopeInvertedIndex'
+    \       : '.videm.symdb.cscope.GenInvIdx',
     \ 'g:VLWorkspaceCscpoeFilesFile'        : '.videm.symdb.cscope.FilesFile',
     \ 'g:VLWorkspaceCscpoeOutFile'          : '.videm.symdb.cscope.OutFile',
 \ }
@@ -282,9 +284,9 @@ function! s:ThisInit() "{{{2
     call s:InitPythonIterfaces()
     py VidemWorkspace.wsp_ntf.Register(VidemWspCscopeHook, 0, None)
     " 命令
-    command! -nargs=0 VLWInitCscopeDatabase 
+    command! -nargs=0 VCscopeInitDatabase 
                 \               call <SID>InitVLWCscopeDatabase(1)
-    command! -nargs=0 VLWUpdateCscopeDatabase 
+    command! -nargs=0 VCscopeUpdateDatabase 
                 \               call <SID>UpdateVLWCscopeDatabase(1)
 endfunction
 "}}}
@@ -336,8 +338,8 @@ function! videm#plugin#cscope#Disable() "{{{2
     endif
     py VidemWorkspace.wsp_ntf.Unregister(VidemWspCscopeHook, 0)
     " 命令
-    delcommand VLWInitCscopeDatabase
-    delcommand VLWUpdateCscopeDatabase
+    delcommand VCscopeInitDatabase
+    delcommand VCscopeUpdateDatabase
     silent! cs kill -1
     let s:enable = 0
 endfunction
