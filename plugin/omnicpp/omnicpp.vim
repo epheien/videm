@@ -118,6 +118,8 @@ class ParseCurrentFileThread(threading.Thread):
         # OmniCpp 实例
         self.ins = ins
 
+        self.name = 'Videm-' + self.name
+
     def run(self):
         ParseCurrentFileThread.lock.acquire()
         try:

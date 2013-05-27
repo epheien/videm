@@ -35,23 +35,6 @@ let s:nAsyncCompleteCount = 0
 let s:dCalltipsData = {}
 let s:dCalltipsData.usePrevTags = 0 " 是否使用最近一次的 tags 缓存
 
-" 检查是否支持 noexpand 选项
-let s:__temp = &completeopt
-let s:has_noexpand = 1
-try
-    set completeopt+=noexpand
-catch /.*/
-    let s:has_noexpand = 0
-endtry
-let &completeopt = s:__temp
-unlet s:__temp
-"let g:has_noexpand = s:has_noexpand
-
-let s:has_InsertCharPre = 0
-if v:version >= 703 && has('patch196')
-    let s:has_InsertCharPre = 1
-endif
-
 " 关联的文件，一般用于头文件关联源文件
 " 在头文件头部和尾部添加的额外的内容，用于修正在头文件时的头文件包含等等问题
 " {头文件: {'line': 在关联文件中对应的行(#include), 'filename': 关联文件}, ...}
@@ -507,6 +490,7 @@ class cc_thread(threading.Thread):
         self.result = []    # 补全结果
         self.done = False   # 标识主要工作已经完成
         self.vimprog = vimprog
+        self.name = 'Videm-' + self.name
 
     @property
     def row(self):
@@ -707,6 +691,25 @@ endfunction
 "}}}
 " 这些初始化作为全局存在，已经初始化，永不销毁
 function! s:FirstInit() "{{{2
+    " NOTE: 这些检查可以放到这个脚本的外部，但是在 autoload 的脚本的外部没法产
+    "       生异常(BUG?)，所以放到这里
+    " 检查是否支持 noexpand 选项
+    let s:__temp = &completeopt
+    let s:has_noexpand = 1
+    try
+        set completeopt+=noexpand
+    catch /.*/
+        let s:has_noexpand = 0
+    endtry
+    let &completeopt = s:__temp
+    unlet s:__temp
+    "let g:has_noexpand = s:has_noexpand
+
+    let s:has_InsertCharPre = 0
+    if v:version >= 703 && has('patch196')
+        let s:has_InsertCharPre = 1
+    endif
+
 " ============================================================================
     " MayComplete to '.'
     call s:InitVariable('g:VIMCCC_MayCompleteDot', 1)

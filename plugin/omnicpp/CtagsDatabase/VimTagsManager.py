@@ -82,6 +82,8 @@ class ParseFilesThread(threading.Thread):
         self.filterNotNeed = filterNotNeed
         self.onlyCpp = onlyCpp
 
+        self.name = 'Videm-' + self.name
+
     def run(self):
         ParseFilesThread.lock.acquire()
 
@@ -128,6 +130,7 @@ class VimTagsManager:
         if dbFile:
             self.storage.OpenDatabase(dbFile)
 
+        # 这样做的目的是为了下面的 self.parseThread.join() 不出错
         self.parseThread = threading.Thread()
         self.parseThread.start()
 

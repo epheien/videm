@@ -125,6 +125,8 @@ class UpdateTUThread(threading.Thread):
         self.tus = tus # 引用外部的，会直接修改
         self.tu = None
 
+        self.name = 'Videm-' + self.name
+
     def run(self):
         tu = None
         self.lock.acquire()

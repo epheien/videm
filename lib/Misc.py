@@ -221,6 +221,8 @@ class SimpleThread(threading.Thread):
         self.exceptHook = exceptHook
         self.exceptPara = exceptPara
 
+        self.name = 'Videm-' + self.name
+
     def run(self):
         try:
             self.callback(self.prvtData)
@@ -241,7 +243,11 @@ def RunSimpleThread(callback, prvtData):
     return thrd
 
 def GetBgThdCnt():
-    return threading.active_count() - 1
+    count = 0
+    for td in threading.enumerate():
+        if td.name.startswith('Videm-'):
+            count += 1
+    return count
 
 class ConfTree:
     '''一种抽象的树状结构，路径表示方式为 ".videm.wsp.conf"
