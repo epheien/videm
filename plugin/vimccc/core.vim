@@ -17,10 +17,10 @@ if exists('s:loaded')
 endif
 let s:loaded = 1
 
-" 在 console 跑的 vim 没法拥有这个特性...
-let s:has_clientserver = 0
-if has('clientserver')
-    let s:has_clientserver = 1
+" 基础特性检查
+let s:has_InsertCharPre = 0
+if v:version >= 703 && has('patch196')
+    let s:has_InsertCharPre = 1
 endif
 
 " 标识是否第一次初始化
@@ -682,6 +682,7 @@ endfunction
 "}}}
 " 强制启动
 function! vimccc#core#InitForcibly() "{{{2
+    call s:InitVariable('g:VIMCCC_Enable', 0)
     let bak = g:VIMCCC_Enable
     let g:VIMCCC_Enable = 1
     call vimccc#core#InitEarly()
@@ -691,25 +692,6 @@ endfunction
 "}}}
 " 这些初始化作为全局存在，已经初始化，永不销毁
 function! s:FirstInit() "{{{2
-    " NOTE: 这些检查可以放到这个脚本的外部，但是在 autoload 的脚本的外部没法产
-    "       生异常(BUG?)，所以放到这里
-    " 检查是否支持 noexpand 选项
-    let s:__temp = &completeopt
-    let s:has_noexpand = 1
-    try
-        set completeopt+=noexpand
-    catch /.*/
-        let s:has_noexpand = 0
-    endtry
-    let &completeopt = s:__temp
-    unlet s:__temp
-    "let g:has_noexpand = s:has_noexpand
-
-    let s:has_InsertCharPre = 0
-    if v:version >= 703 && has('patch196')
-        let s:has_InsertCharPre = 1
-    endif
-
 " ============================================================================
     " MayComplete to '.'
     call s:InitVariable('g:VIMCCC_MayCompleteDot', 1)
@@ -822,10 +804,12 @@ function! vimccc#core#InitEarly() "{{{2
 
     if s:bFirstInit
         call s:FirstInit()
+        let s:has_noexpand = g:VIMCCC_Has_noexpand
     endif
     let s:bFirstInit = 0
 
     " 特性检查
+    " FIXME 在新版本，v:servername 的初始化在这个函数之后...
     if g:VIMCCC_AutoPopupMenu && (empty(v:servername) || !has('clientserver'))
         echohl WarningMsg
         echom '-------------------- VIMCCC --------------------'
@@ -840,7 +824,10 @@ function! vimccc#core#InitEarly() "{{{2
         echom "You can run ':let g:VIMCCC_AutoPopupMenu = 0' to diable this "
                 \ . "message"
         echohl None
-        call getchar()
+        " gvim 时，如果启动时即进入此流程，会让 gvim 无法启动，BUG？！
+        if !has('gui_running')
+            call getchar()
+        endif
     endif
 
     " 全局命令
