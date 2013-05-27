@@ -99,7 +99,7 @@ And make sure you have these settings in your vimrc file: >
 
 The latest release of videm can be found from this url:
 
-    http://www.vim.org/scripts/script.php?script_id=3647
+    http://www.vim.org/scripts/script.php?script_id=4599
 
 And videm in github will be comming soon...
 
