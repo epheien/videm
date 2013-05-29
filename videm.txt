@@ -40,6 +40,7 @@ CONTENTS                                *videm-Contents*
     8.1. Configuration Sample           |videm-ConfigSample|
     8.2. Use cl.exe On Windows          |videm-Windows|
     8.3. Search Paths For Parser        |videm-SearchPaths|
+    8.4. Trouble Shooting               |videm-TroubleShooting|
 9. Limitation                           |videm-Limitation|
 
 ==============================================================================
@@ -72,7 +73,7 @@ Videm mainly consists of the following modules:
 ==============================================================================
 2. Prerequisites                        *videm-Prerequisites*
 
-videm depends following software: >
+Videm depends on following software: >
     python
     python-lxml (optional)
     make
@@ -105,7 +106,7 @@ And videm in github will be comming soon...
 
 ------------------------------------------------------------------------------
 3.1. Upgrade from VimLite               *videm-Installation-Upgrade*
-Videm compatible with VimLite, also include options. But videm has its new
+Videm is compatible with VimLite, also include options. But videm has its new
 option subsystem. On VimLite, you can configure an option like this >
     let g:VLWorkspaceWinSize = 30
 and on videm, you can do it like this: >
@@ -643,10 +644,6 @@ default is "omnicpp".
 The active project highlight group name. >
     let g:VLWorkspaceActiveProjectHlGroup = 'SpecialKey'
 
-Auto parse the editing file when saving it. It will be done asynchronously.
-Only work for files belong to workspace and OmniCpp. >
-    let g:VLWorkspaceParseFileAfterSave = 1
-
 ------------------------------------------------------------------------------
 7.2. Calltips Options                   *videm-Options-Calltips*
 
@@ -808,7 +805,6 @@ command "break {file}:{line}". So the condition of breakpoint will be lost. >
 Configuration sample of videm >
     let g:VLWorkspaceSaveAllBeforeBuild = 1
     let g:VLOmniCpp_ItemSelectionMode = 10
-    let g:VLWorkspaceParseFileAfterSave = 1
     let g:VLCalltips_IndicateArgument = 0
     let g:VLCalltips_EnableSyntaxTest = 0
     let g:VLWDbgSaveBreakpointsInfo = 0
@@ -817,6 +813,20 @@ If use VIMCCC >
     let g:VLWorkspaceCodeCompleteEngine = "vimccc"
     let g:VIMCCC_ItemSelectionMode = 10
     let g:VIMCCC_CompleteMacros = 1
+
+A videm setting method will like this >
+    let g:VLCalltips_IndicateArgument = 0
+    let g:VLCalltips_EnableSyntaxTest = 0
+    let g:VIMCCC_ItemSelectionMode = 10
+    let g:VIMCCC_CompleteMacros = 1
+    try
+        call videm#settings#Set('.videm.wsp.SaveBeforeBuild', 1)
+        call videm#settings#Set('.videm.cc.omnicpp.ItemSelectMode', 10)
+        call videm#settings#Set('.videm.dbg.pyclewn.SaveBpInfo', 0)
+        call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
+        call videm#settings#Set('.videm.cc.vimccc.Enable', 1)
+    catch
+    endtry
 
 ------------------------------------------------------------------------------
 8.2. Use cl.exe On Windows              *videm-Windows*
@@ -842,6 +852,27 @@ If you update gcc, the search paths for parser will need to be updated also.
 Run the following command and find the search list of gcc, and then update the
 search paths for parser in 'videm -> (OmniCpp Tags|VIMCCC) Settings' . >
      echo "" | gcc -v -x c++ - -fsyntax-only 2>&1
+
+------------------------------------------------------------------------------
+8.4. Trouble Shooting                   *videm-TroubleShooting*
+
+    Q: Can I use VIMCCC as standalone plugin? ~
+    A: Yes, just run VIMCCCInitForcibly command to start. Run VIMCCCSetArgs
+       and VIMCCCAppendArgs commands to setup the source file compile flags.
+
+    Q: VIMCCC does not seem to work, what's problem? ~
+    A: Be sure you have inited VIMCCC, and run VIMCCCQuickFix to see what's
+       wrong.
+
+    Q: Why VIMCCC insert the code completion text casually? ~
+    A: It seem to a |clientserver| issue, you can apply my noexpand path for
+       vim and recompile vim to fix this. Or, you can disable this auto popup
+       feature by setting 'let g:VIMCCC_AutoPopupMenu = 0'.
+
+    Q: Why my customize options not work? ~
+    A: If you use pathogen plugin, make sure run 'call pathogen#infect()'
+       before setting any videm option in your .vimrc file.
+
 
 ==============================================================================
 9. Limitation                           *videm-Limitation*
