@@ -1440,7 +1440,7 @@ try:
 except ValueError:
     sys.path.append(vim.eval("g:VIMCCC_PythonModulePath"))
 # FIXME 暂时用这么搓的方法来传递参数给 cindex
-sys.argv = [vim.eval("g:VIMCCC_ClangLibraryPath")]
+sys.argv = [sys.argv[0], vim.eval("g:VIMCCC_ClangLibraryPath")]
 from VIMClangCC import *
 
 UF_None = 0

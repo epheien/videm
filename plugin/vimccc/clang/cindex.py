@@ -74,8 +74,11 @@ def get_cindex_library():
         # check if run within vim
         import vim
         import sys, os.path
-        path = sys.argv[0]
-        if os.path.isdir(path):
+        path = ''
+        # NOTE: use sys.argv[1] as parameter...
+        if len(sys.argv) >= 2:
+            path = sys.argv[1]
+        if not path or (path and os.path.isdir(path)):
             if name == 'Darwin':
                 path = os.path.join(path, 'libclang.dylib')
             elif name == 'Windows':
