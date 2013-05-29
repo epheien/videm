@@ -865,7 +865,7 @@ search paths for parser in 'videm -> (OmniCpp Tags|VIMCCC) Settings' . >
        wrong.
 
     Q: Why VIMCCC insert the code completion text casually? ~
-    A: It seem to a |clientserver| issue, you can apply my noexpand path for
+    A: It seem to be a |clientserver| issue, you can apply my noexpand path for
        vim and recompile vim to fix this. Or, you can disable this auto popup
        feature by setting 'let g:VIMCCC_AutoPopupMenu = 0'.
 
@@ -873,6 +873,12 @@ search paths for parser in 'videm -> (OmniCpp Tags|VIMCCC) Settings' . >
     A: If you use pathogen plugin, make sure run 'call pathogen#infect()'
        before setting any videm option in your .vimrc file.
 
+    Q: Why I press <C-x><C-s> to save and quit window and it does not work? ~
+    A: You seem to use vim in a terminal, so <C-s> is bind to stop drawing the
+       screen, you can run 'stty -ixon' in terminal to disable this terminal
+       keybinding, or you can set 'let g:VimDialogSaveAndQuitKey = "<C-x>s"'
+       to change vimdialog keybinding. The same issue as "Save" action, it's
+       option name is 'g:VimDialogSaveKey'.
 
 ==============================================================================
 9. Limitation                           *videm-Limitation*
