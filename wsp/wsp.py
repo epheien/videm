@@ -1720,7 +1720,8 @@ class VimLiteWorkspace(object):
                         name = os.path.abspath(name)
                 else:
                     name = vim.eval(
-                        'inputdialog("\nEnter the File Name to be created:")')
+                        'inputdialog("\nEnter the File Name to be created:\n'
+                        '(CWD is: %s)\n")' % ToVimEval(project.dirName))
                 if name:
                     ds = DirSaver()
                     try:
