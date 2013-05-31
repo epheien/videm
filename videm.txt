@@ -880,6 +880,15 @@ search paths for parser in 'videm -> (OmniCpp Tags|VIMCCC) Settings' . >
        to change vimdialog keybinding. The same issue as "Save" action, it's
        option name is 'g:VimDialogSaveKey'.
 
+    Q: Why OmniCpp does not seem to work properly? ~
+    A: Make sure you parse workspace before code completion, just open
+       workspace popup menu (put the cursor in workspace line and press '.')
+       and select 'Parse Workspace' like item. Currently videm only parse file
+       automatically after you save it, otherwise videm do not parse any file
+       automatically, so you must parse workspace manually, for example, after
+       add new files, after change search paths, after change compile flags,
+       etc.
+
 ==============================================================================
 9. Limitation                           *videm-Limitation*
 ------------------------------------------------------------------------------
