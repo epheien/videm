@@ -79,7 +79,7 @@ class VLWorkspaceSettings:
         return Obj2Dict(self, set(['conf', 'fileName']))
 
     def FromDict(self, d):
-        Dict2Obj(self, d, (['conf', 'fileName']))
+        Dict2Obj(self, d, set(['conf', 'fileName']))
 
     def SetFileName(self, fileName):
         self.fileName = fileName

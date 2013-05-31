@@ -3,21 +3,33 @@
 
 import pickle
 import os.path
+import json
 
 from Macros import VIMLITE_DIR
 from Utils import SplitVarDef, ExpandVariables
 from Misc import GetMTime
+from Misc import Obj2Dict, Dict2Obj
 
 CONFIG_FILE = os.path.join(VIMLITE_DIR, 'config', 'EnvVarSettings.conf')
 
 class EnvVar:
     '''代表一个环境变量'''
-    def __init__(self, string):
+    def __init__(self, string = ''):
         self.key = ''
         self.value = ''
         self.string = string
         if string:
-            self.key, self.value = SplitVarDef(string)
+            self.__Expand()
+
+    def ToDict(self):
+        return Obj2Dict(self, set(['key', 'value']))
+
+    def FromDict(self, d):
+        Dict2Obj(self, d, set(['key', 'value']))
+        self.__Expand()
+
+    def __Expand(self):
+        self.key, self.value = SplitVarDef(self.string)
 
     def GetKey(self):
         return self.key
@@ -48,7 +60,7 @@ class EnvVarSettings:
     '''环境变量设置'''
     def __init__(self, fileName = ''):
         self.fileName = ''
-        self.envVarSets = {} # 名称: 列表(元素为 EnvVar 类)
+        self.envVarSets = {} # 名称: 列表(列表元素为 EnvVar 类)
         self.mtime = 0 # 最后修改时间
 
         # 当前激活项, 这个在外部需要时修改，理论上这个值不需要保存的
@@ -56,6 +68,25 @@ class EnvVarSettings:
 
         if fileName:
             self.Load(fileName)
+
+    def ToDict(self):
+        d = Obj2Dict(self, set(['fileName', 'activeSetName', 'envVarSets']))
+        d['envVarSets'] = {}
+        for key, val in self.envVarSets.iteritems():
+            d['envVarSets'][key] = []
+            for item in val:
+                d['envVarSets'][key].append(item.ToDict())
+        return d
+
+    def FromDict(self, d):
+        Dict2Obj(self, d, set(['fileName', 'activeSetName', 'envVarSets']))
+        self.envVarSets.clear()
+        for key, val in d['envVarSets'].iteritems():
+            self.envVarSets[key] = []
+            for item in val:
+                env_var = EnvVar()
+                env_var.FromDict(item)
+                self.envVarSets[key].append(env_var)
 
     def SetFileName(self, fileName):
         self.fileName = fileName
@@ -127,7 +158,7 @@ class EnvVarSettings:
                 print ' ' * 4 + i.GetKey(), '=', i.GetValue()
 
     def ExpandSelf(self):
-        '''展开自身'''
+        '''展开自身，具体来说就是展开 EnvVar.val'''
         for envVarName, envVarSet in self.envVarSets.iteritems():
             d = os.environ.copy() # 支持系统的环境变量的
             for envVar in envVarSet:
@@ -140,25 +171,42 @@ class EnvVarSettings:
     def Load(self, fileName = ''):
         if not fileName and not self.fileName:
             return False
+        if not fileName:
+            fileName = self.fileName
 
+        isjson = False
         ret = False
         obj = None
         try:
-            if not fileName:
-                fileName = self.fileName
             f = open(fileName, 'rb')
             obj = pickle.load(f)
             f.close()
         except IOError:
             #print 'IOError:', fileName
             return False
+        except:
+            f.close()
+            isjson = True
 
-        if obj:
-            self.fileName = obj.fileName
+        if not isjson and obj:
+            #self.fileName = obj.fileName
             self.envVarSets = obj.envVarSets
             #self.activeSetName = obj.activeSetName # 这个值只有临时保存，不需要
             self.mtime = GetMTime(fileName)
             del obj
+            ret = True
+
+        if isjson:
+            try:
+                f = open(fileName, 'rb')
+                d = json.load(f)
+                f.close()
+                self.FromDict(d)
+            except IOError:
+                return False
+            except:
+                f.close()
+                return False
             ret = True
 
         if ret:
@@ -169,22 +217,30 @@ class EnvVarSettings:
     def Save(self, fileName = ''):
         if not fileName and not self.fileName:
             return False
+        if not fileName:
+            fileName = self.fileName
 
         ret = False
+        d = self.ToDict()
+        dirName = os.path.dirname(fileName)
         try:
-            if not fileName:
-                fileName = self.fileName
-            dirName = os.path.dirname(fileName)
             if not os.path.exists(dirName):
                 os.makedirs(dirName)
+        except:
+            return False
+
+        try:
             f = open(fileName, 'wb')
-            pickle.dump(self, f)
+            json.dump(d, f, indent=4, sort_keys=True, ensure_ascii=True)
             f.close()
             self.mtime = GetMTime(fileName)
             ret = True
         except IOError:
             print 'IOError:', fileName
             return False
+        except:
+            #print d
+            raise
 
         return ret
 

@@ -2005,7 +2005,7 @@ function! s:CreateEnvVarSettingsDialog() "{{{2
     let dSetsCtl = ctl
     call ctl.SetId(s:ID_EnvVarSettingsEnvVarSets)
     call ctl.SetIndent(4)
-    py vim.command("let lEnvVarSets = %s" % ins.envVarSets.keys())
+    py vim.command("let lEnvVarSets = %s" % ToVimEval(ins.envVarSets.keys()))
     call sort(lEnvVarSets)
     for sEnvVarSet in lEnvVarSets
         call ctl.AddItem(sEnvVarSet)
@@ -2037,10 +2037,10 @@ def CreateEnvVarSettingsData():
     ins = EnvVarSettingsST.Get()
     vim.command('let dData = {}')
     for setName, envVars in ins.envVarSets.iteritems():
-        vim.command("let dData['%s'] = []" % ToVimStr(setName))
+        vim.command("let dData[%s] = []" % ToVimEval(setName))
         for envVar in envVars:
-            vim.command("call add(dData['%s'], '%s')" 
-                        \% (ToVimStr(setName), ToVimStr(envVar.GetString())))
+            vim.command("call add(dData[%s], %s)" 
+                        \% (ToVimEval(setName), ToVimEval(envVar.GetString())))
 CreateEnvVarSettingsData()
 PYTHON_EOF
 

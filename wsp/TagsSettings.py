@@ -3,9 +3,11 @@
 
 import pickle
 import os.path
+import json
 
 from Macros import VIMLITE_DIR
 from Misc import IsWindowsOS
+from Misc import Obj2Dict, Dict2Obj
 
 CONFIG_FILE = os.path.join(VIMLITE_DIR, 'config', 'TagsSettings.conf')
 
@@ -25,6 +27,12 @@ class TagsSettings:
         # 如果指定了 fileName, 从文件载入
         if fileName:
             self.Load(fileName)
+
+    def ToDict(self):
+        return Obj2Dict(self, set(['fileName']))
+
+    def FromDict(self, d):
+        Dict2Obj(self, d, set(['fileName']))
 
     def SetFileName(self, fileName):
         self.fileName = fileName
@@ -69,6 +77,7 @@ class TagsSettings:
         if not fileName and not self.fileName:
             return False
 
+        isjson = False
         ret = False
         obj = None
         try:
@@ -80,9 +89,12 @@ class TagsSettings:
         except IOError:
             #print 'IOError:', fileName
             return False
+        except:
+            f.close()
+            isjson = True
 
-        if obj:
-            self.fileName = obj.fileName
+        if not isjson and obj:
+            #self.fileName = obj.fileName
             self.includePaths = obj.includePaths
             self.excludePaths = obj.excludePaths
             self.tagsTokens = obj.tagsTokens
@@ -90,21 +102,40 @@ class TagsSettings:
             del obj
             ret = True
 
+        if isjson:
+            try:
+                f = open(fileName, 'rb')
+                d = json.load(f)
+                f.close()
+                self.FromDict(d)
+            except IOError:
+                return False
+            except:
+                f.close()
+                return False
+            ret = True
+
         return ret
 
     def Save(self, fileName = ''):
         if not fileName and not self.fileName:
             return False
+        if not fileName:
+            fileName = self.fileName
 
         ret = False
+        d = self.ToDict()
+        dirName = os.path.dirname(fileName)
+
         try:
-            if not fileName:
-                fileName = self.fileName
-            dirName = os.path.dirname(fileName)
             if not os.path.exists(dirName):
                 os.makedirs(dirName)
+        except:
+            return False
+
+        try:
             f = open(fileName, 'wb')
-            pickle.dump(self, f)
+            json.dump(d, f, indent=4, sort_keys=True, ensure_ascii=True)
             f.close()
             ret = True
         except IOError:
