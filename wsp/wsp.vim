@@ -3558,14 +3558,14 @@ function! s:CreateWspSettingsDialog() "{{{2
     let ctl = g:VCComboBox.New('Environment Sets:')
     call ctl.SetId(s:ID_WspSettingsEnvironment)
     call ctl.SetIndent(4)
-    py vim.command("let lEnvVarSets = %s" 
-                \% EnvVarSettingsST.Get().envVarSets.keys())
+    py vim.command("let lEnvVarSets = %s"
+            \      % ToVimEval(EnvVarSettingsST.Get().envVarSets.keys()))
     call sort(lEnvVarSets)
     for sEnvVarSet in lEnvVarSets
         call ctl.AddItem(sEnvVarSet)
     endfor
-    py vim.command("call ctl.SetValue('%s')" % 
-                \ToVimStr(ws.VLWSettings.GetEnvVarSetName()))
+    py vim.command("call ctl.SetValue(%s)"
+            \      % ToVimEval(ws.VLWSettings.GetEnvVarSetName()))
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
 
@@ -3577,11 +3577,11 @@ function! s:CreateWspSettingsDialog() "{{{2
     call dlg.AddBlankLine()
 
     let ctl = g:VCMultiText.New("Editor Options (Run as vim script, "
-                \."single line will be faster):")
+            \                   . "single line will be faster):")
     call ctl.SetId(s:ID_WspSettingsEditorOptions)
     call ctl.SetIndent(4)
     py vim.command("let editorOptions = %s" 
-                \% ToVimEval(ws.VLWSettings.GetEditorOptions()))
+            \      % ToVimEval(ws.VLWSettings.GetEditorOptions()))
     call ctl.SetValue(editorOptions)
     call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "vim")
     call dlg.AddControl(ctl)
