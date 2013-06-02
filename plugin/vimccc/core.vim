@@ -63,9 +63,12 @@ function! s:InitVariable(varName, defaultVal) "{{{2
 endfunction
 "}}}
 
-" 临时启用选项函数 {{{2
-function! s:SetOpts()
+" 临时启用选项函数
+function! s:SetOpts() "{{{2
     let s:bak_cot = &completeopt
+    let s:bak_lz = &lazyredraw
+
+    set lazyredraw
 
     if g:VIMCCC_ItemSelectionMode == 0 " 不选择
         set completeopt-=menu,longest
@@ -89,10 +92,13 @@ function! s:SetOpts()
 
     return ''
 endfunction
-function! s:RestoreOpts()
-    if exists('s:bak_cot')
+"}}}
+function! s:RestoreOpts() "{{{2
+    if exists('s:bak_cot') && exists('s:bak_lz')
         let &completeopt = s:bak_cot
         unlet s:bak_cot
+        let &lazyredraw = s:bak_lz
+        unlet s:bak_lz
     else
         return ""
     endif
@@ -109,13 +115,15 @@ function! s:RestoreOpts()
                 let sRet = "\<C-p>\<Down>"
             endif
         else
+            " 'completeopt' 有 longest
             let sRet = "\<Down>"
         endif
     endif
 
     return sRet
 endfunction
-function! s:CheckIfSetOpts()
+"}}}
+function! s:CheckIfSetOpts() "{{{2
     let sLine = getline('.')
     let nCol = col('.') - 1
     " 若是成员补全，添加 longest
@@ -650,6 +658,7 @@ PYTHON_EOF
     " FIXME \<C-r>=Fun()\<Cr> 这样执行函数在命令行会显示，能避免吗？
     let sKeys .= "\<C-r>=VIMCCCAsyncCCPre()\<Cr>"
     let sKeys .= "\<C-x>\<C-o>"
+    "let sKeys .= "\<C-x>\<C-o>\<C-p>\<Down>"
     let sKeys .= "\<C-r>=VIMCCCAsyncCCPost()\<Cr>"
     call feedkeys(sKeys, "n")
     py del s_latest_td
@@ -676,8 +685,12 @@ endfunction
 "}}}
 " VIMCCCThreadHandler() 调用，执行一些后续动作
 function! VIMCCCAsyncCCPost() "{{{2
-    call feedkeys(s:RestoreOpts(), "n")
-    return ''
+    " NOTE: 不用使用 feedkeys()，因为 "\<C-r>=VIMCCCAsyncCCPost()\<Cr>"
+    "       后有个时间窗口，可能有了其他的输入，所以这里必须直接返回输入，
+    "       唯一存在的问题是返回的字符可能被重映射了
+    "call feedkeys(s:RestoreOpts(), "n")
+    return s:RestoreOpts()
+    "return ''
 endfunction
 "}}}
 " 强制启动
@@ -806,6 +819,7 @@ function! vimccc#core#InitEarly() "{{{2
         call s:FirstInit()
         let s:has_noexpand = g:VIMCCC_Has_noexpand
     endif
+    let s:has_noexpand = 0
     let s:bFirstInit = 0
 
     " 特性检查

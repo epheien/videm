@@ -49,6 +49,7 @@ function! s:RestoreOpts()
         elseif g:VLOmniCpp_ItemSelectionMode == 2 " 选择但不插入文本
             let sRet = "\<C-p>\<Down>"
         else
+            " 'completeopt' 有 longest
             let sRet = "\<Down>"
         endif
     endif
