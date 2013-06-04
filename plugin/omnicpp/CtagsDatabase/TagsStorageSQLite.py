@@ -918,23 +918,25 @@ class TagsStorageSQLite(ITagsStorage):
         else:
             return True
 
-    def InsertFileEntry(self, fileName, timestamp):
+    def InsertFileEntry(self, fileName, timestamp, autoCommit = True):
         try:
             # 理论上, 不会插入失败
             self.db.execute("INSERT OR REPLACE INTO FILES VALUES(NULL, ?, ?)", 
                            (fileName, timestamp))
-            self.Commit()
+            if autoCommit:
+                self.Commit()
         except:
             return False
         else:
             return True
 
-    def UpdateFileEntry(self, fileName, timestamp):
+    def UpdateFileEntry(self, fileName, timestamp, autoCommit = True):
         try:
             self.db.execute(
                 "UPDATE OR REPLACE FILES SET last_retagged=? WHERE file=?", 
                 (timestamp, fileName))
-            self.Commit()
+            if autoCommit:
+                self.Commit()
         except:
             return False
         else:
@@ -1404,6 +1406,31 @@ def ParseFiles(files, macrosFiles = []):
     return tags
 
 def ParseFilesToTags(files, tagFile, macrosFiles = []):
+    if platform.system() == 'Windows':
+        # Windows 下的 cmd.exe 不支持过长的命令行
+        batchCount = 10
+    else:
+        batchCount = 100
+    totalCount = len(files)
+    i = 0
+    batchFiles = files[i : i + batchCount]
+    firstEnter = True
+    while batchFiles:
+        if firstEnter:
+            ret = _ParseFilesToTags(batchFiles, tagFile, macrosFiles,
+                                    append = False)
+            firstEnter = False
+        else:
+            ret = _ParseFilesToTags(batchFiles, tagFile, macrosFiles,
+                                    append = True)
+        if not ret:
+            return ret
+        i += batchCount
+        batchFiles = files[i : i + batchCount]
+    return True
+
+def _ParseFilesToTags(files, tagFile, macrosFiles = [], append = False):
+    '''append 为真时，添加新的tags到tagFile'''
     if not files or not tagFile:
         return False
 
@@ -1413,15 +1440,20 @@ def ParseFilesToTags(files, tagFile, macrosFiles = []):
         envDict['CTAGS_GLOBAL_MACROS_FILES'] = ','.join(macrosFiles)
 
     if platform.system() == 'Windows':
-        cmd = '"%s" %s -f "%s" "%s"' % (CTAGS, CTAGS_OPTS, tagFile,
-                                        '" "'.join(files))
+        if append:
+            cmd = '"%s" -a %s -f "%s" "%s"' % (CTAGS, CTAGS_OPTS, tagFile,
+                                               '" "'.join(files))
+        else:
+            cmd = '"%s" %s -f "%s" "%s"' % (CTAGS, CTAGS_OPTS, tagFile,
+                                            '" "'.join(files))
         p = subprocess.Popen(cmd, shell=True,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              env=envDict)
     else:
-        #cmd = '"%s" %s -f "%s" "%s"' % (CTAGS, CTAGS_OPTS, tagFile,
-                                        #'" "'.join(files))
-        cmd = [CTAGS] + CTAGS_OPTS_LIST + ['-f', tagFile] + files
+        if append:
+            cmd = [CTAGS, '-a'] + CTAGS_OPTS_LIST + ['-f', tagFile] + files
+        else:
+            cmd = [CTAGS] + CTAGS_OPTS_LIST + ['-f', tagFile] + files
         # NOTE: 不用 shell，会快近两倍！
         p = subprocess.Popen(cmd, shell=False,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -1515,13 +1547,10 @@ def ParseFilesAndStore(storage, files, macrosFiles = [], filterNotNeed = True,
     # 分批 parse
     totalCount = len(tmpFiles)
     batchCount = totalCount / 10
-    if batchCount > 100: # 上限
-        batchCount = 100
+    if batchCount > 200: # 上限
+        batchCount = 200
     if batchCount <= 0: # 下限
         batchCount = 1
-    if batchCount > 10 and platform.system() == 'Windows':
-        # Windows 下的 cmd.exe 不支持过长的命令行
-        batchCount = 10
 
     i = 0
     batchFiles = tmpFiles[i : i + batchCount]
@@ -1548,28 +1577,29 @@ def ParseFilesAndStore(storage, files, macrosFiles = [], filterNotNeed = True,
             parseRet = ParseFilesToTags(batchFiles, tagFile, macrosFiles)
             if parseRet: # 只有解析成功才入库
                 storage.Begin()
-                if not storage.DeleteTagsByFiles(batchFiles, autoCommit = False):
+                if not storage.DeleteTagsByFiles(batchFiles,
+                                                 autoCommit = False):
                     storage.Rollback()
                     storage.Begin()
                 if not storage.StoreFromTagFile(tagFile, autoCommit = False):
                     storage.Rollback()
                     storage.Begin()
+                timestamp = int(time.time())
+                for f in batchFiles:
+                    if os.path.isfile(f):
+                        storage.InsertFileEntry(f, timestamp,
+                                                autoCommit = False)
                 storage.Commit()
-        else:
-            tags = ParseFiles(batchFiles, macrosFiles)
-            storage.Begin()
-            if not storage.DeleteTagsByFiles(batchFiles, autoCommit = False):
-                storage.Rollback()
-                storage.Begin()
-            if not storage.Store(tags, autoCommit = False, indicator = None):
-                storage.Rollback()
-                storage.Begin()
-            storage.Commit()
-
-        if parseRet: # 只有解析成功才入库
-            for f in batchFiles:
-                if os.path.isfile(f):
-                    storage.InsertFileEntry(f, int(time.time()))
+        #else:
+            #tags = ParseFiles(batchFiles, macrosFiles)
+            #storage.Begin()
+            #if not storage.DeleteTagsByFiles(batchFiles, autoCommit = False):
+                #storage.Rollback()
+                #storage.Begin()
+            #if not storage.Store(tags, autoCommit = False, indicator = None):
+                #storage.Rollback()
+                #storage.Begin()
+            #storage.Commit()
 
         if indicator:
             indicator(i, totalCount - 1)
@@ -1589,6 +1619,7 @@ def ParseFilesAndStore(storage, files, macrosFiles = [], filterNotNeed = True,
 
 
 def test():
+    AppendCtagsOpt('-m')
     files = ['/usr/include/unistd.h', 'xstring.hpp']
     files = ['/usr/include/stdio.h', '/usr/include/stdlib.h']
     macrosFiles = ['global.h', 'global.hpp']
@@ -1602,18 +1633,23 @@ def test():
     #t2 = time.time()
     #print "%f" % (t2 - t1)
 
-    storage.OpenDatabase('test2.db')
+    del files[:]
+    with open('tags.files') as f:
+        for line in f:
+            files.append(line.strip())
+
+    storage.OpenDatabase('test_vltags.db')
     storage.RecreateDatabase()
     t1 = time.time()
     ParseFilesAndStore(storage, files, macrosFiles,
                        filterNotNeed = False, useCppTagsDb = False)
     t2 = time.time()
-    print "%f" % (t2 - t1)
+    print "consume time: %f" % (t2 - t1)
 
-    print storage.GetFilesMap(['/usr/include/stdio.h',
-                               '/usr/include/unistd.h',
-                               'xstring.hpp'])
-    print storage.DeleteFileEntries(files)
+    #print storage.GetFilesMap(['/usr/include/stdio.h',
+                               #'/usr/include/unistd.h',
+                               #'xstring.hpp'])
+    #print storage.DeleteFileEntries(files)
 
 
 if __name__ == '__main__':
