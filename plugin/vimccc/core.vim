@@ -18,10 +18,7 @@ endif
 let s:loaded = 1
 
 " 基础特性检查
-let s:has_InsertCharPre = 0
-if v:version >= 703 && has('patch196')
-    let s:has_InsertCharPre = 1
-endif
+let s:has_InsertCharPre = exists('##InsertCharPre')
 
 " 标识是否第一次初始化
 let s:bFirstInit = 1
@@ -1304,7 +1301,9 @@ function! VIMClangCodeCompletion(findstart, base) "{{{2
     " 补全操作结束
     "===========================================================================
 endfunction
+"}}}
 " 更新本地当前窗口的 quickfix 列表
+" TODO 需要和代码补全那样在需要的时候 rebuild 翻译单元
 function! s:VIMCCCUpdateClangQuickFix(sFileName) "{{{2
     let sFileName = a:sFileName
 

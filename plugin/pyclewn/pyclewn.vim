@@ -523,17 +523,17 @@ function! s:Autocmd_Quit() "{{{2
 endfunction
 "}}}
 function! s:InstallCommands() "{{{2
-    command! -nargs=? -bar VLWDbgStart          call <SID>DbgStart(<f-args>)
-    command! -nargs=0 -bar VLWDbgStop           call <SID>DbgStop()
-    command! -nargs=0 -bar VLWDbgStepIn         call <SID>DbgStepIn()
-    command! -nargs=0 -bar VLWDbgNext           call <SID>DbgNext()
-    command! -nargs=0 -bar VLWDbgStepOut        call <SID>DbgStepOut()
-    command! -nargs=0 -bar VLWDbgRunToCursor    call <SID>DbgRunToCursor()
-    command! -nargs=0 -bar VLWDbgContinue       call <SID>DbgContinue()
-    command! -nargs=? -bar VLWDbgToggleBp       
+    command! -nargs=? -bar VDbgStart            call <SID>DbgStart(<f-args>)
+    command! -nargs=0 -bar VDbgStop             call <SID>DbgStop()
+    command! -nargs=0 -bar VDbgStepIn           call <SID>DbgStepIn()
+    command! -nargs=0 -bar VDbgNext             call <SID>DbgNext()
+    command! -nargs=0 -bar VDbgStepOut          call <SID>DbgStepOut()
+    command! -nargs=0 -bar VDbgRunToCursor      call <SID>DbgRunToCursor()
+    command! -nargs=0 -bar VDbgContinue         call <SID>DbgContinue()
+    command! -nargs=? -bar VDbgToggleBp       
             \                           call <SID>DbgToggleBreakpoint(<f-args>)
-    command! -nargs=0 -bar VLWDbgBacktrace      call <SID>DbgBacktrace()
-    command! -nargs=0 -bar VLWDbgSetupKeyMap    call <SID>DbgSetupKeyMappings()
+    command! -nargs=0 -bar VDbgBacktrace        call <SID>DbgBacktrace()
+    command! -nargs=0 -bar VDbgSetupKeyMap      call <SID>DbgSetupKeyMappings()
 endfunction
 "}}}2
 " 调试工具栏
