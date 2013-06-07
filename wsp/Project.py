@@ -40,7 +40,7 @@ class Project:
     STATIC_LIBRARY = 'Static Library';
     DYNAMIC_LIBRARY = 'Dynamic Library';
     EXECUTABLE = 'Executable';
-    
+
     def __init__(self, fileName = ''):
         self.doc = minidom.Document()
         self.rootNode = XmlUtils.GetRoot(self.doc)
@@ -63,19 +63,22 @@ class Project:
             self.rootNode = XmlUtils.GetRoot(self.doc)
             self.name = XmlUtils.GetRoot(self.doc).getAttribute('Name')\
                     .encode('utf-8')
-            self.fileName = os.path.abspath(fileName) #绝对路径
+            # 绝对路径
+            self.fileName = os.path.abspath(fileName)
+            # NOTE: 还必须是真实路径
+            self.fileName = os.path.realpath(self.fileName)
             self.dirName, self.baseName = os.path.split(self.fileName) #绝对路径
             self.modifyTime = GetMTime(fileName)
             self.settings = ProjectSettings(XmlUtils.FindFirstByTagName(
                 self.rootNode, 'Settings'))
-    
+
     def GetName(self):
         '''Get project name'''
         return self.name
 
     def GetFileName(self):
         return self.fileName
-        
+
     def SetFiles(self, projectIns):
         '''copy files (and virtual directories) from src project to this project
         note that this call replaces the files that exists under this project'''
@@ -87,14 +90,14 @@ class Project:
             XmlUtils.GetRoot(self.doc).removeChild(vdNode)
             vdNode = XmlUtils.FindFirstByTagName(XmlUtils.GetRoot(self.doc), 
                                                  'VirtualDirectory')
-        
+
         # copy the virtual directories from the src project
         for i in XmlUtils.GetRoot(self.doc).childNodes:
             if i.nodeName == 'VirtualDirectory':
                 # FIXME: deep?
                 newNode = i.cloneNode(1)
                 XmlUtils.GetRoot(self.doc).appendChild(newNode)
-        
+
         self.DoSaveXmlFile()
 
     def SetName(self, name):
@@ -109,27 +112,27 @@ class Project:
             if node:
                 return XmlUtils.GetNodeContent(node)
         return ''
-    
+
     def Load(self, fileName):
         self.__init__(fileName)
         self.SetModified(True)
-    
+
     def Create(self, name, description, path, projectType):
         self.name = name
         self.fileName = os.path.join(
             path, name + os.extsep + PROJECT_FILE_SUFFIX)
         self.fileName = os.path.abspath(self.fileName)
         self.dirName, self.baseName = os.path.split(self.fileName)
-        
+
         self.doc = minidom.Document()
         rootNode = self.doc.createElement('CodeLite_Project')
         self.doc.appendChild(rootNode)
         rootNode.setAttribute('Name', name)
-        
+
         descNode = self.doc.createElement('Description')
         XmlUtils.SetNodeContent(descNode, description)
         rootNode.appendChild(descNode)
-        
+
         # Create the default virtual directories
         srcNode = self.doc.createElement('VirtualDirectory')
         srcNode.setAttribute('Name', 'src')
@@ -137,13 +140,13 @@ class Project:
         headNode = self.doc.createElement('VirtualDirectory')
         headNode.setAttribute('Name', 'include')
         rootNode.appendChild(headNode)
-        
+
         # creae dependencies node
         depNode = self.doc.createElement('Dependencies')
         rootNode.appendChild(depNode)
-        
+
         self.DoSaveXmlFile()
-        
+
         # create a minimalist build settings
         settings = ProjectSettings()
         settings.SetProjectType(projectType)
@@ -173,12 +176,12 @@ class Project:
                                         '', ignoredFiles)
                                         #WSP_PATH_SEP + self.name)
         return files
-    
+
     def GetFilesOfNode(self, node, absPath = False,
                        curWspPath = '', ignoredFiles = set()):
         if not node:
             return []
-        
+
         files = []
         for i in node.childNodes:
             if i.nodeName == 'File':
@@ -203,11 +206,11 @@ class Project:
             else:
                 pass
         return files
-        
+
     def GetSettings(self):
         '''获取项目的设置实例'''
         return self.settings
-    
+
     def SetSettings(self, settings, autoSave = True):
         '''设置项目设置，并保存xml文件'''
         oldSettings = XmlUtils.FindFirstByTagName(XmlUtils.GetRoot(self.doc), 
@@ -218,7 +221,7 @@ class Project:
         if autoSave:
             self.DoSaveXmlFile()
         self.settings = settings
-    
+
     def SetGlobalSettings(self, globalSettings):
         settingsNode = XmlUtils.FindFirstByTagName(XmlUtils.GetRoot(self.doc),
                                                    'Settings')
@@ -229,7 +232,7 @@ class Project:
         settingsNode.appendChild(globalSettings.ToXmlNode())
         self.DoSaveXmlFile()
         self.settings = ProjectSettings(settingsNode)
-    
+
     def GetDependencies(self, configuration):
         '''返回依赖的项目的名称列表（构建顺序）'''
         result = [] # 依赖的项目名称列表
@@ -237,7 +240,7 @@ class Project:
         rootNode = XmlUtils.GetRoot(self.doc)
         if not rootNode:
             return result
-        
+
         for i in rootNode.childNodes:
             if i.nodeName == 'Dependencies' \
                and i.getAttribute('Name') == configuration:
@@ -246,7 +249,7 @@ class Project:
                     if j.nodeName == 'Project':
                         result.append(XmlUtils.ReadString(j, 'Name'))
                 return result
-        
+
         # if we are here, it means no match for the given configuration
         # return the default dependencies
         node = XmlUtils.FindFirstByTagName(rootNode, 'Dependencies')
@@ -255,10 +258,10 @@ class Project:
                 if i.nodeName == 'Project':
                     result.append(XmlUtils.ReadString(i, 'Name'))
         return result
-    
+
     def SetDependencies(self, deps, configuration):
         '''设置依赖
-        
+
         deps: 依赖的项目名称列表
         configuration: 本依赖的名称'''
         # first try to locate the old node
@@ -268,7 +271,7 @@ class Project:
                and i.getAttribute('Name') == configuration:
                 rootNode.removeChild(i)
                 break
-        
+
         # create new dependencies node
         node = self.doc.createElement('Dependencies')
         node.setAttribute('Name', configuration)
@@ -277,20 +280,20 @@ class Project:
             child = self.doc.createElement('Project')
             child.setAttribute('Name', i)
             node.appendChild(child)
-        
+
         # save changes
         self.DoSaveXmlFile()
         self.SetModified(True)
-    
+
     def IsFileExists(self, fileName):
         '''find the file under this node.
         Convert the file path to be relative to the project path'''
         ds = DirSaver()
-        
+
         os.chdir(self.dirName)
         # fileName relative to the project path
         relFileName = os.path.relpath(fileName, self.dirName)
-        
+
         files = self.GetAllFiles()
         for i in files:
             if IsWindowsOS():
@@ -301,43 +304,43 @@ class Project:
                 if os.path.abspath(i) == os.path.abspath(relFileName):
                     return True
         return False
-    
+
     def IsModified(self):
         return self.isModified
-    
+
     def SetModified(self, mod):
         self.isModified = mod
-    
+
     def BeginTranscation(self):
         self.tranActive = True
-    
+
     def CommitTranscation(self):
         self.Save()
-    
+
     def IsInTransaction(self):
         return self.tranActive
-        
+
     def SetProjectInternalType(self, interType):
         XmlUtils.GetRoot(self.doc).setAttribute('InternalType', interType)
-    
+
     def GetProjectInternalType(self):
         return XmlUtils.GetRoot(self.doc).getAttribute('InternalType')
-    
+
     def GetProjFileLastModifiedTime(self):
         return GetMTime(self.fileName)
-    
+
     def GetProjectLastModifiedTime(self):
         return self.modifyTime
-    
+
     def SetProjectLastModifiedTime(self, time):
         self.modifyTime = time
-    
+
     def Save(self, fileName = ''):
         self.tranActive = False
         if XmlUtils.GetRoot(self.doc):
             self.SetSettings(self.settings, False)
             self.DoSaveXmlFile(fileName)
-    
+
     # internal methods
     #===========================================================================    
     def DoFindFile(self, parentNode, fileName):
@@ -345,15 +348,15 @@ class Project:
         for i in parentNode.childNodes:
             if i.nodeName == 'File' and i.getAttribute('Name') == fileName:
                 return i
-            
+
             if i.nodeName == 'VirtualDirectory':
                 # 递归查找
                 n = self.DoFindFile(i, fileName)
                 if n:
                     return n
-        
+
         return None
-        
+
     def DoSaveXmlFile(self, fileName = ''):
         try:
             if not fileName:

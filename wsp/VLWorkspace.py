@@ -52,7 +52,7 @@ def GetWspPathByNode(node):
 
 def Glob(sDir, filters):
     '''展开通配符的文件
-    
+
     sDir: 所在的目录, 会添加到通配符前
     lFilters: 通配符字符串列表, 支持匹配无后缀名的文件('.')'''
     import glob
@@ -136,7 +136,7 @@ def MakeLevelPreStrDependList(list):
         else:
             string += '|'
         return string
-    
+
     if list[0] == 0:
         string += ' '
     else:
@@ -190,6 +190,19 @@ class VLWorkspace(object):
     STATUS_OPEN     = 0x2
 
     def __init__(self, fileName = ''):
+        '''
+
+
+datum 是一个字典，保存一些内部数据
+
+
+deepFlag 为数结构缓存，列表，列表元素要么是0要么是1
+         0 表示没有下一个兄弟结点，否则为 1，也可理解为，1表示有'|'，0无'|'
+         如
+            [0, 1, 1, 0]
+         表示，项目是树中最后的项目，第一个虚拟目录和第二个虚拟目录都有下一个
+         兄弟结点，自己本身没有下一个兄弟结点
+        '''
         self.doc = None
         self.rootNode = None
         self.name = ''
@@ -213,7 +226,7 @@ class VLWorkspace(object):
 
         # 状态
         self.status = type(self).STATUS_CLOSED
-            
+
         if fileName:
             try:
                 self.doc = minidom.parse(fileName)
@@ -224,8 +237,10 @@ class VLWorkspace(object):
             self.name = XmlUtils.GetRoot(self.doc).getAttribute('Name')\
                     .encode('utf-8')
             self.fileName = os.path.abspath(fileName)
+            # NOTE: 必须是真实路径（跟随符号链接）
+            self.fileName = os.path.realpath(self.fileName)
             self.dirName, self.baseName = os.path.split(self.fileName)
-            
+
             self.modifyTime = GetMTime(fileName)
 
             ds = DirSaver()
@@ -243,7 +258,7 @@ class VLWorkspace(object):
                         self.projects[name] = VLProject(path)
                         if active:
                             self.activeProject = name
-            
+
             deepFlag = [1]
             tmpList = []
             tmpDict = {}
@@ -257,12 +272,12 @@ class VLWorkspace(object):
                 tmpDict[k] = datum
                 tmpList.append(k)
                 i += 1
-            
+
             # sort
             tmpList.sort(CmpIC)
             for i in tmpList:
                 self.vimLineData.append(tmpDict[i])
-                
+
             # 修正最后的项目的 deepFlag
             if self.vimLineData:
                 self.vimLineData[-1]['deepFlag'][0] = 0
@@ -391,14 +406,14 @@ class VLWorkspace(object):
 
     def DoSetLineOffset(self, offset):
         '''设置索引偏移量
-        
+
         offset 为相对于首行的偏移量，若在首行，即为 0'''
         self.lineOffset = CONSTANT_OFFSET + offset
 
     def DoGetTypeOfNode(self, node):
         if not node:
             return TYPE_INVALID
-        
+
         if node.nodeName == 'CodeLite_Project':
             return TYPE_PROJECT
         elif node.nodeName == 'VirtualDirectory':
@@ -409,14 +424,14 @@ class VLWorkspace(object):
             return TYPE_WORKSPACE
         else:
             return TYPE_INVALID
-    
+
     def DoGetTypeByIndex(self, index):
         return self.DoGetTypeOfNode(self.vimLineData[index]['node'])
 
     def DoGetDispTextOfDatum(self, datum):
         type = self.DoGetTypeOfNode(datum['node'])
         text = ''
-        
+
         expandText = 'x'
         if type == TYPE_FILE:
             expandText = FILE_PREFIX
@@ -427,11 +442,11 @@ class VLWorkspace(object):
                 expandText = EXPAND_PREFIX
             else:
                 expandText = FOLD_PREFIX
-        
+
         text = MakeLevelPreStrDependList(datum['deepFlag']) + \
             expandText + \
             os.path.basename(datum['node'].getAttribute('Name'))
-        
+
         return text
 
     def DoGetDispTextByIndex(self, index):
@@ -457,36 +472,38 @@ class VLWorkspace(object):
         #if index < 0:
             #index = -1
         return index
-    
+
     def DoGetLineNumByIndex(self, index):
         lineNum = index + self.lineOffset
         return lineNum
-    
+
     def DoInsertChild(self, lineNum, datum):
-        '''按照排序顺序插入子节点到相应的位置，不能插入返回 0'''
+        '''按照排序顺序插入子节点到相应的位置，虚拟目录和文件忽略大小写差异，
+        这和项目名字不同
+
+        return: 插入成功返回插入的行号(>0)，否则返回 0'''
         parentType = self.GetNodeType(lineNum)
         parentIndex = self.DoGetIndexByLineNum(lineNum)
         if parentType == TYPE_FILE or parentType == TYPE_INVALID or not datum:
             return 0
-        
+
         parentDeep = self.GetNodeDepthByLineNum(lineNum)
         parent = self.GetDatumByLineNum(lineNum)
         if not self.IsNodeExpand(lineNum):
             self.Expand(lineNum)
-        
+
         s1 = os.path.basename(datum['node'].getAttribute('Name'))
         newType = self.DoGetTypeOfNode(datum['node'])
         newDeep = parentDeep + 1
-        
+
         # 基本方法是顺序遍历 vimLineData，
         # 一路修改 deepFlag，一路比较，如合适，即插入
         for i in range(parentIndex + 1, len(self.vimLineData)):
             curDeep = len(self.vimLineData[i]['deepFlag'])
             if curDeep > parentDeep:
-                # 先标记当前节点是否拥有下一个兄弟节点
-                bHasNextSibling = bool(
-                    self.vimLineData[i]['deepFlag'][newDeep - 1])
-                # 先假定新节点必插在后面, 最后再根据 bHasNextSibling 还原
+                # 备份原来的flag
+                save_flag = self.vimLineData[i]['deepFlag'][newDeep - 1]
+                # 预先设置deepFlag，如果插入失败的话，需要还原
                 self.vimLineData[i]['deepFlag'][newDeep - 1] = 1
 
                 # 当前节点为兄弟节点的子节点，跳过
@@ -499,34 +516,23 @@ class VLWorkspace(object):
                     # 如果 datum 为 VirtualDirectory 当前位置为 File，插入之
                     if newType == TYPE_VIRTUALDIRECTORY \
                              and self.DoGetTypeByIndex(i) == TYPE_FILE:
-                        # 如果插入的位置是倒数第二个位置, 需要处理
-                        # 因为此循环一开始就把节点的 deepFlag 最后位置为 1 了,
-                        # 这是不对的, 修正过来
-                        #if i + 1 >= len(self.vimLineData) \
-                             #or len(self.vimLineData[i+1]['deepFlag']) < newDeep:
-                        if not bHasNextSibling:
-                            self.vimLineData[i]['deepFlag'][newDeep - 1] = 0
+                        # 先还原flag
+                        self.vimLineData[i]['deepFlag'][newDeep - 1] = save_flag
 
                         datum['deepFlag'] = parent['deepFlag'][:]
                         datum['deepFlag'].append(1)
                         self.vimLineData.insert(i, datum)
                         return self.DoGetLineNumByIndex(i)
-                    
+
                     continue
                 elif cmp(s1.lower(), s2.lower()) < 0:
                     # 如果 datum 为 File，当前位置为 VirtualDirectory，跳过之
                     if newType == TYPE_FILE \
                           and self.DoGetTypeByIndex(i) == TYPE_VIRTUALDIRECTORY:
                         continue
-                    
-                    # 如果插入的位置是倒数第二个位置, 需要处理
-                    # 因为此循环一开始就把节点的 deepFlag 最后位置为 1 了,
-                    # 这是不对的, 修正过来
-                    # 即判断 vimLineData[i] 是否存在下一个兄弟节点
-                    #if i + 1 >= len(self.vimLineData) \
-                         #or len(self.vimLineData[i+1]['deepFlag']) < newDeep:
-                    if not bHasNextSibling:
-                        self.vimLineData[i]['deepFlag'][newDeep - 1] = 0
+
+                    # 先还原flag
+                    self.vimLineData[i]['deepFlag'][newDeep - 1] = save_flag
 
                     # 插在中间
                     datum['deepFlag'] = parent['deepFlag'][:]
@@ -534,12 +540,13 @@ class VLWorkspace(object):
                     self.vimLineData.insert(i, datum)
                     return self.DoGetLineNumByIndex(i)
                 else:
-                    # 已有相同的名字，如果相同的名字的刚好是最后的节点，
-                    # 需要修正过来
-                    #if i + 1 >= len(self.vimLineData) \
-                         #or len(self.vimLineData[i+1]['deepFlag']) < newDeep:
-                    if not bHasNextSibling:
-                        self.vimLineData[i]['deepFlag'][newDeep - 1] = 0
+                    # 无论如何都要先还原flag的了，因为即使要插入都是插在前面
+                    self.vimLineData[i]['deepFlag'][newDeep - 1] = save_flag
+                    if cmp(s1, s2) != 0:
+                        # 仅大小写不同
+                        # TODO: 暂不支持文件名和虚拟目录仅大小写不同的情形
+                        # TODO: 至少需要检查是否和虚拟目录名字相近...
+                        pass
                     return 0
             else:
                 # 到达了深度小于或等于父节点的节点，要么是兄弟，要么是祖先的兄弟
@@ -557,11 +564,14 @@ class VLWorkspace(object):
         return self.GetLastLineNum()
 
     def DoInsertProject(self, lineNum, datum):
-        '''按照排序顺序插入子节点到相应的位置，不能插入，返回 0'''
+        '''按照排序顺序插入子节点到相应的位置，项目名字大小写敏感，这个虚拟目录
+        以及文件不同
+
+        return: 插入成功返回插入的行号(>0)，否则返回 0'''
         parentType = self.GetNodeType(lineNum)
         if parentType != TYPE_WORKSPACE or not datum:
             return 0
-        
+
         parentDeep = self.GetNodeDepthByLineNum(lineNum)
         parent = self.GetDatumByLineNum(lineNum)
         if not self.IsNodeExpand(lineNum):
@@ -570,20 +580,19 @@ class VLWorkspace(object):
         parentIndex = -1
         parentDeep = 0
         parent = {'deepFlag' : []}
-        
+
         s1 = os.path.basename(datum['node'].getAttribute('Name'))
         newType = self.DoGetTypeOfNode(datum['node'])
         newDeep = parentDeep + 1
-        
+
         # 基本方法是顺序遍历 vimLineData，
         # 一路修改 deepFlag，一路比较，如合适，即插入
         for i in range(parentIndex + 1, len(self.vimLineData)):
             curDeep = len(self.vimLineData[i]['deepFlag'])
             if curDeep > parentDeep:
-                # 先标记当前节点是否拥有下一个兄弟节点
-                bHasNextSibling = bool(
-                    self.vimLineData[i]['deepFlag'][newDeep - 1])
-                # 先假定新节点必插在后面, 最后再根据 bHasNextSibling 还原
+                # 备份原来的flag
+                save_flag = self.vimLineData[i]['deepFlag'][newDeep - 1]
+                # 预先设置deepFlag，如果插入失败的话，需要还原
                 self.vimLineData[i]['deepFlag'][newDeep - 1] = 1
 
                 # 当前节点为兄弟节点的子节点，跳过
@@ -595,18 +604,26 @@ class VLWorkspace(object):
                 if cmp(s1.lower(), s2.lower()) > 0:
                     continue
                 elif cmp(s1.lower(), s2.lower()) < 0:
+                    # 先还原flag
+                    self.vimLineData[i]['deepFlag'][newDeep - 1] = save_flag
                     # 插在中间
                     datum['deepFlag'] = parent['deepFlag'][:]
                     datum['deepFlag'].append(1)
                     self.vimLineData.insert(i, datum)
                     return self.DoGetLineNumByIndex(i)
                 else:
-                    # 已有相同的名字，如果相同的名字的刚好是最后的节点，
-                    # 需要修正过来
-                    #if i + 1 >= len(self.vimLineData) \
-                         #or len(self.vimLineData[i+1]['deepFlag']) < newDeep:
-                    if not bHasNextSibling:
-                        self.vimLineData[i]['deepFlag'][newDeep - 1] = 0
+                    # 无论如何都要先还原flag的了，因为即使要插入都是插在前面
+                    self.vimLineData[i]['deepFlag'][newDeep - 1] = save_flag
+                    # 区分大小写，但是排序的时候不区分大小写...
+                    if cmp(s1, s2) != 0:
+                        # 先还原flag
+                        self.vimLineData[i]['deepFlag'][newDeep - 1] = save_flag
+                        # 插入到前面
+                        datum['deepFlag'] = parent['deepFlag'][:]
+                        datum['deepFlag'].append(1)
+                        self.vimLineData.insert(i, datum)
+                        return self.DoGetLineNumByIndex(i)
+
                     return 0
             else:
                 # 到达了深度比父节点小的节点，
@@ -615,8 +632,8 @@ class VLWorkspace(object):
                 datum['deepFlag'].append(0)
                 self.vimLineData.insert(i, datum)
                 return self.DoGetLineNumByIndex(i)
-        # 父节点是显示的最后的节点或者父节点是显示的最后的节点
-        # 且新数据本应插在最后。插在最后
+        # 父节点是显示的最后的节点
+        # 或者父节点是显示的最后的节点且新数据本应插在最后。插在最后
         datum['deepFlag'] = parent['deepFlag'][:]
         datum['deepFlag'].append(0)
         self.vimLineData.insert(self.GetLastLineNum() + 1, datum)
@@ -626,14 +643,14 @@ class VLWorkspace(object):
                             insertingNode = None):
         '''会自动修正 name 为正确的相对路径，返回节点添加后所在的行号。
         如无法插入，如存在同名，则返回 0
-        
+
         insertingNode: 指定插入的 xml 节点'''
         index = self.DoGetIndexByLineNum(lineNum)
         type = self.GetNodeType(lineNum)
         if index < 0 or type == TYPE_FILE or type == TYPE_INVALID \
            or type == TYPE_WORKSPACE:
             return 0
-        
+
         parentDatum = self.vimLineData[index]
         parentNode = self.vimLineData[index]['node']
         newDatum = {}
@@ -643,7 +660,8 @@ class VLWorkspace(object):
                 name = os.path.join(parentDatum['project'].dirName, name)
             # 修改 name 为相对于项目文件目录的路径
             try:
-                name = os.path.relpath(os.path.abspath(name), 
+                # 需要跟随链接
+                name = os.path.relpath(os.path.realpath(os.path.abspath(name)), 
                                        parentDatum['project'].dirName)
             except ValueError, e:
                 # 在 Windows 下，不同分区的的文件无法以相对路径访问
@@ -659,7 +677,7 @@ class VLWorkspace(object):
 
         if IsWindowsOS():
             name = PosixPath(name)
-        
+
         newNode.setAttribute('Name', name)
         if insertingNode:
             # 若指定了 xml 节点，替换之
@@ -738,14 +756,14 @@ class VLWorkspace(object):
         rootDatum = self.vimLineData[index]
         node = self.vimLineData[index]['node']
         type = self.DoGetTypeByIndex(index)
-        
+
         # 已经展开，无须操作
         if rootDatum['expand']:
             return 0
-        
+
         # 修改展开前缀
         self.vimLineData[index]['expand'] = 1
-        
+
         vdList = []
         vdDict = {}
         fileList = []
@@ -806,7 +824,7 @@ class VLWorkspace(object):
         if index < 0: return 0
         datum = self.vimLineData[index]
         deep = len(datum['deepFlag'])
-        
+
         count = 0
         i = lineNum
         while True:
@@ -819,7 +837,7 @@ class VLWorkspace(object):
     def ExpandAll(self):#
         if not self.vimLineData:
             return
-        
+
         i = self.GetRootLineNum(1) + 1
         while True:
             self.ExpandR(i)
@@ -834,13 +852,13 @@ class VLWorkspace(object):
         rootDatum = self.vimLineData[index]
         node = rootDatum['node']
         type = self.DoGetTypeByIndex(index)
-        
+
         # 已经是 fold 状态，无须操作
         if rootDatum['expand'] == 0:
             return 0
-        
+
         rootDatum['expand'] = 0
-        
+
         deep = len(rootDatum['deepFlag'])
         count = 0
         for i in range(index+1, len(self.vimLineData)):
@@ -851,20 +869,20 @@ class VLWorkspace(object):
         rootDatum['children'] = self.vimLineData[index+1:index+1+count]
         del self.vimLineData[index+1:index+1+count]
         return count
-        
+
     def FoldR(self, lineNum):
         index = self.DoGetIndexByLineNum(lineNum)
         if index < 0: return 0
         rootDatum = self.vimLineData[index]
         node = rootDatum['node']
         type = self.DoGetTypeByIndex(index)
-        
+
         # 已经是 fold 状态，无须操作
         if rootDatum['expand'] == 0:
             return 0
-        
+
         rootDatum['expand'] = 0
-        
+
         deep = len(rootDatum['deepFlag'])
         count = 0
         for i in range(index+1, len(self.vimLineData)):
@@ -878,7 +896,7 @@ class VLWorkspace(object):
     def FoldAll(self):
         if not self.vimLineData:
             return
-        
+
         i = self.GetRootLineNum(1) + 1
         while True:
             self.FoldR(i)
@@ -904,23 +922,23 @@ class VLWorkspace(object):
         '''如没有，返回相同的 lineNum，项目的父节点应为工作空间，但暂未实现'''
         deep = self.GetNodeDepthByLineNum(lineNum)
         if deep == 0: return lineNum
-        
+
         if self.GetNodeType(lineNum) == TYPE_PROJECT:
             return self.GetRootLineNum(lineNum)
-        
+
         for i in range(1, lineNum):
             j = lineNum - i
             curDeep = self.GetNodeDepthByLineNum(j)
             if curDeep == deep - 1:
                 return j
-        
+
         return lineNum
 
     def GetNextSiblingLineNum(self, lineNum):#
         '''如没有，返回相同的 lineNum'''
         deep = self.GetNodeDepthByLineNum(lineNum)
         if deep == 0: return lineNum
-        
+
         for i in range(lineNum + 1, self.GetLastLineNum() + 1):
             curDeep = self.GetNodeDepthByLineNum(i)
             if curDeep < deep:
@@ -934,7 +952,7 @@ class VLWorkspace(object):
         '''如没有，返回相同的 lineNum'''
         deep = self.GetNodeDepthByLineNum(lineNum)
         if deep == 0: return lineNum
-        
+
         for i in range(1, lineNum):
             j = lineNum - i
             curDeep = self.GetNodeDepthByLineNum(j)
@@ -942,7 +960,7 @@ class VLWorkspace(object):
                 break
             elif curDeep == deep:
                 return j
-        
+
         return lineNum
 
     def GetLastChildrenLineNum(self, lineNum):
@@ -952,7 +970,7 @@ class VLWorkspace(object):
         if deep == 0: return lineNum
 
         result = lineNum
-        
+
         for i in range(lineNum + 1, self.GetLastLineNum() + 1):
             curDeep = self.GetNodeDepthByLineNum(i)
             if curDeep > deep:
@@ -1000,7 +1018,7 @@ class VLWorkspace(object):
     def IsNodeExpand(self, lineNum):
         index = self.DoGetIndexByLineNum(lineNum)
         if index < 0: return False
-        
+
         if self.vimLineData[index]['expand']:
             return True
         else:
@@ -1009,10 +1027,10 @@ class VLWorkspace(object):
     def GetLineText(self, lineNum):
         if lineNum == self.GetRootLineNum(lineNum):
             return self.name
-        
+
         index = self.DoGetIndexByLineNum(lineNum)
         if index < 0: return ''
-        
+
         return self.DoGetDispTextByIndex(index)
 
     def GetLastLineNum(self):
@@ -1022,7 +1040,7 @@ class VLWorkspace(object):
         datum = self.GetDatumByLineNum(lineNum)
         if not datum or self.GetNodeType(lineNum) != TYPE_FILE:
             return ''
-        
+
         xmlNode = datum['node']
         file = xmlNode.getAttribute('Name').encode('utf-8')
         if absPath:
@@ -1039,7 +1057,7 @@ class VLWorkspace(object):
             return self.GetName()
         elif not datum:
             return ''
-        
+
         xmlNode = datum['node']
         dispName = xmlNode.getAttribute('Name').encode('utf-8')
         return os.path.basename(dispName)
@@ -1099,12 +1117,12 @@ class VLWorkspace(object):
         支持项目、虚拟目录、文件'''
         index = self.DoGetIndexByLineNum(lineNum)
         if index < 0: return 0
-        
+
         type = self.GetNodeType(lineNum)
         if type != TYPE_VIRTUALDIRECTORY and type != TYPE_FILE \
                    and type != TYPE_PROJECT:
             return 0
-        
+
         # 若删除的节点为父节点的最后的子节点，需特殊处理
         if not self.DoIsHasNextSibling(index):
             ln = self.GetPrevSiblingLineNum(lineNum)
@@ -1114,12 +1132,12 @@ class VLWorkspace(object):
                 for i in range(ln, lineNum):
                     datum = self.GetDatumByLineNum(i)
                     datum['deepFlag'][delDeep - 1] = 0
-        
+
         datum = self.GetDatumByLineNum(lineNum)
         delNode = datum['node']
         project = datum['project']
         deep = self.GetNodeDepthByLineNum(lineNum)
-        
+
         # 计算删除的行数
         delLineCount = 1
         for i in range(lineNum + 1, self.GetLastLineNum() + 1):
@@ -1144,14 +1162,14 @@ class VLWorkspace(object):
             self.RemoveProject(project.name)
         else:
             delNode.parentNode.removeChild(delNode)
-        
+
         # 直接重建好了，因为删除多少个文件难定
         if type == TYPE_VIRTUALDIRECTORY:
             self.GenerateFilesIndex()
 
         # 删除 vimLineData 相应数据
         del self.vimLineData[ index : index + delLineCount ]
-        
+
         # 保存改变
         if type == TYPE_PROJECT:
             self.Save()
@@ -1174,7 +1192,7 @@ class VLWorkspace(object):
 
     def ImportFilesFromDirectory(self, lineNum, directory, filters, files = []):
         '''从指定目录递归导入指定匹配的文件
-        
+
         lineNum: 请求操作的行号，一般只允许在项目和虚拟目录节点时请求
         directory: 需要导入的目录
         filters: 匹配的文件，如 "*.cpp;*.cc;*.cxx;*.h;*.hpp;*.c;*.c++;*.tcc"
@@ -1213,19 +1231,19 @@ class VLWorkspace(object):
         type = self.GetNodeType(lineNum)
         if type != TYPE_PROJECT:
             return False
-        
+
         xmlNode = XmlUtils.FindNodeByName(
             self.rootNode, 'Project', self.activeProject)
         # 可能是刚加进来，根本没有上一个已激活的项目
         if xmlNode:
             xmlNode.setAttribute('Active', 'No')
-        
+
         datum = self.GetDatumByLineNum(lineNum)
         xmlNode = XmlUtils.FindNodeByName(
             self.rootNode, 'Project', datum['project'].name)
         self.activeProject = datum['project'].name
         xmlNode.setAttribute('Active', 'Yes')
-        
+
         self.Save()
 
     #===========================================================================
@@ -1248,7 +1266,7 @@ class VLWorkspace(object):
 
     def GetWorkspaceLastModifiedTime(self):
         return self.modifyTime
-    
+
     def SetWorkspaceLastModifiedTime(self, modTime):
         self.modifyTime = modTime
 
@@ -1257,17 +1275,17 @@ class VLWorkspace(object):
 
     def GetActiveProjectName(self):
         return self.activeProject
-    
+
     def SetActiveProject(self, name):
         xmlNode = XmlUtils.FindNodeByName(
             self.rootNode, 'Project', self.activeProject)
         xmlNode2 = XmlUtils.FindNodeByName(self.rootNode, 'Project', name)
         if not xmlNode2:
             return False
-        
+
         if xmlNode:
             xmlNode.setAttribute('Active', 'No')
-        
+
         self.activeProject = name
         xmlNode2.setAttribute('Active', 'Yes')
         self.Save()
@@ -1280,12 +1298,12 @@ class VLWorkspace(object):
         oldBm = XmlUtils.FindFirstByTagName(self.rootNode, 'BuildMatrix')
         if oldBm:
             self.rootNode.removeChild(oldBm)
-        
+
         self.rootNode.appendChild(buildMatrix.ToXmlNode())
         if autoSave:
             self.Save()
         self.buildMatrix = buildMatrix
-        
+
         # force regeneration of makefiles for all projects
         for i in self.projects.itervalues():
             i.SetModified(True)
@@ -1359,7 +1377,7 @@ class VLWorkspace(object):
 
     def GetWspFilePathByFileName(self, fileName):
         '''从绝对路径的文件名中获取文件在工作空间的绝对路径
-        
+
         从工作空间算起，如 /项目名/虚拟目录/文件显示名'''
         if not self.filesIndex.has_key(fileName):
             return ''
@@ -1451,12 +1469,14 @@ class VLWorkspace(object):
 
         node = self.doc.createElement('Project')
         node.setAttribute('Name', name)
-        
+
         # make the project path to be relative to the workspace
         projFile = os.path.join(path, name + os.extsep + PROJECT_FILE_SUFFIX)
-        relFile = os.path.relpath(os.path.abspath(projFile), self.dirName)
+        # 跟随链接
+        projFile = os.path.realpath(os.path.abspath(projFile))
+        relFile = os.path.relpath(projFile, self.dirName)
         node.setAttribute('Path', relFile)
-        
+
         self.rootNode.appendChild(node)
 
         if len(self.projects) == 1:
@@ -1523,7 +1543,7 @@ class VLWorkspace(object):
         if not self.rootNode:
             print 'No workspace open'
             return ''
-        
+
         return self.rootNode.getAttribute(propName)
 
     def FindProjectByName(self, projName):
@@ -1543,10 +1563,10 @@ class VLWorkspace(object):
         if not self.rootNode or not os.path.isfile(projFile):
             print 'No workspace open or file does not exist!'
             return False
-        
+
         project = VLProject()
         project.Load(projFile)
-        
+
         # 项目名称区分大小写
         if not self.projects.has_key(project.GetName()):
             # No project could be find, add it to the workspace
@@ -1592,12 +1612,12 @@ class VLWorkspace(object):
         project = self.FindProjectByName(name)
         if not project:
             return False
-        
+
         # remove the associated build configuration with this project
         self.RemoveProjectFromBuildMatrix(project)
-        
+
         del self.projects[project.GetName()]
-        
+
         # update the xml file
         for i in self.rootNode.childNodes:
             if i.nodeName == 'Project' and i.getAttribute('Name') == name:
@@ -1631,7 +1651,7 @@ class VLWorkspace(object):
         #        
         #        # update the configuration
         #        i.SetDependencies(deps, k)
-        
+
         self.Save()
         return True
 
@@ -1640,12 +1660,12 @@ class VLWorkspace(object):
         此函数获取的是构建设置的副本！主要用于创建 makefile'''
         matrix = self.GetBuildMatrix()
         projConf = confName
-        
+
         # 如果 confName 为空，从 BuildMatrix 中获取默认的值
         if not projConf:
             wsConfig = matrix.GetSelectedConfigurationName()
             projConf = matrix.GetProjectSelectedConf(wsConfig, projectName)
-        
+
         project = self.FindProjectByName(projectName)
         if project:
             settings = project.GetSettings()
@@ -1657,18 +1677,18 @@ class VLWorkspace(object):
     def AddProjectToBuildMatrix(self, project):
         if not project:
             return
-        
+
         # 获取当先的工作空间构建设置
         matrix = self.GetBuildMatrix()
         selConfName = matrix.GetSelectedConfigurationName()
-        
+
         wspList = matrix.GetConfigurations()
         # 遍历所有 BuildMatrix 设置，分别添加 project 的构建设置进去
         for i in wspList:
             # 获取 WorkspaceConfiguration 的列表（顺序不重要）
             prjList = i.GetMapping()
             wspCnfName = i.GetName()
-            
+
             settings = project.GetSettings()
             if not settings.configs:
                 # the project does not have any settings, 
@@ -1681,7 +1701,7 @@ class VLWorkspace(object):
             else:
                 prjBldConf = settings.configs[settings.configs.keys()[0]]
                 matchConf = prjBldConf
-                
+
                 # try to locate the best match to add to the workspace
                 # 尝试寻找 Configuration 名字和 WorkspaceConfiguration 的名字
                 # 相同的添加进去
@@ -1689,18 +1709,18 @@ class VLWorkspace(object):
                     if wspCnfName == v.GetName():
                         matchConf = v
                         break
-            
+
             entry = ConfigMappingEntry(project.GetName(), matchConf.GetName())
             prjList.append(entry)
             # prjList 为引用，可不需设置
             #i.SetConfigMappingList(prjList)
             # i 也为引用，可不需设置
             #matrix.SetConfiguration(i)
-        
+
         # and set the configuration name.
         matrix.SetSelectedConfigurationName(selConfName)
         self.SetBuildMatrix(matrix)
-    
+
     def RemoveProjectFromBuildMatrix(self, project):
         matrix = self.GetBuildMatrix()
         selConfName = matrix.GetSelectedConfigurationName()
@@ -1717,7 +1737,7 @@ class VLWorkspace(object):
         self.SetBuildMatrix(matrix)
 
 #=====
-    
+
     def Save(self, fileName = ''):
         '''保存 .workspace 文件，如果是默认工作空间，不保存'''
         if not fileName and not self.fileName:
@@ -1788,7 +1808,7 @@ class VLWorkspace(object):
 
 class VLWorkspaceST:
     __ins = None
-    
+
     @staticmethod
     def Get():
         if not VLWorkspaceST.__ins:

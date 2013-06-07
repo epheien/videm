@@ -1,5 +1,6 @@
 2013-06-04 fanhe <fanhed@163.com>
  * dbg: 修正命令名字
+ * omnicpp: 优化tag数据库保存速度
 
 2013-06-02 fanhe <fanhed@163.com>
  * vimccc: 修复一个困扰很久的补全菜单弹出问题
