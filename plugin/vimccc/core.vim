@@ -886,7 +886,7 @@ function! vimccc#core#InitEarly() "{{{2
         call s:FirstInit()
         let s:has_noexpand = g:VIMCCC_Has_noexpand
     endif
-    let s:has_noexpand = 0
+    "let s:has_noexpand = 0
     let s:bFirstInit = 0
 
     " 特性检查
