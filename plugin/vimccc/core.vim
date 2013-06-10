@@ -65,7 +65,7 @@ function! s:SetOpts() "{{{2
     let s:bak_cot = &completeopt
     let s:bak_lz = &lazyredraw
 
-    set lazyredraw
+    "set lazyredraw
 
     if g:VIMCCC_ItemSelectionMode == 0 " 不选择
         set completeopt-=menu,longest
@@ -94,7 +94,7 @@ function! s:RestoreOpts() "{{{2
     if exists('s:bak_cot') && exists('s:bak_lz')
         let &completeopt = s:bak_cot
         unlet s:bak_cot
-        let &lazyredraw = s:bak_lz
+        "let &lazyredraw = s:bak_lz
         unlet s:bak_lz
     else
         return ""
@@ -202,8 +202,6 @@ endfunction
 " pumvisible : 0|1
 " init: 0|1 起始状态，暂时只有在进入插入模式时初始化
 "
-" FIXME: 这些状态，连我自己都分不清了...
-"        等 7.3.196 使用 InsertCharPre 事件就好了
 " InsertCharPre   When a character is typed in Insert mode,
 "     before inserting the char.
 "     The |v:char| variable indicates the char typed
@@ -215,7 +213,79 @@ endfunction
 "     The event is not triggered when 'paste' is
 "     set.
 let s:aucm_prev_stat = {}
-function! VIMCCCAsyncComplete(charPre) "{{{2
+function! VIMCCCAsyncComplete() "{{{2
+    if pumvisible() " 不重复触发
+        return ''
+    endif
+
+    " InsertCharPre 自动命令用
+    let sChar = v:char
+    if sChar !~# '[A-Za-z_0-9]'
+        return ''
+    endif
+
+    "call vlutils#TimerStart()
+
+    let nTriggerCharCount = g:VIMCCC_TriggerCharCount
+    let nCol = col('.')
+    let sLine = getline('.')
+" ============================================================================
+" 利用前状态和当前状态优化
+    " 前状态
+    let dPrevStat = s:aucm_prev_stat
+
+    let sPrevWord = matchstr(sLine[: nCol-2], '[A-Za-z_]\w*$') . sChar
+    if len(sPrevWord) < nTriggerCharCount
+        " 如果之前补全过就重置状态
+        if get(dPrevStat, 'cccol', 0) > 0
+            call s:ResetAucmPrevStat()
+        endif
+        "call vlutils#TimerEnd()
+        "call vlutils#TimerEndEcho()
+        return ''
+    endif
+
+    " 获取当前状态
+    let nRow = line('.')
+    let nCol = VIMCCCSearchStartColumn(0)
+    let sBase = getline('.')[nCol-1 : col('.')-2] . sChar
+
+    " 补全起始位置一样就不需要再次启动了
+    " 貌似是有条件的，要判断 sPrevWord 的长度
+    " case: 如果前面的单词的长度 < nTriggerCharCount，那么就需要启动了
+    "       例如一直删除字符
+    " 1. 起始行和上次相同
+    " 2. 起始列和上次相同
+    " 3. 光标前的字符串长度大于等于触发长度
+    " 4. 上次的 base 是光标前的字符串的前缀(InsertCharPre 专用)
+    " 1 && 2 && 3 && 4 则忽略请求
+    let save_ic = &ignorecase
+    let &ignorecase = g:VIMCCC_IgnoreCase
+    if get(dPrevStat, 'ccrow', 0) == nRow
+            \ && get(dPrevStat, 'cccol', 0) == nCol
+            \ && len(sPrevWord) >= nTriggerCharCount
+            \ && sBase =~ '^'.get(dPrevStat, 'base', '')
+        call s:UpdateAucmPrevStat(nRow, nCol, sBase, pumvisible())
+        let &ignorecase = save_ic
+        "call vlutils#TimerEnd()
+        "call vlutils#TimerEndEcho()
+        return ''
+    endif
+    let &ignorecase = save_ic
+" ============================================================================
+    " ok，启动
+    call VIMCCCLaunchCCThread(nRow, nCol, sBase)
+    let s:nAsyncCompleteCount += 1
+
+    " 更新状态
+    call s:UpdateAucmPrevStat(nRow, nCol, sBase, pumvisible())
+    "call vlutils#TimerEnd()
+    "call vlutils#TimerEndEcho()
+endfunction
+"}}}
+" FIXME: CursorMovedI 的这些状态，太复杂了，连我自己都分不清了...
+"        等 7.3.196 使用 InsertCharPre 事件就好了
+function! VIMCCCAsyncComplete_CursorMovedI(charPre) "{{{2
     if pumvisible() " 不重复触发
         return ''
     endif
@@ -240,7 +310,7 @@ function! VIMCCCAsyncComplete(charPre) "{{{2
         return ''
     endif
 
-" ==============================================================================
+" ============================================================================
 " 利用前状态和当前状态优化
     " 前状态
     let dPrevStat = s:aucm_prev_stat
@@ -302,7 +372,7 @@ function! VIMCCCAsyncComplete(charPre) "{{{2
         call s:ResetAucmPrevStat()
         return ''
     endif
-" ==============================================================================
+" ============================================================================
     " NOTE: 无法处理的情况: 光标随意移动到单词的末尾
     "       因为无法分辨到底是输入字符到达末尾还是移动过去 {for CursorMovedI}
 
@@ -964,13 +1034,14 @@ function! VIMCCCInit(...) "{{{2
         if s:has_InsertCharPre
             augroup VIMCCC_AUGROUP
                 autocmd! InsertEnter <buffer> call <SID>InitAucmPrevStat()
-                autocmd! InsertCharPre <buffer> call VIMCCCAsyncComplete(1)
+                autocmd! InsertCharPre <buffer> call VIMCCCAsyncComplete()
                 autocmd! InsertLeave <buffer>
                         \ call <SID>Autocmd_InsertLeaveHandler()
             augroup END
         else
             augroup VIMCCC_AUGROUP
-                autocmd! CursorMovedI <buffer> call VIMCCCAsyncComplete(0)
+                autocmd! CursorMovedI <buffer> 
+                        \ call VIMCCCAsyncComplete_CursorMovedI(0)
                 autocmd! InsertLeave <buffer>
                         \ call <SID>Autocmd_InsertLeaveHandler()
                 " NOTE: 事件顺序是先 InsertEnter 再 CursorMovedI
@@ -1084,7 +1155,7 @@ function! VIMCCCSearchStartColumn(bInCC) "{{{2
             endif
 
             if a:bInCC
-                " BUG: 返回 5 后，下次调用此函数是，居然 col('.') 返回 6
+                " BUG: 返回 5 后，下次调用此函数时，居然 col('.') 返回 6
                 "      亦即补全函数对返回值的解析有错误
                 let nStartCol = nCol2 - 1
             else

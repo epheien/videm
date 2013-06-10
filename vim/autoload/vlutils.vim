@@ -637,8 +637,13 @@ function! vlutils#TimerEnd() "{{{2
 endfunction
 
 function! vlutils#TimerEchoMes() "{{{2
-	echom string((str2float(reltimestr(s:TimerData.t2)) 
-				\- str2float(reltimestr(s:TimerData.t1))))
+	echom printf("%f", ((str2float(reltimestr(s:TimerData.t2)) 
+				\- str2float(reltimestr(s:TimerData.t1)))))
+endfunction
+
+function! vlutils#TimerGetDelta() "{{{2
+	return (str2float(reltimestr(s:TimerData.t2))
+            \ - str2float(reltimestr(s:TimerData.t1)))
 endfunction
 
 function! vlutils#TimerEndEcho() "{{{2
