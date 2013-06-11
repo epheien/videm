@@ -29,6 +29,9 @@ let s:sfile = expand('<sfile>:p')
 
 let s:os = vlutils#os
 
+" 载入的插件
+let s:loaded_plugins = []
+
 " Plug map example
 "if !hasmapto('<Plug>TypecorrAdd')
 "   map <unique> <Leader>a  <Plug>TypecorrAdd
@@ -4626,8 +4629,14 @@ function! s:LoadPlugin() "{{{2
     for sFile in lPlugin
         let sName = fnamemodify(sFile, ':t:r')
         exec printf('call videm#plugin#%s#Init()', sName)
+        call add(s:loaded_plugins, sName)
     endfor
 endfunction
 "}}}2
+" 获取已经载入的插件
+function! VidemGetLoadedPlugins() "{{{2
+    return s:loaded_plugins
+endfunction
+"}}}
 
 " vim:fdm=marker:fen:et:sts=4:fdl=1:

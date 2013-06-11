@@ -70,6 +70,12 @@ class VLWorkspaceSettings:
         }
 
         # 统一的配置视图 on 2013-05-19
+        # 路径示例:
+        # omnicpp   -> .videm.plugin.omnicpp
+        # vimccc    -> .videm.plugin.vimccc
+        # pyclewn   -> .videm.plugin.pyclewn
+        # gtags     -> .videm.plugin.gtags
+        # cscope    -> .videm.plugin.cscope
         self.conf = ConfTree()
 
         # 如果指定了 fileName, 从文件载入, 不论成功与否

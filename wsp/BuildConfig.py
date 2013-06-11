@@ -1098,32 +1098,9 @@ class BuildConfig:
         return self.envVarSet
     
     
-
-
 if __name__ == '__main__':
     ins = BuildConfigCommon()
     ins.cCompileOptions = '-g;-Wall;-O0'
     print ins.ToDict()
     ins = BuildConfig()
     print ins.ToDict()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
