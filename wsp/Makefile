@@ -12,7 +12,6 @@ files := \
     GetTemplateDict.py \
     Project.py \
     ProjectSettings.py \
-    TagsSettings.py \
     VLProject.py \
     VLProjectSettings.py \
     VLWorkspace.py \

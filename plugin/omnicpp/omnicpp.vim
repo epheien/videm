@@ -223,7 +223,7 @@ function! s:InstallCommands() "{{{2
     " 异步解析当前文件，并且会强制解析，无论是否修改过
     command! -nargs=0 -bar VOmniCppAsyncParseCurrFile
             \                           call <SID>AsyncParseCurrentFile(0, 0)
-    " 同 VLWAsyncParseCurrentFile，除了这个会包括头文件外
+    " 同 VOmniCppAsyncParseCurrFile，除了这个会包括头文件外
     command! -nargs=0 -bar VOmniCppAsyncParseCurrFileDeep
             \                           call <SID>AsyncParseCurrentFile(0, 1)
     command! -nargs=0 -bar VOmniCppTagsSetttings    call <SID>TagsSettings()
