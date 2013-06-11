@@ -9,10 +9,14 @@ import os
 ##-----------------------------------------------------
 
 # 版本号 1001 -> 1.001
-VIMLITE_VER = 1004
+VIDEM_VER = 1004
 
-# VimLite 起始目录
-VIMLITE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# videm 起始目录
+VIDEM_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# 后向兼容
+VIMLITE_VER = VIDEM_VER
+VIMLITE_DIR = VIDEM_DIR
 
 WORKSPACE_FILE_SUFFIX   = 'vlworkspace'
 PROJECT_FILE_SUFFIX     = 'vlproject'

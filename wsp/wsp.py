@@ -1712,7 +1712,7 @@ class VimLiteWorkspace(object):
             project = self.VLWIns.GetDatumByLineNum(row)['project']
             projName = project.GetName()
             if choice == 'Add a New File...':
-                # NOTE: gnome 3 中的这个函数已经无法输入文件名了...
+                # NOTE: gnome 3 中的这个函数已经无法输入文件名了，禁用掉
                 if useGui and vim.eval('has("browse")') != '0' and False:
                     name = vim.eval('browse("", "Add a New File...", "%s", "")' 
                         % project.dirName)

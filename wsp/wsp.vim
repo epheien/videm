@@ -3409,8 +3409,8 @@ let Notifier = vlutils#Notifier
 let s:WspSetNotf = Notifier.New('WspSet')
 let g:WspSetNotf = s:WspSetNotf
 
-function! VidemWspSetCreateHookRegister(hook, prio, data) "{{{2
-    return s:WspSetNotf.Register(a:hook, a:prio, a:data)
+function! VidemWspSetCreateHookRegister(hook, prio, priv) "{{{2
+    return s:WspSetNotf.Register(a:hook, a:prio, a:priv)
 endfunction
 "}}}
 function! VidemWspSetCreateHookUnregister(hook, prio) "{{{2
