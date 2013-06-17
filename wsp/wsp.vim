@@ -9,11 +9,6 @@ if exists("g:loaded_autoload_wsp")
 endif
 let g:loaded_autoload_wsp = 1
 
-
-if !has('python')
-    echoerr "Error: Required vim compiled with +python"
-    finish
-endif
 " 先设置 python 脚本编码
 python << PYTHON_EOF
 # -*- encoding: utf-8 -*-
