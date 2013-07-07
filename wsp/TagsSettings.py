@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding:utf-8 -*-
 
+'''这个模块作为全局模块而不是OmniCpp的子模块，因为这个模块的包含路径被好几个
+模块同时使用'''
+
 import pickle
 import os.path
 import json

@@ -12,8 +12,6 @@ pyfiles := \
     CtagsDatabase/TagsStorageSQLite.py \
     CtagsDatabase/VimTagsManager.py \
 
-pyfiles2 := \
-    TagsSettings.py \
 
 vimfiles := \
     complete.vim \
@@ -36,7 +34,6 @@ clean:
 install:
 	@mkdir -p $(PY_TARGET_DIR)
 	@for d in $(pyfiles); do cp "$$d" $(PY_TARGET_DIR); done
-	@for d in $(pyfiles2); do cp "$$d" $(PYDIR); done
 	@mkdir -p $(VIM_TARGET_DIR)
 	@for d in $(vimfiles); do cp "$$d" $(VIM_TARGET_DIR); done
 	@mkdir -p $(VIDEM_PLUGIN_DIR)
