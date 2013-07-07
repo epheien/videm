@@ -576,6 +576,9 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     " 打开工作区文件，初始化全局变量
     "py ws = VimLiteWorkspace(vim.eval('sFile'))
     py ws = VimLiteWorkspace()
+    " 以后统一使用 videm
+    py videm.wsp = ws
+    py videm.org.cpp = ws
     py ws.OpenWorkspace(vim.eval('sFile'))
     py ws.RefreshBuffer()
     if videm#settings#Get('.videm.wsp.ShowBriefHelp')
@@ -1723,7 +1726,7 @@ function! s:OpenIncludeFile() "{{{2
     let sFile = ''
 
     py l_project = ws.VLWIns.GetProjectByFileName(vim.eval('sCurFile'))
-    py l_searchPaths = ws.GetCommonIncludePaths()
+    py l_searchPaths = ws.GetParserSearchPaths()
     py if l_project: l_searchPaths += ws.GetProjectIncludePaths(
                 \l_project.GetName())
     " 如果没有所属的项目, 就用当前活动的项目的头文件搜索路径

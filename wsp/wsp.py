@@ -88,6 +88,13 @@ class StartEdit:
         vim.command("call setbufvar(%s, '&modifiable', %s)" 
             % (self.bufnr, self.bak_ma))
 
+class videm(object):
+    '''全局单例，暂时这样实现就够了'''
+    # 工作空间
+    wsp = None
+    class org(object):
+        '''构建器/组织插件，暂时只有c++的'''
+        cpp = None
 
 class VimLiteWorkspace(object):
     '''VimLite 工作空间对象，主要用于操作缓冲区和窗口
@@ -1266,13 +1273,9 @@ class VimLiteWorkspace(object):
 
         return results
 
-    def GetCommonIncludePaths(self):
-        '''获取公共的头文件搜索路径'''
-        # TODO: 不应该返回 tags 设置的包含路径，暂时算是正确
-        #results = \
-        #    TagsSettingsST.Get().includePaths + self.VLWSettings.includePaths
-        results = self.GetTagsSearchPaths()
-        return results
+    def GetParserSearchPaths(self):
+        '''获取用于parser的头文件搜索路径，这些路径*不*用于构建'''
+        return self.GetTagsSearchPaths()
 
     def GetProjectIncludePaths(self, projName, wspConfName = ''):
         '''获取指定项目指定构建设置的头文件搜索路径，
@@ -1282,7 +1285,10 @@ class VimLiteWorkspace(object):
         
         返回绝对路径列表'''
         # 合并的结果
-        return self.GetProjectCompileOptions(projName, wspConfName, 4 | 16 | 32)
+        cmplpaths = self.GetCompilerIncludePaths(projName,
+                        self.GetPorjectBuildConfigName(projName, wspConfName))
+        return cmplpaths + \
+                self.GetProjectCompileOptions(projName, wspConfName, 4 | 16 | 32)
 
     def GetProjectPredefineMacros(self, projName, wspConfName = ''):
         '''返回预定义的宏的列表，
@@ -1426,8 +1432,12 @@ class VimLiteWorkspace(object):
         actProjName = self.VLWIns.GetActiveProjectName()
         return self.GetProjectIncludePaths(actProjName, wspConfName)
 
-    def GetWorkspaceIncludePaths(self, wspConfName = ''):
-        incPaths = self.GetCommonIncludePaths()
+    def GetWorkspaceIncludePaths(self, wspConfName = '', include_parser = True):
+        '''
+        include_parser: True, 包括用于parser的搜索路径'''
+        incPaths = []
+        if include_parser:
+            incPaths += self.GetParserSearchPaths()
         for projName in self.VLWIns.projects.keys():
             incPaths += self.GetProjectIncludePaths(projName, wspConfName)
         guard = set()
@@ -1977,6 +1987,109 @@ class VimLiteWorkspace(object):
         fileName:   必须是绝对路径
         return:     出错返回空字符串'''
         return self.VLWIns.GetNodePathByFileName(fileName)
+
+    def GetActiveProjectName(self):
+        return self.VLWIns.GetActiveProjectName()
+
+    def GetProjectNameList(self):
+        return self.VLWIns.GetProjectList()
+
+    def GetProjectInstance(self, projName):
+        return self.VLWIns.FindProjectByName(projName)
+
+    def GetActiveBuildConfigName(self):
+        matrix = self.VLWIns.GetBuildMatrix()
+        return matrix.GetSelectedConfigurationName()
+
+    def GetBuildConfigNameList(self):
+        matrix = self.VLWIns.GetBuildMatrix()
+        result = []
+        for i in matrix.configurationList:
+            result.append(i.name)
+        return result
+
+    def GetPorjectBuildConfigName(self, projName, wspBldCnfName = ''):
+        matrix = self.VLWIns.GetBuildMatrix()
+        if not wspBldCnfName:
+            wspBldCnfName = matrix.GetSelectedConfigurationName()
+        return matrix.GetProjectSelectedConf(wspBldCnfName, projName)
+
+    ##### ========================================
+    # TODO: 这些要放到 videm.org.cpp
+    def GetCompileOptions_C(self, projname, confname):
+        '''返回原始信息，不添加任何的额外处理'''
+        bldcnf = self.VLWIns.GetProjBuildConf(projname, confname)
+        if not bldcnf or bldcnf.IsCustomBuild():
+            return []
+        result = []
+        tmpstr = ExpandAllVariables(bldcnf.GetCCxxCompileOptions(),
+                                    self.VLWIns, projname, confname)
+        result += SplitSmclStr(tmpstr)
+        tmpstr = ExpandAllVariables(bldcnf.GetCCompileOptions(),
+                                    self.VLWIns, projname, confname)
+        result += SplitSmclStr(tmpstr)
+        return result
+
+    def GetCompileOptions_Cpp(self, projname, confname):
+        '''返回原始信息，不添加任何的额外处理'''
+        bldcnf = self.VLWIns.GetProjBuildConf(projname, confname)
+        if not bldcnf or bldcnf.IsCustomBuild():
+            return []
+        result = []
+        tmpstr = ExpandAllVariables(bldcnf.GetCCxxCompileOptions(),
+                                    self.VLWIns, projname, confname)
+        result += SplitSmclStr(tmpstr)
+        tmpstr = ExpandAllVariables(bldcnf.GetCompileOptions(),
+                                    self.VLWIns, projname, confname)
+        result += SplitSmclStr(tmpstr)
+        return result
+
+    def GetCompileOptions_IncludePaths(self, projname, confname,
+                                       abspath = False):
+        '''返回原始信息，不添加任何的额外处理'''
+        bldcnf = self.VLWIns.GetProjBuildConf(projname, confname)
+        if not bldcnf or bldcnf.IsCustomBuild():
+            return []
+        tmpstr = bldcnf.GetIncludePath()
+        tmpstr = ExpandAllVariables(tmpstr, self.VLWIns, projname, confname)
+        result = SplitSmclStr(tmpstr)
+        if abspath:
+            projinst = self.GetProjectInstance(projname)
+            for idx, path in enumerate(result):
+                if not os.path.isabs(path):
+                    result[idx] = os.path.join(projinst.dirName, path)
+                result[idx] = os.path.normpath(result[idx])
+        return result
+
+    def GetCompileOptions_PredefMacros(self, projname, confname):
+        '''返回原始信息，不添加任何的额外处理'''
+        bldcnf = self.VLWIns.GetProjBuildConf(projname, confname)
+        if not bldcnf or bldcnf.IsCustomBuild():
+            return []
+        tmpstr = bldcnf.GetPreprocessor()
+        tmpstr = ExpandAllVariables(tmpstr, self.VLWIns, projname, confname)
+        return SplitSmclStr(tmpstr)
+
+    def GetCompilerName(self, projname, confname):
+        bldcnf = self.VLWIns.GetProjBuildConf(projname, confname)
+        if not bldcnf or bldcnf.IsCustomBuild():
+            return ''
+        return bldcnf.GetCompilerType()
+
+    def GetCompilerIncludePaths(self, projname, confname):
+        cmplname = self.GetCompilerName(projname, confname)
+        cmpl = BuildSettingsST.Get().GetCompilerByName(cmplname)
+        if not cmpl:
+            return []
+        return SplitSmclStr(cmpl.includePaths)
+
+    def GetCompilerLibraryPaths(self, projname, confname):
+        cmplname = self.GetCompilerName(projname, confname)
+        cmpl = BuildSettingsST.Get().GetCompilerByName(cmplname)
+        if not cmpl:
+            return []
+        return SplitSmclStr(cmpl.libraryPaths)
+    ##### ----------------------------------------
 
 # 为换名作准备
 VidemWorkspace = VimLiteWorkspace
