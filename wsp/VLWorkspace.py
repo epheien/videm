@@ -191,17 +191,14 @@ class VLWorkspace(object):
 
     def __init__(self, fileName = ''):
         '''
+        datum 是一个字典，保存一些内部数据
 
-
-datum 是一个字典，保存一些内部数据
-
-
-deepFlag 为数结构缓存，列表，列表元素要么是0要么是1
-         0 表示没有下一个兄弟结点，否则为 1，也可理解为，1表示有'|'，0无'|'
-         如
-            [0, 1, 1, 0]
-         表示，项目是树中最后的项目，第一个虚拟目录和第二个虚拟目录都有下一个
-         兄弟结点，自己本身没有下一个兄弟结点
+        deepFlag 为数结构缓存，列表，列表元素要么是0要么是1
+          0 表示没有下一个兄弟结点，否则为 1，也可理解为，1表示有'|'，0无'|'
+          如
+             [0, 1, 1, 0]
+          表示，项目是树中最后的项目，第一个虚拟目录和第二个虚拟目录都有下一个
+          兄弟结点，自己本身没有下一个兄弟结点
         '''
         self.doc = None
         self.rootNode = None
@@ -1521,7 +1518,7 @@ deepFlag 为数结构缓存，列表，列表元素要么是0要么是1
         project.Load(templateFile)
 
         for srcFile in project.GetAllFiles(True):
-            # TODO; 如果有嵌套的文件夹呢？
+            # TODO: 如果有嵌套的文件夹呢？
             templateDir = os.path.dirname(templateFile)
             relSrcFile = os.path.relpath(srcFile, templateDir)
             dstFile = os.path.join(path, relSrcFile)

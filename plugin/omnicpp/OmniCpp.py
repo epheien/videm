@@ -17,10 +17,11 @@ class OmniCpp:
     def __init__(self, tagmgr):
         self.tagmgr = tagmgr
 
-    def ParseWorkspace(self, wsp, async = True, full = False):
+    def ParseWorkspace(self, wsp, async = True, full = False, deep = True):
         '''
         async:  是否异步
-        full:   是否解析工作区的所有文件'''
+        full:   是否解析工作区的所有文件
+        deep:   包括源文件包含的头文件'''
         vim.command("redraw")
         vim.command("echo 'Preparing...'")
 
@@ -50,15 +51,15 @@ class OmniCpp:
             projIncludePaths.sort()
             searchPaths += projIncludePaths
 
-        vim.command("redraw")
-        vim.command("echo 'Scanning header files need to be parsed...'")
-
         # 从工作区获取的全部文件，先过滤不是c++的文件
         files = [f for f in files if IsCppHeaderFile(f) or
                                      IsCppSourceFile(f)]
 
-        for f in files:
-            parseFiles += IncludeParser.GetIncludeFiles(f, searchPaths)
+        if deep:
+            vim.command(
+                "redraw | echo 'Scanning header files need to be parsed...'")
+            for f in files:
+                parseFiles += IncludeParser.GetIncludeFiles(f, searchPaths)
 
         # 当前激活状态的项目的预定义宏最优先
         extraMacros.extend(

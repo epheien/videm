@@ -582,6 +582,8 @@ def OmniCppMenuWHook(wsp, choice, ins):
         ins.ParseWorkspace(wsp, async=False, full=True)
     elif choice == 'Parse Workspace (Quick)':
         ins.ParseWorkspace(wsp, async=False, full=False)
+    elif choice == 'Parse Workspace (Quick, Shallow)':
+        ins.ParseWorkspace(wsp, async=False, full=False, deep=False)
 
 def OmniCppUpdateTypesVar(wsp):
     '''更新OmniCpp补全的类型替换'''
@@ -604,6 +606,7 @@ def OmniCppWMenuAction(remove=False):
         'Parse Workspace (Quick, Async)',
         'Parse Workspace (Full)',
         'Parse Workspace (Quick)',
+        'Parse Workspace (Quick, Shallow)',
     ]
 
     if remove:

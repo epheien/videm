@@ -1469,11 +1469,15 @@ def TemplatesTableCbk():
     key = vim.eval('categories')
     for line in templates[key]:
         if line['name'] == name:
-            vim.command("call comboCtl.SetValue('%s')" % ToVimStr(line['cmpType']))
+            vim.command("call comboCtl.SetValue('%s')"
+                        % ToVimStr(line['cmpType']))
             break
-TemplatesTableCbk()
+if vim.eval("empty(comboCtl)") == '0':
+    TemplatesTableCbk()
 PYTHON_EOF
-    call ctl.owner.RefreshCtl(comboCtl)
+    if !empty(comboCtl)
+        call ctl.owner.RefreshCtl(comboCtl)
+    endif
 endfunction
 
 function! s:CreateProject(...) "{{{2
@@ -1528,9 +1532,10 @@ PYTHON_EOF
                 continue
             endif
         endfor
-        if l:projName !=# ''
+
+        if !empty(l:projName)
             let sep = g:vlutils#os.sep
-            if l:isSepPath != 0
+            if l:isSepPath
                 let l:file = l:projPath . sep . l:projName . sep 
                             \. l:projName . '.' . g:VLWorkspacePrjFileSuffix
             else
@@ -1539,7 +1544,7 @@ PYTHON_EOF
             endif
         endif
 
-        "更新显示的文件名
+        " 更新显示的文件名
         if a:1.type != g:VC_DIALOG
             if l:projName !=# ''
                 let a:2.label = l:file
@@ -1549,8 +1554,12 @@ PYTHON_EOF
             call dialog.RefreshCtl(a:2)
         endif
 
-        "开始创建项目
-        if a:1.type == g:VC_DIALOG && l:projName !=# ''
+        " 开始创建项目
+        if a:1.type == g:VC_DIALOG
+            if empty(l:projName)
+                call s:echow("The project name is null, can not create.")
+                return 1
+            endif
             "echo l:projName
             "echo l:file
             "echo l:projType
@@ -1583,12 +1592,13 @@ PYTHON_EOF
     endif
 
     let g:newProjDialog = g:VimDialog.New('New Project')
+    let dlg = g:newProjDialog
 
     let ctl = g:VCSingleText.New('Project Name:')
     call ctl.SetId(0)
     call g:newProjDialog.AddControl(ctl)
     call g:newProjDialog.AddBlankLine()
-    let tmpCtl = ctl
+    let projNameCtl = ctl
 
     let ctl = g:VCSingleText.New('Project Path:')
     call ctl.SetValue(getcwd())
@@ -1600,13 +1610,13 @@ PYTHON_EOF
     call ctl.SetId(1)
     call g:newProjDialog.AddControl(ctl)
     call g:newProjDialog.AddBlankLine()
-    let tmpCtl1 = ctl
+    let projPathCtl = ctl
 
     let ctl = g:VCCheckItem.New('Create the project under a seperate directory')
     call ctl.SetId(2)
     call g:newProjDialog.AddControl(ctl)
     call g:newProjDialog.AddBlankLine()
-    let tmpCtl2 = ctl
+    let sepDirCtl = ctl
 
     let ctl = g:VCStaticText.New('File Name:')
     call g:newProjDialog.AddControl(ctl)
@@ -1616,10 +1626,17 @@ PYTHON_EOF
     call ctl.SetHighlight('Special')
     call g:newProjDialog.AddControl(ctl)
     call g:newProjDialog.AddBlankLine()
-    call tmpCtl.ConnectActionPostCallback(s:GetSFuncRef('s:CreateProject'), ctl)
-    call tmpCtl1.ConnectActionPostCallback(s:GetSFuncRef('s:CreateProject'), ctl)
-    call tmpCtl2.ConnectActionPostCallback(s:GetSFuncRef('s:CreateProject'), ctl)
+    call projNameCtl.ConnectActionPostCallback(
+            \ s:GetSFuncRef('s:CreateProject'), ctl)
+    call projPathCtl.ConnectActionPostCallback(
+            \ s:GetSFuncRef('s:CreateProject'), ctl)
+    call sepDirCtl.ConnectActionPostCallback(
+            \ s:GetSFuncRef('s:CreateProject'), ctl)
 
+    call dlg.AddSeparator('-')
+    let ctl = g:VCStaticText.New('Project Template:')
+    call dlg.AddControl(ctl)
+    call dlg.AddBlankLine()
     " 项目类型
     "let ctl = g:VCComboBox.New('Project Type:')
     "call ctl.SetId(3)
@@ -1631,18 +1648,18 @@ PYTHON_EOF
     "call g:newProjDialog.AddBlankLine()
 
     " 编译器
-    let ctl = g:VCComboBox.New('Compiler Type:')
-    call ctl.SetId(4)
-    call ctl.SetIndent(4)
-    " TODO: 应该从配置文件读出
-    call ctl.AddItem('cobra')
-    call ctl.AddItem('gnu g++')
-    call ctl.AddItem('gnu gcc')
-    call ctl.SetValue('gnu gcc')
-    call g:newProjDialog.AddControl(ctl)
-    call g:newProjDialog.AddBlankLine()
+    "let ctl = g:VCComboBox.New('Compiler Type:')
+    "call ctl.SetId(4)
+    "call ctl.SetIndent(4)
+    " NOTE: 简单化，这里直接不支持修改，只能使用模板设定的值
+    "call ctl.AddItem('gnu g++')
+    "call ctl.AddItem('gnu gcc')
+    "call ctl.SetValue('gnu gcc')
+    "call g:newProjDialog.AddControl(ctl)
+    "call g:newProjDialog.AddBlankLine()
 
-    let cmpTypeCtl = ctl
+    "let cmpTypeCtl = ctl
+    let cmpTypeCtl = {}
 
     " 模版类别
     let ctl = g:VCComboBox.New('Templates Categories:')
@@ -1659,16 +1676,19 @@ PYTHON_EOF
     call tblCtl.SetDispButtons(0)
     call g:newProjDialog.AddControl(tblCtl)
     call ctl.ConnectActionPostCallback(
-                \s:GetSFuncRef('s:CreateProjectCategoriesCbk'), tblCtl)
+            \ s:GetSFuncRef('s:CreateProjectCategoriesCbk'), tblCtl)
     call tblCtl.ConnectSelectionCallback(
-                \s:GetSFuncRef('s:TemplatesTableCbk'), cmpTypeCtl)
+            \ s:GetSFuncRef('s:TemplatesTableCbk'), cmpTypeCtl)
 python << PYTHON_EOF
 def CreateTemplateCtls():
     templates = GetTemplateDict(vim.eval('g:VLWorkspaceTemplatesPath'))
-    if not templates: return
-    for key in templates.keys():
+    if not templates:
+        return
+    keys = templates.keys()
+    keys.sort()
+    for key in keys:
         vim.command("call ctl.AddItem('%s')" % ToVimStr(key))
-    for line in templates[templates.keys()[0]]:
+    for line in templates[keys[0]]:
         vim.command("call tblCtl.AddLineByValues('%s')" % ToVimStr(line['name']))
     vim.command("call tblCtl.SetSelection(1)")
 CreateTemplateCtls()
@@ -1679,7 +1699,7 @@ PYTHON_EOF
     call g:newProjDialog.AddCallback(s:GetSFuncRef("s:CreateProject"))
     call g:newProjDialog.Display()
 
-    "第一次也需要刷新组合框
+    " 第一次也需要刷新组合框
     call s:TemplatesTableCbk(tblCtl, cmpTypeCtl)
 python << PYTHON_EOF
 PYTHON_EOF
