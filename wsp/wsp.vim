@@ -1424,7 +1424,9 @@ endfunction
 
 function! s:CreateProjectCategoriesCbk(ctl, data) "{{{2
     let ctl = a:ctl
-    let tblCtl = a:data
+    let tblCtl = a:data[0]
+    let cmpTypeCtl = a:data[1]
+    let descCtl = a:data[2]
     let categories = ctl.GetValue()
     call tblCtl.DeleteAllLines()
     call tblCtl.SetSelection(1)
@@ -1437,28 +1439,24 @@ def CreateProjectCategoriesCbk():
 CreateProjectCategoriesCbk()
 PYTHON_EOF
     call ctl.owner.RefreshCtl(tblCtl)
-    "刷新组合框
-    for i in ctl.owner.controls
-        if i.id == 4
-            call s:TemplatesTableCbk(tblCtl, i)
-            break
-        endif
-    endfor
+    " 刷新编译器类型
+    call s:TemplatesTableCbk(tblCtl, [cmpTypeCtl, descCtl])
 endfunction
 
 function! s:TemplatesTableCbk(ctl, data) "{{{2
     let ctl = a:ctl
-    let comboCtl = a:data
+    let cmpTypeCtl = a:data[0]
+    let descCtl = a:data[1]
     try
         let name = ctl.GetSelectedLine()[0]
     catch
         " TODO: 空表，没有获取到任何项目模版
         return
     endtry
-    let categories = ''
+    let category = ''
     for i in ctl.owner.controls
         if i.id == 5
-            let categories = i.GetValue()
+            let category = i.GetValue()
             break
         endif
     endfor
@@ -1466,17 +1464,24 @@ python << PYTHON_EOF
 def TemplatesTableCbk():
     templates = GetTemplateDict(vim.eval('g:VLWorkspaceTemplatesPath'))
     name = vim.eval('name')
-    key = vim.eval('categories')
-    for line in templates[key]:
+    category = vim.eval('category')
+    for line in templates[category]:
         if line['name'] == name:
-            vim.command("call comboCtl.SetValue('%s')"
-                        % ToVimStr(line['cmpType']))
+            if vim.eval("empty(cmpTypeCtl)") == '0':
+                vim.command("call cmpTypeCtl.SetValue(%s)"
+                            % ToVimEval(line['cmpType']))
+            if vim.eval("empty(descCtl)") == '0':
+                vim.command("call descCtl.SetValue(%s)"
+                            % ToVimEval(line['desc']))
             break
-if vim.eval("empty(comboCtl)") == '0':
-    TemplatesTableCbk()
+# 立即调用
+TemplatesTableCbk()
 PYTHON_EOF
-    if !empty(comboCtl)
-        call ctl.owner.RefreshCtl(comboCtl)
+    if !empty(cmpTypeCtl)
+        call ctl.owner.RefreshCtl(cmpTypeCtl)
+    endif
+    if !empty(descCtl)
+        call ctl.owner.RefreshCtl(descCtl)
     endif
 endfunction
 
@@ -1493,7 +1498,7 @@ function! s:CreateProject(...) "{{{2
         let l:projPath = ''
         let l:isSepPath = 0
         let l:projType = 'Executable'
-        let l:cmpType = 'gnu gcc'
+        let l:cmpType = ''
         let l:categories = ''
         let l:templateFile = ''
         for i in dialog.controls
@@ -1634,7 +1639,7 @@ PYTHON_EOF
             \ s:GetSFuncRef('s:CreateProject'), ctl)
 
     call dlg.AddSeparator('-')
-    let ctl = g:VCStaticText.New('Project Template:')
+    let ctl = g:VCStaticText.New('Available Project Templates:')
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
     " 项目类型
@@ -1662,12 +1667,13 @@ PYTHON_EOF
     let cmpTypeCtl = {}
 
     " 模版类别
-    let ctl = g:VCComboBox.New('Templates Categories:')
+    let ctl = g:VCComboBox.New('Template Categories:')
     call ctl.SetId(5)
     call ctl.SetIndent(4)
-    call g:newProjDialog.AddControl(ctl)
+    call dlg.AddControl(ctl)
+    let tpltCtgr = ctl
 
-    let tblCtl = g:VCTable.New('', 1)
+    let tblCtl = g:VCTable.New('Project Templates:', 1)
     call tblCtl.SetId(6)
     call tblCtl.SetIndent(4)
     call tblCtl.SetColTitle(1, 'Type')
@@ -1675,10 +1681,37 @@ PYTHON_EOF
     call tblCtl.SetCellEditable(0)
     call tblCtl.SetDispButtons(0)
     call g:newProjDialog.AddControl(tblCtl)
-    call ctl.ConnectActionPostCallback(
-            \ s:GetSFuncRef('s:CreateProjectCategoriesCbk'), tblCtl)
+
+" Information about this project template
+    let indent = 4
+    call dlg.AddBlankLine()
+    let ctl = g:VCStaticText.New('Information about this project template:')
+    call ctl.SetIndent(indent)
+    call dlg.AddControl(ctl)
+    call dlg.AddSeparator('-', indent)
+
+    let ctl = g:VCStaticText.New('Compiler Type:')
+    call ctl.SetIndent(indent)
+    call dlg.AddControl(ctl)
+    let ctl = g:VCStaticText.New('')
+    let ctl.editable = 1
+    call ctl.SetIndent(indent)
+    call dlg.AddControl(ctl)
+    call dlg.AddBlankLine()
+    let cmpTypeCtl = ctl
+
+    let ctl = g:VCMultiText.New('Description:')
+    call ctl.SetIndent(indent)
+    "call ctl.SetValue("a\nb\nc")
+    call dlg.AddControl(ctl)
+    let descCtl = ctl
+
+    call tpltCtgr.ConnectActionPostCallback(
+            \ s:GetSFuncRef('s:CreateProjectCategoriesCbk'),
+            \               [tblCtl, cmpTypeCtl, descCtl])
     call tblCtl.ConnectSelectionCallback(
-            \ s:GetSFuncRef('s:TemplatesTableCbk'), cmpTypeCtl)
+            \ s:GetSFuncRef('s:TemplatesTableCbk'), [cmpTypeCtl, descCtl])
+
 python << PYTHON_EOF
 def CreateTemplateCtls():
     templates = GetTemplateDict(vim.eval('g:VLWorkspaceTemplatesPath'))
@@ -1687,7 +1720,7 @@ def CreateTemplateCtls():
     keys = templates.keys()
     keys.sort()
     for key in keys:
-        vim.command("call ctl.AddItem('%s')" % ToVimStr(key))
+        vim.command("call tpltCtgr.AddItem('%s')" % ToVimStr(key))
     for line in templates[keys[0]]:
         vim.command("call tblCtl.AddLineByValues('%s')" % ToVimStr(line['name']))
     vim.command("call tblCtl.SetSelection(1)")
@@ -1700,7 +1733,7 @@ PYTHON_EOF
     call g:newProjDialog.Display()
 
     " 第一次也需要刷新组合框
-    call s:TemplatesTableCbk(tblCtl, cmpTypeCtl)
+    call s:TemplatesTableCbk(tblCtl, [cmpTypeCtl, descCtl])
 python << PYTHON_EOF
 PYTHON_EOF
 endfunction

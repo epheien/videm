@@ -292,6 +292,15 @@ function! g:VCStaticText.GetLabel()
 	return self.label
 endfunction
 
+function! g:VCStaticText.SetLabel(label) "{{{2
+	let self.label = a:label
+endfunction
+"}}}
+" 有些时候会这样用
+function! g:VCStaticText.SetValue(value) "{{{2
+    call self.SetLabel(a:value)
+endfunction
+
 "Function: g:VCStaticText.GetDispText() {{{2
 function! g:VCStaticText.GetDispText()
 	let s = repeat(" ", self.indent) . self.label
@@ -2555,7 +2564,7 @@ function! g:VimDialog.AddSeparator(...)
 		endif
 	elseif a:0 == 2
 		let sLabel = a:1
-		let nIndent = a:1
+		let nIndent = a:2
 	else
 		" 忽略
 	endif
