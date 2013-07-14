@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<CodeLite_Project Name="Simple executable (g++)" InternalType="Console">
-  <Description>
-		A project that produces an executable.
+<CodeLite_Project Name="Executable (g++)" InternalType="Console">
+  <Description>A project that produces an executable.
 Note that this project is set to work with the GNU toolchain (gdb, g++)
 	</Description>
   <Settings Type="Executable">
