@@ -554,9 +554,10 @@ def DelNodePostHook(wsp, nodepath, nodetype, files, ins):
     ins.tagmgr.DeleteFileEntries(files, True)
 
 def RnmNodePostHook(wsp, nodepath, nodetype, oldfile, newfile, ins):
-    ins.tagmgr.DeleteFileEntry(oldfile, True)
-    ins.tagmgr.InsertFileEntry(newfile)
-    ins.tagmgr.UpdateTagsFileColumnByFile(newfile, oldfile)
+    if nodetype == VidemWorkspace.NT_FILE:
+        ins.tagmgr.DeleteFileEntry(oldfile, True)
+        ins.tagmgr.InsertFileEntry(newfile)
+        ins.tagmgr.UpdateTagsFileColumnByFile(newfile, oldfile)
 
 def VidemWspOmniCppHook(event, wsp, ins):
     #print 'enter VidemWspOmniCppHook():', event, wsp, ins
