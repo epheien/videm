@@ -1434,8 +1434,12 @@ python << PYTHON_EOF
 def CreateProjectCategoriesCbk():
     templates = GetTemplateDict(vim.eval('g:VLWorkspaceTemplatesPath'))
     key = vim.eval('categories')
+    names = []
     for line in templates[key]:
-        vim.command("call tblCtl.AddLineByValues('%s')" % ToVimStr(line['name']))
+        names.append(line['name'])
+    names.sort()
+    for name in names:
+        vim.command("call tblCtl.AddLineByValues(%s)" % ToVimEval(name))
 CreateProjectCategoriesCbk()
 PYTHON_EOF
     call ctl.owner.RefreshCtl(tblCtl)
@@ -1642,29 +1646,6 @@ PYTHON_EOF
     let ctl = g:VCStaticText.New('Available Project Templates:')
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
-    " 项目类型
-    "let ctl = g:VCComboBox.New('Project Type:')
-    "call ctl.SetId(3)
-    "call ctl.AddItem('Static Library')
-    "call ctl.AddItem('Dynamic Library')
-    "call ctl.AddItem('Executable')
-    "call ctl.SetValue('Executable')
-    "call g:newProjDialog.AddControl(ctl)
-    "call g:newProjDialog.AddBlankLine()
-
-    " 编译器
-    "let ctl = g:VCComboBox.New('Compiler Type:')
-    "call ctl.SetId(4)
-    "call ctl.SetIndent(4)
-    " NOTE: 简单化，这里直接不支持修改，只能使用模板设定的值
-    "call ctl.AddItem('gnu g++')
-    "call ctl.AddItem('gnu gcc')
-    "call ctl.SetValue('gnu gcc')
-    "call g:newProjDialog.AddControl(ctl)
-    "call g:newProjDialog.AddBlankLine()
-
-    "let cmpTypeCtl = ctl
-    let cmpTypeCtl = {}
 
     " 模版类别
     let ctl = g:VCComboBox.New('Template Categories:')
@@ -1690,7 +1671,18 @@ PYTHON_EOF
     call dlg.AddControl(ctl)
     call dlg.AddSeparator('-', indent)
 
-    let ctl = g:VCStaticText.New('Compiler Type:')
+    " 项目类型
+    "let ctl = g:VCComboBox.New('Project Type:')
+    "call ctl.SetId(3)
+    "call ctl.AddItem('Static Library')
+    "call ctl.AddItem('Dynamic Library')
+    "call ctl.AddItem('Executable')
+    "call ctl.SetValue('Executable')
+    "call g:newProjDialog.AddControl(ctl)
+    "call g:newProjDialog.AddBlankLine()
+
+    " NOTE: 简单化，不支持修改，只能使用模板设定的值
+    let ctl = g:VCStaticText.New('Compiler:')
     call ctl.SetIndent(indent)
     call dlg.AddControl(ctl)
     let ctl = g:VCStaticText.New('')
@@ -1702,7 +1694,7 @@ PYTHON_EOF
 
     let ctl = g:VCMultiText.New('Description:')
     call ctl.SetIndent(indent)
-    "call ctl.SetValue("a\nb\nc")
+    call ctl.SetWrap(1)
     call dlg.AddControl(ctl)
     let descCtl = ctl
 
@@ -1720,9 +1712,14 @@ def CreateTemplateCtls():
     keys = templates.keys()
     keys.sort()
     for key in keys:
-        vim.command("call tpltCtgr.AddItem('%s')" % ToVimStr(key))
+        vim.command("call tpltCtgr.AddItem(%s)" % ToVimEval(key))
+    names = []
     for line in templates[keys[0]]:
-        vim.command("call tblCtl.AddLineByValues('%s')" % ToVimStr(line['name']))
+        names.append(line['name'])
+    # 排序
+    names.sort()
+    for name in names:
+        vim.command("call tblCtl.AddLineByValues(%s)" % ToVimEval(name))
     vim.command("call tblCtl.SetSelection(1)")
 CreateTemplateCtls()
 PYTHON_EOF

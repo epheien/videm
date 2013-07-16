@@ -595,35 +595,37 @@ endfunction
 let g:VCMultiText = {}
 "Function: g:VCMultiText.New(label, ...) 可选参数为文本控件显示字符串值 {{{2
 function! g:VCMultiText.New(label, ...)
-	let newVCMultiText = copy(self)
+	let new = copy(self)
 
-	"继承自 VCSingleText
-	let newVCMultiText.parent = g:VCSingleText.New(a:label)
-	call extend(newVCMultiText, newVCMultiText.parent, "keep")
+	" 继承自 VCSingleText
+	let new.parent = g:VCSingleText.New(a:label)
+	call extend(new, new.parent, "keep")
 
-	"暂时删除，不然影响调试
-	call remove(newVCMultiText, "parent")
+	" 暂时删除，不然影响调试
+	call remove(new, "parent")
 
-	let newVCMultiText.type = g:VC_MULTITEXT
-	let newVCMultiText.values = []
+	let new.type = g:VC_MULTITEXT
+    " values和value同步，更新时候必须两个变量一起更新
+	let new.values = []
+    let new.value = ''
 
 	if exists("a:1")
-		call newVCMultiText.SetValue(a:1)
-	else
-		let newVCMultiText.value = ''
+		call new.SetValue(a:1)
 	endif
 
-	return newVCMultiText
+    " 这个控件默认不回绕
+    let new.wrap = 0
+
+	return new
 endfunction
 
 function! g:VCMultiText.GetDispText() "{{{2
-	"不支持饶行功能
 	let s = ""
-	let l:indentSpace = repeat(" ", self.indent)
+	let indentSpace = repeat(" ", self.indent)
 
 	if self.label != ""
-		"显示按钮，只有有指定动作时且标签非空时才显示
-		let tmpS = l:indentSpace . self.label
+		" 显示按钮，只有有指定动作时且标签非空时才显示
+		let tmpS = indentSpace . self.label
 		if has_key(self, 'buttonCallback')
 			let tmpN = strdisplaywidth(tmpS)
 			if tmpN <= s:VC_MAXLINELEN - len('[...]')
@@ -631,7 +633,7 @@ function! g:VCMultiText.GetDispText() "{{{2
 							\s:VC_MAXLINELEN - tmpN - len('[...]')) 
 							\. '[...]'
 			else
-				"如果长度超过允许值，暂时就简单地让 button 显示在最后
+				" 如果长度超过允许值，暂时就简单地让 button 显示在最后
 				let tmpS .= '[...]'
 			endif
 		endif
@@ -640,21 +642,43 @@ function! g:VCMultiText.GetDispText() "{{{2
 
 	"let texts = split(self.value, '\n', 1)
 	let texts = self.values
-	let l:contentLen = s:VC_MAXLINELEN - self.indent - 2
-	let s = s . l:indentSpace . "+" . repeat("-", l:contentLen) . "+\n"
+	let contentLen = s:VC_MAXLINELEN - self.indent - 2
+
+    " 支持绕行
+    if self.wrap
+        " 直接修改 texts
+        let orig_texts = texts
+        let texts = []
+        for text in orig_texts
+            let text = vlutils#ExpandTabs(text, &tabstop)
+            let textLen = strdisplaywidth(text)
+            if textLen > contentLen
+                " 行太长，分割
+                let idx = 0
+                while idx < textLen
+                    call add(texts, text[idx : idx+contentLen-1])
+                    let idx += contentLen
+                endwhile
+            else
+                call add(texts, text)
+            endif
+        endfor
+    endif
+
+	let s = s . indentSpace . "+" . repeat("-", contentLen) . "+\n"
 	for text in texts
-		"逐行显示
+		" 逐行显示
         let text = vlutils#ExpandTabs(text, &tabstop)
-		let l:textLen = strdisplaywidth(text)
-		if l:textLen > l:contentLen
-			"行太长, 揭短并在末尾添加 '@'
-			let l:textLen = l:contentLen
-			let text = text[: l:textLen-2] . "@"
+		let textLen = strdisplaywidth(text)
+		if textLen > contentLen
+			" 行太长, 截断并在末尾添加 '@'
+			let textLen = contentLen
+			let text = text[: textLen-2] . "@"
 		endif
-		let s = s . l:indentSpace . "|" . text
-					\ . repeat(" ", l:contentLen - l:textLen) . "|\n"
+		let s = s . indentSpace . "|" . text
+					\ . repeat(" ", contentLen - textLen) . "|\n"
 	endfor
-	let s = s . l:indentSpace . "+" . repeat("-", l:contentLen) . "+"
+	let s = s . indentSpace . "+" . repeat("-", contentLen) . "+"
 
 	return s
 endfunction
