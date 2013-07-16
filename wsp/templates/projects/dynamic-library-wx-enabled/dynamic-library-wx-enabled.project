@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <CodeLite_Project Name="Dynamic library (wxWidgets enabled, Linux)" InternalType="Library">
-  <Description>
-		A project that produces a dynamic library (shared object) for Linux.
+  <Description>A project that produces a dynamic library (shared object) for Linux.
 The settings of this project already includes the paths required by wxWidgets using the wx-config tool.
 Note that this project is set to work with the GNU toolchain (gdb, g++).
   </Description>
