@@ -56,7 +56,8 @@
       </AdditionalRules>
     </Configuration>
   </Settings>
-  <Description>Minimal GUI application based on wxWidgets. The project uses GNU C++ toolchain and wx-config script for proper project's configuration.</Description>
+  <Description>Minimal GUI application based on wxWidgets.
+The project uses GNU C++ toolchain and wx-config script for proper project's configuration.</Description>
   <Dependencies/>
   <VirtualDirectory Name="src">
     <File Name="main.cpp"/>
