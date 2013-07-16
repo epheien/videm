@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<CodeLite_Project Name="GTK+ project" InternalType="GUI">
-  <Description>Gui application with gtk+ toolkit.</Description>
+<CodeLite_Project Name="Executable (GTK+-2.0 enabled)" InternalType="GUI">
+  <Description>Minimal GUI application with GTK+-2.0 toolkit.</Description>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="">
