@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <CodeLite_Project Name="Dynamic library" InternalType="Library">
-	<Description>
-		A project that produces a dynamic library (shared object).
-Note that this project is set to work with the GNU toolchain (gdb, g++)
-	</Description>
+	<Description>A project that produces a dynamic library (shared object).
+Note that this project is set to work with the GNU toolchain (gdb, g++)</Description>
 
   <VirtualDirectory Name="src"/>
   <VirtualDirectory Name="include"/>
