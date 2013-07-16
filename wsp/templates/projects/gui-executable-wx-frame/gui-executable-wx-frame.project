@@ -67,7 +67,7 @@
   </Settings>
   <Description>A project that produces simple frame-based GUI application with wxFormBuilder support.
 The settings of this project already includes the paths required by wxWidgets generated using the wx-config tool.
-Note that this project is set to work with the GNU toolchain (gdb, g++)</Description>
+Note that this project is set to work with the GNU toolchain (gdb, g++).</Description>
   <Dependencies/>
   <VirtualDirectory Name="src">
     <File Name="gui.cpp"/>
