@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<CodeLite_Project Name="Static library"  InternalType="Library">
+<CodeLite_Project Name="Static library (g++)"  InternalType="Library">
 	<Description>A project that produces a static library (archive). 
-Note that this project is set to work with the GNU toolchain (gdb, g++, ar)</Description>
-	
+Note that this project is set to work with the GNU toolchain (gdb, g++, ar).</Description>
   <VirtualDirectory Name="src"/>
   <VirtualDirectory Name="include"/>
   <Dependencies/>

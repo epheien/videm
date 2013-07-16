@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <CodeLite_Project Name="Empty Project">
-  <Description>An empty project</Description>
+  <Description>An empty project.</Description>
   <Dependencies/>
   <Settings Type="Dynamic Library">
     <GlobalSettings>
