@@ -1510,6 +1510,8 @@ class VLWorkspace(object):
                     'just add the project to workspace instead.'
             return False
 
+        errmsg = ''
+
         if not os.path.exists(path):
             os.makedirs(path)
         shutil.copy(templateFile, projFile)
@@ -1524,7 +1526,13 @@ class VLWorkspace(object):
             dstFile = os.path.join(path, relSrcFile)
             # 只有目标文件不存在时才复制, 否则使用已存在的文件
             if not os.path.exists(dstFile):
-                shutil.copy(srcFile, dstFile)
+                if not os.path.exists(srcFile):
+                    # 如果支持用户自定义模板的话，就可能有这个错误了
+                    errmsg += '%s not found\n' % srcFile
+                else:
+                    if not os.path.exists(os.path.dirname(dstFile)):
+                        os.makedirs(os.path.dirname(dstFile))
+                    shutil.copy(srcFile, dstFile)
         project.SetName(name)
         project.fileName = projFile
         if cmpType:
