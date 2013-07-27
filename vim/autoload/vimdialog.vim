@@ -615,10 +615,55 @@ function! g:VCMultiText.New(label, ...)
 
     " 这个控件默认不回绕
     let new.wrap = 0
+    " 同vim的linebreak功能，使用&breakat
+    let new.linebreak = 0
 
 	return new
 endfunction
+"}}}
+function! g:VCMultiText.SetLineBreak(value) "{{{2
+    let self.linebreak = a:value
+endfunction
+"}}}
+function s:MatchBreakAt(char, breakat) "{{{2
+    let char = a:char
+    let breakat = a:breakat
+    let idx = 0
+    let len = len(breakat)
+    while idx < len
+        let c = breakat[idx]
+        if c ==# char
+            return 1
+        endif
+        let idx += 1
+    endwhile
+    return 0
+endfunction
+"}}}
+" 获取断行的索引，使用和vim内部使用的算法，相当简单
+function! s:GetLineBreakIndex(text, length) "{{{2
+    let text = a:text
+    let length = a:length
+    let textLen = strdisplaywidth(text)
 
+    if textLen <= length
+        return textLen - 1
+    endif
+
+    let idx = length - 1
+    let breakat = &breakat
+    while idx >= 0
+        let char = text[idx]
+        if s:MatchBreakAt(char, breakat)
+            return idx
+        endif
+        let idx -= 1
+    endwhile
+
+    " 找不到break的索引，表示这个单词实在太长了，只能强行绕行
+    return length - 1
+endfunction
+"}}}
 function! g:VCMultiText.GetDispText() "{{{2
 	let s = ""
 	let indentSpace = repeat(" ", self.indent)
@@ -655,10 +700,20 @@ function! g:VCMultiText.GetDispText() "{{{2
             if textLen > contentLen
                 " 行太长，分割
                 let idx = 0
-                while idx < textLen
-                    call add(texts, text[idx : idx+contentLen-1])
-                    let idx += contentLen
-                endwhile
+                if self.linebreak
+                    " 单词绕行
+                    while idx < textLen
+                        let bidx = s:GetLineBreakIndex(text[idx : ], contentLen)
+                        call add(texts, text[idx : idx + bidx])
+                        let idx += bidx + 1
+                    endwhile
+                else
+                    " 非单词绕行
+                    while idx < textLen
+                        call add(texts, text[idx : idx+contentLen-1])
+                        let idx += contentLen
+                    endwhile
+                endif
             else
                 call add(texts, text)
             endif

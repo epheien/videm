@@ -1695,6 +1695,7 @@ PYTHON_EOF
     let ctl = g:VCMultiText.New('Description:')
     call ctl.SetIndent(indent)
     call ctl.SetWrap(1)
+    call ctl.SetLineBreak(1)
     call dlg.AddControl(ctl)
     let descCtl = ctl
 
