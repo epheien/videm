@@ -299,6 +299,14 @@ The key to toggle help info. >
 
     VBuildersSettings                   Open 'Builders Settings' dialog.
 
+    VSearchSymbolDefinition {symbol}    Search this symbol definition.
+
+    VSearchSymbolDeclaration {symbol}   Search this symbol declaration.
+
+    VSearchSymbolCalling {symbol}       Search where calling this symbol.
+
+    VSearchSymbolReference {symbol}     Search where reference this symbol.
+
 ------------------------------------------------------------------------------
 4.3. Cscope                             *videm-ProjectManager-Cscope*
 
