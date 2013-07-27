@@ -858,10 +858,19 @@ function! s:InstallCommands() "{{{2
     command! -nargs=0 -bar VLocateCurrentFile 
                 \                           call <SID>LocateFile(expand('%:p'))
 
-    command! -nargs=? -bar VFindFiles         call <SID>FindFiles(<q-args>)
-    command! -nargs=? -bar VFindFilesIC       call <SID>FindFiles(<q-args>, 1)
+    command! -nargs=? -bar VFindFiles       call <SID>FindFiles(<q-args>)
+    command! -nargs=? -bar VFindFilesIC     call <SID>FindFiles(<q-args>, 1)
 
-    command! -nargs=? -bar VOpenIncludeFile   call <SID>OpenIncludeFile()
+    command! -nargs=? -bar VOpenIncludeFile call <SID>OpenIncludeFile()
+
+    command! -nargs=1 -bar VSearchSymbolDefinition
+                \           call <SID>SearchSymbolDefinition(<q-args>)
+    command! -nargs=1 -bar VSearchSymbolDeclaration
+                \           call <SID>SearchSymbolDeclaration(<q-args>)
+    command! -nargs=1 -bar VSearchSymbolCalling
+                \           call <SID>SearchSymbolCalling(<q-args>)
+    command! -nargs=1 -bar VSearchSymbolReference
+                \           call <SID>SearchSymbolReference(<q-args>)
 endfunction
 "}}}
 function! s:InstallMenuBarMenu() "{{{2
@@ -4648,6 +4657,84 @@ function! s:ProjectSettings_CreateDialog(sProjectName) "{{{2
     return dlg
 endfunction
 "}}}2
+"}}}1
+" =================== 代码导航 ===================
+"{{{1
+function! s:SymdbInited() "{{{2
+    let output = vlutils#GetCmdOutput('cs show')
+    let lines = split(output, '\n')
+    let wspname = GetWspName()
+    for line in lines
+        if empty(line) || line =~# '^\s\+#'
+            continue
+        endif
+        let s = substitute(line, '^\s*\d\+\s\+\d\+\s\+', '', '')
+        " 工作空间名字就是特征
+        if stridx(s, wspname) == 0 || stridx(s, 'GTAGS') == 0
+            return 1
+        endif
+    endfor
+    return 0
+endfunction
+"}}}
+" 搜索符号定义
+function! s:SearchSymbolDefinition(symbol) "{{{2
+    if empty(a:symbol)
+        return 0
+    endif
+    if !s:SymdbInited()
+        call s:echow('Please initialize the symbol database firstly.')
+        call getchar()
+        return 1
+    endif
+    redraw
+    exec 'cs find g' a:symbol
+endfunction
+"}}}
+" 搜索符号声明
+function! s:SearchSymbolDeclaration(symbol) "{{{2
+    if empty(a:symbol)
+        return 0
+    endif
+    if !s:SymdbInited()
+        call s:echow('Please initialize the symbol database firstly.')
+        call getchar()
+        return 1
+    endif
+    redraw
+    exec 'cs find g' a:symbol
+endfunction
+"}}}
+" 搜索符号调用
+function! s:SearchSymbolCalling(symbol) "{{{2
+    if empty(a:symbol)
+        return 0
+    endif
+    if !s:SymdbInited()
+        call s:echow('Please initialize the symbol database firstly.')
+        call getchar()
+        return 1
+    endif
+    redraw
+    " TODO cscopequickfix
+    exec 'cs find c' a:symbol
+endfunction
+"}}}
+" 搜索符号引用
+function! s:SearchSymbolReference(symbol) "{{{2
+    if empty(a:symbol)
+        return 0
+    endif
+    if !s:SymdbInited()
+        call s:echow('Please initialize the symbol database firstly.')
+        call getchar()
+        return 1
+    endif
+    redraw
+    " TODO cscopequickfix
+    exec 'cs find s' a:symbol
+endfunction
+"}}}
 "}}}1
 "===============================================================================
 "===============================================================================
