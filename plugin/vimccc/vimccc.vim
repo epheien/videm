@@ -316,7 +316,7 @@ def UpdateVIMCCCIndexArgs(iVIMCCCIndex, projName):
 '''
     # 参数过多可能会影响速度，有拖慢了 0.05s 的情况，暂时不明原因
     lArgs = []
-    lArgs += ['-I%s' % i for i in ws.GetCommonIncludePaths()]
+    lArgs += ['-I%s' % i for i in ws.GetParserSearchPaths()]
     lArgs += ['-I%s' % i for i in ws.GetProjectIncludePaths(projName)]
     lArgs += ['-D%s' % i for i in ws.GetProjectPredefineMacros(projName)]
     # TODO: -U 也需要
