@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<CodeLite_Project Name="Linux Device Driver" InternalType="Others">
+<CodeLite_Project Name="Linux Device Driver">
   <Description>Linux Device Driver project template.</Description>
   <Settings Type="Executable">
     <GlobalSettings>
