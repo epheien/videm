@@ -135,7 +135,7 @@ PYTHON_EOF
     endif
 
     " Windows 下必须先断开链接，否则无法更新
-    exec 'silent! cs kill '. sCsOutFile
+    exec 'silent! cs kill' fnameescape(sCsOutFile)
 
     let retval = 0
     let prog = videm#settings#Get('.videm.symdb.cscope.Program')
@@ -177,11 +177,16 @@ PYTHON_EOF
         return
     endif
 
+    let sDir = fnamemodify(sCsOutFile, ':h')
+    if sDir ==# '.' || empty(sDir)
+        let sDir = getcwd()
+    endif
+
     set cscopetagorder=0
     set cscopetag
     "set nocsverb
-    exec 'silent! cs kill '. sCsOutFile
-    exec 'cs add '. sCsOutFile
+    exec 'silent! cs kill' fnameescape(sCsOutFile)
+    exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
     "set csverb
 
     py del l_ds
@@ -244,7 +249,7 @@ function! s:UpdateVLWCscopeDatabase(...) "{{{2
             \         shellescape(sCsFilesFile), shellescape(sCsOutFile))
 
     " Windows 下必须先断开链接，否则无法更新
-    exec 'silent! cs kill '. sCsOutFile
+    exec 'silent! cs kill' fnameescape(sCsOutFile)
 
     "call system(sCmd)
     py vim.command('let retval = %d' % System(vim.eval('sCmd'))[0])
@@ -256,7 +261,11 @@ function! s:UpdateVLWCscopeDatabase(...) "{{{2
         "return
     endif
 
-    exec 'cs add '. sCsOutFile
+    let sDir = fnamemodify(sCsOutFile, ':h')
+    if sDir ==# '.' || empty(sDir)
+        let sDir = getcwd()
+    endif
+    exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
 
     py del l_ds
 endfunction
@@ -271,11 +280,15 @@ function! videm#plugin#cscope#ConnectCscopeDatabase(...) "{{{2
 
     let sCsOutFile = a:0 > 0 ? a:1 : sCsOutFile
     if filereadable(sCsOutFile)
+        let sDir = fnamemodify(sCsOutFile, ':h')
+        if sDir ==# '.' || empty(sDir)
+            let sDir = getcwd()
+        endif
         let &cscopeprg = videm#settings#Get('.videm.symdb.cscope.Program')
         set cscopetagorder=0
         set cscopetag
-        exec 'silent! cs kill '. sCsOutFile
-        exec 'cs add '. sCsOutFile
+        exec 'silent! cs kill' fnameescape(sCsOutFile)
+        exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
     endif
     py del l_ds
 endfunction
@@ -340,7 +353,9 @@ function! videm#plugin#cscope#Disable() "{{{2
     " 命令
     delcommand VCscopeInitDatabase
     delcommand VCscopeUpdateDatabase
-    silent! cs kill -1
+    " NOTE: 会错杀，例如先启用gtags，再禁用cscope
+    " kill all symdb
+    py if ws.IsOpen(): vim.command("silent! cs kill -1")
     let s:enable = 0
 endfunction
 "}}}
