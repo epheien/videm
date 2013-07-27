@@ -836,6 +836,12 @@ A videm setting method will like this >
     catch
     endtry
 
+Some symbol searching key mapping >
+    nnoremap <C-\>g :VSearchSymbolDefinition <C-R>=expand("<cword>")<CR><CR>
+    nnoremap <C-\>p :VSearchSymbolDeclaration <C-R>=expand("<cword>")<CR><CR>
+    nnoremap <C-\>c :VSearchSymbolCalling <C-R>=expand("<cword>")<CR><CR>
+    nnoremap <C-\>s :VSearchSymbolReference <C-R>=expand("<cword>")<CR><CR>
+
 ------------------------------------------------------------------------------
 8.2. Use cl.exe On Windows              *videm-Windows*
 
