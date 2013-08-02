@@ -32,13 +32,13 @@ class WorkspaceConfiguration:
     def ToXmlNode(self):
         doc = minidom.Document()
         node = doc.createElement('WorkspaceConfiguration')
-        node.setAttribute('Name', self.name)
+        node.setAttribute('Name', self.name.decode('utf-8'))
         node.setAttribute('Selected', BoolToString(self.isSelected))
 
         for i in self.mappingList:
             projNode = doc.createElement('Project')
-            projNode.setAttribute('Name', i.project)
-            projNode.setAttribute('ConfigName', i.name)
+            projNode.setAttribute('Name', i.project.decode('utf-8'))
+            projNode.setAttribute('ConfigName', i.name.decode('utf-8'))
             node.appendChild(projNode)
         return node
 

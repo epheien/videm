@@ -74,7 +74,7 @@ def Glob(sDir, filters):
     return lFiles
 
 def DirectoryToXmlNode(sDir, filters,
-                       relStartPath = os.path.curdir,
+                       relStartPath = os.path.realpath(os.path.curdir),
                        _doc = minidom.getDOMImplementation().createDocument(
                            None, None, None),
                        files = []):
@@ -84,7 +84,7 @@ def DirectoryToXmlNode(sDir, filters,
 
     doc = _doc
     xmlNode = doc.createElement('VirtualDirectory')
-    xmlNode.setAttribute('Name', os.path.basename(sDir))
+    xmlNode.setAttribute('Name', os.path.basename(sDir).decode('utf-8'))
 
     # 标识当前目录是否拥有至少一个子文件/目录以决定是否返回 None
     bHasChild = False
@@ -111,7 +111,8 @@ def DirectoryToXmlNode(sDir, filters,
         if not os.path.isfile(sFile):
             continue
         newXmlNode = doc.createElement('File')
-        newXmlNode.setAttribute('Name', os.path.relpath(sFile, relStartPath))
+        relpath = os.path.relpath(os.path.realpath(sFile), relStartPath)
+        newXmlNode.setAttribute('Name', relpath.decode('utf-8'))
         xmlNode.appendChild(newXmlNode)
         bHasChild = True
         files.append(os.path.abspath(sFile))
@@ -675,7 +676,7 @@ class VLWorkspace(object):
         if IsWindowsOS():
             name = PosixPath(name)
 
-        newNode.setAttribute('Name', name)
+        newNode.setAttribute('Name', name.decode('utf-8'))
         if insertingNode:
             # 若指定了 xml 节点，替换之
             newNode = insertingNode
@@ -1102,9 +1103,9 @@ class VLWorkspace(object):
                 self.fname2file[newKey] = set()
             self.fname2file[newKey].add(absNewFile)
 
-
         xmlNode.setAttribute('Name', 
-                             os.path.join(os.path.dirname(oldName), newName))
+                             os.path.join(os.path.dirname(oldName),
+                                          newName).decode('utf-8'))
         project.Save()
 
         #TODO: 重新排序
@@ -1419,8 +1420,8 @@ class VLWorkspace(object):
         self.doc = minidom.Document()
         self.rootNode = self.doc.createElement('CodeLite_Workspace')
         self.doc.appendChild(self.rootNode)
-        self.rootNode.setAttribute('Name', name)
-        self.rootNode.setAttribute('Database', dbFileName)
+        self.rootNode.setAttribute('Name', name.decode('utf-8'))
+        self.rootNode.setAttribute('Database', dbFileName.decode('utf-8'))
 
         self.Save()
         self.__init__(self.fileName)
@@ -1465,14 +1466,14 @@ class VLWorkspace(object):
             project.SetSettings(settings)
 
         node = self.doc.createElement('Project')
-        node.setAttribute('Name', name)
+        node.setAttribute('Name', name.decode('utf-8'))
 
         # make the project path to be relative to the workspace
         projFile = os.path.join(path, name + os.extsep + PROJECT_FILE_SUFFIX)
         # 跟随链接
         projFile = os.path.realpath(os.path.abspath(projFile))
         relFile = os.path.relpath(projFile, self.dirName)
-        node.setAttribute('Path', relFile)
+        node.setAttribute('Path', relFile.decode('utf-8'))
 
         self.rootNode.appendChild(node)
 
@@ -1578,8 +1579,8 @@ class VLWorkspace(object):
             self.projects[project.GetName()] = project
             relFile = os.path.relpath(project.fileName, self.dirName)
             node = self.doc.createElement('Project')
-            node.setAttribute('Name', project.GetName())
-            node.setAttribute('Path', relFile)
+            node.setAttribute('Name', project.GetName().decode('utf-8'))
+            node.setAttribute('Path', relFile.decode('utf-8'))
             node.setAttribute(
                 'Active', len(self.projects) == 1 and 'Yes' or 'No')
 
@@ -1785,7 +1786,7 @@ class VLWorkspace(object):
                 path = i.getAttribute('Path').encode('utf-8')
                 newPath = os.path.splitext(path)[0] + os.extsep \
                         + PROJECT_FILE_SUFFIX
-                i.setAttribute('Path', newPath)
+                i.setAttribute('Path', newPath.decode('utf-8'))
 
         newFileName = os.path.splitext(self.fileName)[0] + os.extsep \
                 + WORKSPACE_FILE_SUFFIX

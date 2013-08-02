@@ -103,7 +103,7 @@ class Project:
     def SetName(self, name):
         '''设置项目的名称，不改变关联的 .project 文件'''
         self.name = name
-        self.rootNode.setAttribute('Name', name)
+        self.rootNode.setAttribute('Name', name.decode('utf-8'))
 
     def GetDescription(self):
         rootNode = XmlUtils.GetRoot(self.doc)
@@ -127,7 +127,7 @@ class Project:
         self.doc = minidom.Document()
         rootNode = self.doc.createElement('CodeLite_Project')
         self.doc.appendChild(rootNode)
-        rootNode.setAttribute('Name', name)
+        rootNode.setAttribute('Name', name.decode('utf-8'))
 
         descNode = self.doc.createElement('Description')
         XmlUtils.SetNodeContent(descNode, description)
@@ -274,11 +274,11 @@ class Project:
 
         # create new dependencies node
         node = self.doc.createElement('Dependencies')
-        node.setAttribute('Name', configuration)
+        node.setAttribute('Name', configuration.decode('utf-8'))
         rootNode.appendChild(node)
         for i in deps:
             child = self.doc.createElement('Project')
-            child.setAttribute('Name', i)
+            child.setAttribute('Name', i.decode('utf-8'))
             node.appendChild(child)
 
         # save changes
@@ -321,7 +321,8 @@ class Project:
         return self.tranActive
 
     def SetProjectInternalType(self, interType):
-        XmlUtils.GetRoot(self.doc).setAttribute('InternalType', interType)
+        XmlUtils.GetRoot(self.doc).setAttribute('InternalType',
+                                                interType.decode('utf-8'))
 
     def GetProjectInternalType(self):
         return XmlUtils.GetRoot(self.doc).getAttribute('InternalType')

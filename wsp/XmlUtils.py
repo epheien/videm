@@ -58,9 +58,6 @@ def FindLastByTagName(parent, tagName):
             node = i
     return node
 
-def UpdateProperty(node, name, value):
-    node.setAttribute(name, value)
-
 def SetNodeContent(node, text):
     '''Set the content of node. This function replaces any existing content of node
     text node?'''

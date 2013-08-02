@@ -49,7 +49,7 @@ class ProjectSettings:
     
     def ToXmlNode(self):
         node = minidom.Document().createElement('Settings')
-        node.setAttribute('Type', str(self.projectType))
+        node.setAttribute('Type', str(self.projectType).decode('utf-8'))
         node.appendChild(self.globalSettings.ToXmlNode())
         for k, v in self.configs.items():
             node.appendChild(v.ToXmlNode())
