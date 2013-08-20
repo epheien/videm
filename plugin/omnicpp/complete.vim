@@ -507,6 +507,24 @@ function! s:GotoTagPosition(lTags) "{{{2
         return
     endif
 
+    " static 的符号，直接跳转就好了
+    if len(lResult) > 1
+        let sFileName = resolve(expand('%:p'))
+        for d in lResult
+            if vlutils#IsWindowsOS()
+                if resolve(d.filename) ==? sFileName
+                    let lResult = [d]
+                    break
+                endif
+            else
+                if resolve(d.filename) ==# sFileName
+                    let lResult = [d]
+                    break
+                endif
+            endif
+        endfor
+    endif
+
     let dTag = lResult[0]
 
     if len(lResult) > 1
