@@ -898,6 +898,26 @@ search paths for parser in 'videm -> (OmniCpp Tags|VIMCCC) Settings' . >
        add new files, after change search paths, after change compile flags,
        etc.
 
+    Q: Why OmniCpp can not find some symbols? ~
+    A: Try to set "g:VimTagsManager_InclAllCondCmplBrch" to 0 and reparse the
+       file after restart videm. Because some macros will disturb OmniCpp. For
+       example like following: >
+    void func(void)
+    {
+    #if CASE1
+       if (cond1) {
+    #else
+       if (cond2) {
+    #endif
+           do_something;
+       }
+    }
+    void func2(void);
+<
+       When "g:VimTagsManager_InclAllCondCmplBrch" is not 0, OmniCpp will
+       follow all preprocessor branch, so the symbol "func2" will not be
+       parsed. If you do not want to change OmniCpp options, change your code.
+
 ==============================================================================
 9. Limitation                           *videm-Limitation*
 ------------------------------------------------------------------------------
