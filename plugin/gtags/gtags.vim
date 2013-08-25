@@ -238,9 +238,8 @@ function! videm#plugin#gtags#Disable() "{{{2
         autocmd!
     augroup END
     augroup! VidemSyndbGtags
-    " NOTE: 会错杀，例如先启用cscope，再禁用gtags
-    " kill all symdb
-    py if ws.IsOpen(): vim.command("silent! cs kill -1")
+    " kill symdb
+    py if ws.IsOpen(): vim.command("silent! cs kill GTAGS")
     let s:enable = 0
 endfunction
 "}}}

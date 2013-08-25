@@ -353,9 +353,9 @@ function! videm#plugin#cscope#Disable() "{{{2
     " 命令
     delcommand VCscopeInitDatabase
     delcommand VCscopeUpdateDatabase
-    " NOTE: 会错杀，例如先启用gtags，再禁用cscope
-    " kill all symdb
-    py if ws.IsOpen(): vim.command("silent! cs kill -1")
+    " kill symdb
+    let sCsOutFile = GetWspName() . videm#settings#Get('.videm.symdb.cscope.OutFile')
+    py if ws.IsOpen(): vim.command("exec 'silent! cs kill' fnameescape(sCsOutFile)")
     let s:enable = 0
 endfunction
 "}}}

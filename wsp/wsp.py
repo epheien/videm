@@ -1288,7 +1288,8 @@ class VimLiteWorkspace(object):
         else:
             return self.GetProjectIncludePaths(projName, wspConfName)
 
-    def GetProjectPredefineMacros4CodeComplete(self, projName, wspConfName = ''):
+    def GetProjectPredefineMacros4CodeComplete(self, projName,
+                                               wspConfName = ''):
         '''获取用于代码补全的预定义宏'''
         name = self.GetPorjectBuildConfigName(projName, wspConfName)
         bldConf = self.VLWIns.GetProjBuildConf(projName, name)
