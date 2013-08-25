@@ -2023,7 +2023,9 @@ python << PYTHON_EOF
 def GetEnvVarSettingsHelpText():
     s = '''\
 ==============================================================================
-##### Environment Variables #####
++-----------------------+
+| Environment Variables |
++-----------------------+
 A variable name may be a '[a-zA-Z_][a-zA-Z0-9_]*' pattern string. A variable
 value may be any character except 'newline'. Leading whitespace characters of
 variable value are discarded from your input before substitution of variable
@@ -2038,6 +2040,18 @@ in a variable value by protecting them with variable references, like this:
      space = $(nullstring) 
                           ^--- a space
 
+The ordor of environment variable definition is important, the latter one will
+be expanded by the former one. For example:
+    a = abc         ->      a = abc
+    b = xyz$(a)     ->      b = xyzabc
+and
+    b = xyz$(a)     ->      b = xyz
+    a = abc         ->      a = abc
+
+After all, all undefined variables will be expanded to ''(nullstring).
+
+*** NOTE ***
+Currently, "Environment Variables" is only valid for "Project Settings".
 '''
     return s
 PYTHON_EOF
@@ -3815,11 +3829,12 @@ $(Date)                  Expand to current date
 `expression`             Evaluates the expression inside the backticks into a 
                          string
 
-Videm will expand `expression` firstly and then expand above $() macros.
+Videm will expand above macros firstly, and then expand Environment Variables.
+After this, expand `expression` at last.
 
-+----------------+
-|Project Settings|
-+----------------+
++------------------+
+| Project Settings |
++------------------+
 ##
 ## Code Complete Arguments
 ##

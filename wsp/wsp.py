@@ -1284,7 +1284,9 @@ class VimLiteWorkspace(object):
         if not bldConf:
             return []
         if bldConf.useSepCCEngArgs:
-            return SplitSmclStr(bldConf.sepCCEngIncArgs)
+            # FIXME: 理论上应该先分割再展开，但可能有效率问题...
+            #        只要展开的变量不存在';'就没有问题...
+            return SplitSmclStr(ExpandAllVariables(bldConf.sepCCEngIncArgs))
         else:
             return self.GetProjectIncludePaths(projName, wspConfName)
 
@@ -1296,7 +1298,7 @@ class VimLiteWorkspace(object):
         if not bldConf:
             return []
         if bldConf.useSepCCEngArgs:
-            return SplitSmclStr(bldConf.sepCCEngMacArgs)
+            return SplitSmclStr(ExpandAllVariables(bldConf.sepCCEngMacArgs))
         else:
             return self.GetProjectPredefineMacros(projName, wspConfName)
 

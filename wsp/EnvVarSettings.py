@@ -131,16 +131,16 @@ class EnvVarSettings:
         if self.envVarSets.has_key(setName):
             del self.envVarSets[setName][:]
 
-    def ExpandVariables(self, expr, trim = False):
-        result = expr
+    def GetVarDict(self):
         d = {}
         for envVar in self.GetActiveEnvVars()[::-1]:
             d[envVar.GetKey()] = envVar.GetValue()
             #result = result.replace('$(%s)' % envVar.GetKey(),
                                     #envVar.GetValue())
-        result = ExpandVariables(result, d, trim)
+        return d
 
-        return result
+    def ExpandVariables(self, expr, trim = False):
+        return ExpandVariables(expr, self.GetVarDict(), trim)
 
     def GetModificationTime(self):
         return self.mtime
@@ -157,14 +157,16 @@ class EnvVarSettings:
             for i in v:
                 print ' ' * 4 + i.GetKey(), '=', i.GetValue()
 
-    def ExpandSelf(self):
-        '''展开自身，具体来说就是展开 EnvVar.val'''
+    def _ExpandSelf(self):
+        '''
+        展开自身，具体来说就是展开 EnvVar.val
+        内部使用，外部不应该使用这个方法'''
         for envVarName, envVarSet in self.envVarSets.iteritems():
             d = os.environ.copy() # 支持系统的环境变量的
             for envVar in envVarSet:
                 key = envVar.GetKey()
                 val = envVar.GetValue()
-                val = ExpandVariables(val, d, True) # 清除变量
+                val = ExpandVariables(val, d, True) # 清除未定义变量
                 envVar.SetValue(val)
                 d[key] = val
 
@@ -210,7 +212,7 @@ class EnvVarSettings:
             ret = True
 
         if ret:
-            self.ExpandSelf()
+            self._ExpandSelf()
 
         return ret
 
@@ -283,7 +285,7 @@ if __name__ == '__main__':
     ins.AddEnvVar('Default', 'VimLiteDir=$(CodeLiteDir)')
     ins.AddEnvVar('Default', 'abc=ABC')
     ins.Print()
-    ins.ExpandSelf()
+    ins._ExpandSelf()
     ins.Print()
     print ins.GetModificationTime()
     print ins.ExpandVariables("$(CodeLiteDir) + $(VimLiteDir) = $(abc)")

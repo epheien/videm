@@ -137,7 +137,8 @@ def ExpandAllVariables(expression, workspace, projName, projConfName = '',
     '''展开所有变量，所有变量引用的形式都会被替换
     会展开脱字符(`)的表达式，但是，不展开 $(shell ) 形式的表达式
 
-    先展开 `` 的表达式，再展开内部的变量，所以不能在 `` 里面使用内部变量
+    先展开内部的变量，再展开环境变量，最后展开 `` 的表达式
+    只作一次展开，不会递归展开
 
     expression      - 需要展开的表达式, 可为空
     workspace       - 工作区实例, 可为空
@@ -146,48 +147,48 @@ def ExpandAllVariables(expression, workspace, projName, projConfName = '',
     fileName        - 文件名字, 要求为绝对路径, 可为空
 
     RETURN          - 展开后的表达式'''
+    exp = expression
+    # 先展开内置宏
+    exp = ExpandAllInterMacros(exp, workspace, projName, projConfName, fileName)
+    # 再展开环境变量
+    exp = EnvVarSettingsST.Get().ExpandVariables(exp, trim=True)
     tmpExp = ''
     i = 0
-    # 先展开所有命令表达式
-    # 只支持 `` 内的表达式, 不支持 $() 形式的
-    # 因为经常用到在 Makefile 里面的变量, 为了统一, 无法支持 $() 形式
+    # 展开所有命令表达式
+    # 只支持 `` 内的表达式, 不支持 $(shell ) 形式
+    # 因为经常用到在 Makefile 里面的变量, 为了统一, 无法支持 $(shell ) 形式
     # TODO: 用以下正则匹配脱字符包含的字符串 r'`(?:[^`]|(?<=\\)`)*`'
-    while i < len(expression):
-        c = expression[i]
+    while i < len(exp):
+        c = exp[i]
         if c == '`':
             backtick = ''
             found = False
             i += 1
-            while i < len(expression):
-                if expression[i] == '`':
+            while i < len(exp):
+                if exp[i] == '`':
                     found = True
                     break
-                backtick += expression[i]
+                backtick += exp[i]
                 i += 1
 
             if not found:
-                print 'Syntax error in expression: ' + expression \
-                        + ": expecting '`'"
-                return expression
+                print "Syntax error in exp: %s, expecting '`'" % exp
+                return exp
             else:
-                expandedBacktick = ExpandAllInterVariables(
-                    backtick, workspace, projName, projConfName, fileName)
-
-                output = os.popen(expandedBacktick).read()
+                expandedBacktick = backtick
+                output = os.popen(backtick).read()
                 tmp = ' '.join([x for x in output.split('\n') if x])
                 tmpExp += tmp
         else:
             tmpExp += c
         i += 1
 
-    result = ExpandAllInterVariables(tmpExp, workspace, projName, projConfName,
-                                     fileName, True)
-    result = StripVariablesForShell(result)
+    result = tmpExp
     # 处理转义的 '$'
     return result.replace('$$', '$')
 
-def ExpandAllInterVariables(expression, workspace, projName, projConfName = '', 
-                            fileName = '', trim = False):
+def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
+                         fileName = ''):
     '''展开所有内部变量
 
     expression      - 需要展开的表达式, 可为空
@@ -195,7 +196,6 @@ def ExpandAllInterVariables(expression, workspace, projName, projConfName = '',
     projName        - 项目名字, 可为空
     projConfName    - 项目构建设置名称, 可为空
     fileName        - 文件名字, 要求为绝对路径, 可为空
-    trim            - 是否用空字符展开没有定义的变量引用
     
     支持的变量有:
     $(User)
@@ -279,8 +279,6 @@ def ExpandAllInterVariables(expression, workspace, projName, projConfName = '',
 
     # 先这样展开，因为内部变量不允许覆盖，内部变量可以保证不嵌套变量
     expression = ExpandVariables(expression, dVariables, False)
-    # 再展开环境变量, 因为内部变量不可能包含环境变量
-    expression = EnvVarSettingsST.Get().ExpandVariables(expression, trim)
 
     return expression
 

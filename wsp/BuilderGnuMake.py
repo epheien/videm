@@ -13,7 +13,7 @@ import shutil
 import Compiler
 import Utils
 
-from Utils import ExpandAllInterVariables
+from Utils import ExpandAllVariables
 from Builder import Builder
 from VLWorkspace import VLWorkspaceST
 from BuildSettings import BuildSettingsST
@@ -448,8 +448,8 @@ endif
             fileName = os.path.relpath(fileName)
         mkFile = '%s.mk' % projName
         bwd = projBldConfIns.GetIntermediateDirectory() or '.'
-        # 展开所有 VimLite 内置变量
-        bwd = ExpandAllInterVariables(bwd, wspIns, projName, wspConfName)
+        # 展开所有变量
+        bwd = ExpandAllVariables(bwd, wspIns, projName, projBldConfIns.name)
         if t == 'prp': # 预处理目标
             fn = os.path.splitext(fileName)[0] + cmpl.prpExt
         else: # 对象目标，用于编译文件
