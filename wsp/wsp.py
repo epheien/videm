@@ -1360,8 +1360,6 @@ class VimLiteWorkspace(object):
         if not wspConfName:
             wspConfName = matrix.GetSelectedConfigurationName()
 
-        # TODO: 需要获取编译器的全局包含路径
-
         results = []
         cCompileOpts = []
         cppCompileOpts = []
@@ -1378,8 +1376,9 @@ class VimLiteWorkspace(object):
             return []
 
         compiler = None
+        cmplIncPaths = []
 
-        # NOTE: 这个 bldConf 是以及合并了全局配置的一个副本
+        # NOTE: 这个 bldConf 是已经合并了全局配置的一个副本，直接取值即可
         bldConf = self.VLWIns.GetProjBuildConf(project.name, projConfName)
         if not bldConf or bldConf.IsCustomBuild():
         # 这种情况直接不支持
@@ -1388,8 +1387,10 @@ class VimLiteWorkspace(object):
         if bldConf and not bldConf.IsCustomBuild():
             compiler = BuildSettingsST().Get().GetCompilerByName(
                 bldConf.GetCompilerType())
+            if compiler:
+                cmplIncPaths = SplitSmclStr(compiler.includePaths)
             tmpStr = bldConf.GetIncludePath()
-            tmpIncPaths = SplitSmclStr(tmpStr)
+            tmpIncPaths = cmplIncPaths + SplitSmclStr(tmpStr)
             tmpIncPaths = ExpandAllVariables_SList(tmpIncPaths, self.VLWIns,
                                                    projName, projConfName)
             for tmpPath in tmpIncPaths:
@@ -1407,18 +1408,16 @@ class VimLiteWorkspace(object):
                                                        projConfName)
 
         # NOTE: 编译器选项是一个字符串，而不是列表
-        li = SplitSmclStr(bldConf.GetCCxxCompileOptions()) \
+        optList = SplitSmclStr(bldConf.GetCCxxCompileOptions()) \
                 + SplitSmclStr(bldConf.GetCCompileOptions())
-        tmpStr = ' '.join(li)
-        # 这样展开理论上是没问题的，除非配置本身存在错误，例如 '-g;$(', 'x)'
-        tmpStr = ExpandAllVariables(tmpStr, self.VLWIns, projName, projConfName)
-        cCompileOpts.append(tmpStr)
-        li = SplitSmclStr(bldConf.GetCCxxCompileOptions()) \
-                + SplitSmclStr(bldConf.GetCompileOptions())
-        tmpStr = ' '.join(li)
-        # 同上
-        tmpStr = ExpandAllVariables(tmpStr, self.VLWIns, projName, projConfName)
-        cppCompileOpts.append(tmpStr)
+        optList = ExpandAllVariables_SList(optList, self.VLWIns, projName,
+                                           projConfName)
+        cCompileOpts.append(' '.join(optList))
+        optList = SplitSmclStr(bldConf.GetCCxxCompileOptions()) \
+                + SplitSmclStr(bldConf.GetCxxCompileOptions())
+        optList = ExpandAllVariables_SList(optList, self.VLWIns, projName,
+                                           projConfName)
+        cppCompileOpts.append(' '.join(optList))
         if flags & 1:
             # C 编译器选项
             results += cCompileOpts
@@ -1450,7 +1449,7 @@ class VimLiteWorkspace(object):
 
         if flags & 16:
             # 解析后的 C 编译器的包含目录
-            if compiler and compiler.incPat:
+            if compiler:
                 sw = sw_map_inc.get(compiler.name, '')
                 if sw:
                     tmpOpts = ' '.join(cCompileOpts)
@@ -1459,7 +1458,7 @@ class VimLiteWorkspace(object):
                                 for i in tmp]
         if flags & 32:
             # 解析后的 C++ 编译器的包含目录
-            if compiler and compiler.incPat:
+            if compiler:
                 sw = sw_map_inc.get(compiler.name, '')
                 if sw:
                     tmpOpts = ' '.join(cppCompileOpts)
@@ -1468,7 +1467,7 @@ class VimLiteWorkspace(object):
                                 for i in tmp]
         if flags & 64:
             # 解析后的 C 编译器的预定义宏
-            if compiler and compiler.macPat:
+            if compiler:
                 sw = sw_map_mac.get(compiler.name, '')
                 if sw:
                     tmpOpts = ' '.join(cCompileOpts)
@@ -1476,7 +1475,7 @@ class VimLiteWorkspace(object):
                     results += [i.lstrip(sw) for i in tmp]
         if flags & 128:
             # 解析后的 C++ 编译器的预定义宏
-            if compiler and compiler.macPat:
+            if compiler:
                 sw = sw_map_mac.get(compiler.name, '')
                 if sw:
                     tmpOpts = ' '.join(cppCompileOpts)
@@ -2096,7 +2095,7 @@ class VimLiteWorkspace(object):
         tmpstr = bldcnf.GetCCxxCompileOptions()
         result += ExpandAllVariables_SList(SplitSmclStr(tmpstr),
                                            self.VLWIns, projname, confname)
-        tmpstr = bldcnf.GetCompileOptions()
+        tmpstr = bldcnf.GetCxxCompileOptions()
         result += ExpandAllVariables_SList(SplitSmclStr(tmpstr),
                                            self.VLWIns, projname, confname)
         return result

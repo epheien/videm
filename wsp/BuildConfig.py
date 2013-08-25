@@ -15,7 +15,7 @@ from Macros import BoolToString, USE_WORKSPACE_ENV_VAR_SET, USE_GLOBAL_SETTINGS
 
 class BuildCommand:
     '''构建命令
-    
+
     command: 命令
     enable: 是否启用'''
 
@@ -27,13 +27,13 @@ class BuildCommand:
 
     def GetCommand(self):
         return self.command
-    
+
     def GetEnabled(self):
         return self.enabled
-    
+
     def SetCommand(self, command):
         self.command = command
-    
+
     def SetEnabled(self, enabled):
         self.enabled = enabled
 
@@ -65,7 +65,7 @@ class BuildConfigCommon:
         self.confType = confType  # xml node name
         # added on 2012-10-06
         self.cCxxCmplOpts = '' # 同时用于 C 和 C++ 的编译选项
-        
+
         if xmlNode:
             # 读取编译器设置
             compilerNode = XmlUtils.FindFirstByTagName(xmlNode, 'Compiler')
@@ -82,7 +82,7 @@ class BuildConfigCommon:
                     # copy the values from the "Options" attribute
                     # 只有这个属性不存在时才复制值, python 的实现不需要如此处理
                     #self.cCompileOptions = self.compileOptions
-                
+
                 li1 = []
                 li2 = []
                 for i in compilerNode.childNodes:
@@ -173,63 +173,71 @@ class BuildConfigCommon:
                 optionNode = doc.createElement('IncludePath')
                 optionNode.setAttribute('Value', i.decode('utf-8'))
                 compileNode.appendChild(optionNode)
-        
+
         preprocessorList = SplitSmclStr(self.preprocessor)
         for i in preprocessorList:
             if i:
                 prepNode = doc.createElement('Preprocessor')
                 prepNode.setAttribute('Value', i.decode('utf-8'))
                 compileNode.appendChild(prepNode)
-        
-        
+
+
         # 链接器节点
         linkNode = doc.createElement('Linker')
         linkNode.setAttribute('Options', self.linkOptions.decode('utf-8'))
         newNode.appendChild(linkNode)
-        
+
         libPathList = SplitSmclStr(self.libPath)
         for i in libPathList:
             if i:
                 optionNode = doc.createElement('LibraryPath')
                 optionNode.setAttribute('Value', i.decode('utf-8'))
                 linkNode.appendChild(optionNode)
-        
+
         libsList = SplitSmclStr(self.libs)
         for i in libsList:
             if i:
                 optionNode = doc.createElement('Library')
                 optionNode.setAttribute('Value', i.decode('utf-8'))
                 linkNode.appendChild(optionNode)
-        
+
         # 资源编译器节点
         resCmpNode = doc.createElement('ResourceCompiler')
         resCmpNode.setAttribute('Options', self.resCompileOptions.decode('utf-8'))
         newNode.appendChild(resCmpNode)
-        
+
         resCompileIncludePathList = SplitSmclStr(self.resCompileIncludePath)
         for i in resCompileIncludePathList:
             if i:
                 optionNode = doc.createElement('IncludePath')
                 optionNode.setAttribute('Value', i.decode('utf-8'))
                 resCmpNode.appendChild(optionNode)
-        
+
         return newNode
-    
+
     def GetPreprocessor(self):
         return self.preprocessor
-    
+
     def SetPreprocessor(self, prepr):
         if type(prepr) == type([]):
             self.preprocessor = JoinToSmclStr(prepr)
         else:
             self.preprocessor = prepr
-    
+
     def GetCompileOptions(self):
+        '''DEPRECATED'''
         return self.compileOptions
-    
+
     def SetCompileOptions(self, options):
+        '''DEPRECATED'''
         self.compileOptions = options
-    
+
+    def GetCxxCompileOptions(self):
+        return self.compileOptions
+
+    def SetCxxCompileOptions(self, options):
+        self.compileOptions = options
+
     def GetCCompileOptions(self):
         return self.cCompileOptions
 
@@ -244,37 +252,37 @@ class BuildConfigCommon:
 
     def GetLinkOptions(self):
         return self.linkOptions
-    
+
     def SetLinkOptions(self, options):
         self.linkOptions = options
-    
+
     def GetIncludePath(self):
         return self.includePath
-    
+
     def SetIncludePath(self, paths):
         if type(paths) == type([]):
             self.includePath = JoinToSmclStr(paths)
         else:
             self.includePath = paths
-    
+
     def GetLibraries(self):
         return self.libs
-    
+
     def SetLibraries(self, libs):
         if type(libs) == type([]):
             self.libs = JoinToSmclStr(libs)
         else:
             self.libs = libs
-    
+
     def GetLibPath(self):
         return self.libPath
-    
+
     def SetLibPath(self, paths):
         if type(paths) == type([]):
             self.libPath == JoinToSmclStr(paths)
         else:
             self.libPath = paths
-    
+
     def GetResCompileIncludePath(self):
         return self.resCompileIncludePath
 
@@ -295,13 +303,13 @@ class BuildConfigCommon:
 
     def GetResCompileOptions(self):
         return self.resCompileOptions
-    
+
     def GetResCmpOptions(self):
         return self.resCompileOptions
 
     def SetResCompileOptions(self, options):
         self.resCompileOptions = options
-    
+
     def SetResCmpOptions(self, options):
         self.resCompileOptions = options
 
@@ -311,7 +319,7 @@ class BuildConfig:
     OVERWRITE_GLOBAL_SETTINGS = 'overwrite'
     APPEND_TO_GLOBAL_SETTINGS = 'append'
     PREPEND_GLOBAL_SETTINGS = 'prepend'
-    
+
     def __init__(self, xmlNode = None):
         '''麻烦，直接访问变量修改'''
         self.commonConfig = BuildConfigCommon(xmlNode)
@@ -381,28 +389,28 @@ class BuildConfig:
             self.buildResWithGlobalSettings = XmlUtils.ReadString(
                 xmlNode, 'BuildResWithGlobalSettings',
                 BuildConfig.APPEND_TO_GLOBAL_SETTINGS)
-            
+
             compileNode = XmlUtils.FindFirstByTagName(xmlNode, 'Compiler')
             if compileNode:
                 self.compilerRequired = XmlUtils.ReadBool(
                     compileNode, 'Required', True)
                 self.precompiledHeader = XmlUtils.ReadString(
                     compileNode, 'PreCompiledHeader')
-            
+
             linkerNode = XmlUtils.FindFirstByTagName(xmlNode, 'Linker')
             if linkerNode:
                 self.linkerRequired = XmlUtils.ReadBool(linkerNode, 'Required',
                                                         True)
-            
+
             resCmpNode = XmlUtils.FindFirstByTagName(xmlNode,
                                                      'ResourceCompiler')
             if resCmpNode:
                 self.isResCmpNeeded = XmlUtils.ReadBool(resCmpNode, 'Required',
                                                         True)
-            
+
             debuggerNode = XmlUtils.FindFirstByTagName(xmlNode, 'Debugger')
             self.isDbgRemoteTarget = False
-            
+
             if debuggerNode:
                 self.isDbgRemoteTarget = XmlUtils.ReadBool(debuggerNode,
                                                            'IsRemote')
@@ -412,14 +420,14 @@ class BuildConfig:
                                                        'RemoteHostPort')
                 self.debuggerPath = XmlUtils.ReadString(debuggerNode,
                                                         'DebuggerPath')
-                
+
                 for i in debuggerNode.childNodes:
                     if i.nodeName == 'StartupCommands':
                         self.debuggerStartupCmds = XmlUtils.GetNodeContent(i)
                     elif i.nodeName == 'PostConnectCommands':
                         self.debuggerPostRemoteConnectCmds = \
                                 XmlUtils.GetNodeContent(i)
-            
+
             # read the prebuild commands
             preBuildNode = XmlUtils.FindFirstByTagName(xmlNode, 'PreBuild')
             if preBuildNode:
@@ -428,7 +436,7 @@ class BuildConfig:
                         enabled = XmlUtils.ReadBool(i, 'Enabled')
                         cmd = BuildCommand(XmlUtils.GetNodeContent(i), enabled)
                         self.preBuildCommands.append(cmd)
-            
+
             # read the postbuild commands
             postBuildNode = XmlUtils.FindFirstByTagName(xmlNode, 'PostBuild')
             if postBuildNode:
@@ -437,16 +445,16 @@ class BuildConfig:
                         enabled = XmlUtils.ReadBool(i, 'Enabled')
                         cmd = BuildCommand(XmlUtils.GetNodeContent(i), enabled)
                         self.postBuildCommands.append(cmd)
-            
+
             self.envVarSet = USE_WORKSPACE_ENV_VAR_SET
             self.dbgEnvSet = USE_GLOBAL_SETTINGS
-            
+
             # read the environment page
             envNode = XmlUtils.FindFirstByTagName(xmlNode, 'Environment')
             if envNode:
                 self.envVarSet = XmlUtils.ReadString(envNode, 'EnvVarSetName')
                 self.dbgEnvSet = XmlUtils.ReadString(envNode, 'DbgSetName')
-            
+
             customBuildNode = XmlUtils.FindFirstByTagName(xmlNode, 'CustomBuild')
             if customBuildNode:
                 self.enableCustomBuild = XmlUtils.ReadBool(customBuildNode,
@@ -475,7 +483,7 @@ class BuildConfig:
                             self.customTargets[tgtName] = tgtCmd
             else:
                 self.enableCustomBuild = False
-            
+
             # read pre and post build rules
             customPreBuildNode = XmlUtils.FindFirstByTagName(xmlNode,
                                                              'AdditionalRules')
@@ -487,7 +495,7 @@ class BuildConfig:
                     elif i.nodeName == 'CustomPostBuild':
                         self.customPostBuildRule = XmlUtils.GetNodeContent(i)
                         self.customPostBuildRule = self.customPostBuildRule.strip()
-            
+
             generalNode = XmlUtils.FindFirstByTagName(xmlNode, 'General')
             if generalNode:
                 self.outputFile = XmlUtils.ReadString(generalNode, 'OutputFile')
@@ -526,14 +534,14 @@ class BuildConfig:
                         'IncludePaths').encode('utf-8')
                 self.sepCCEngMacArgs = codeCompleteEngineNode.getAttribute(
                         'PredefineMacros').encode('utf-8')
-            
+
         else:
             # create default project settings
             self.commonConfig.SetCCompileOptions('-g;-Wall')
             self.commonConfig.SetCompileOptions('-g;-Wall')
             self.commonConfig.SetLinkOptions('-O0')
             self.commonConfig.SetLibPath('.;Debug')
-            
+
             self.name = 'Debug'
             self.compilerRequired = True
             self.linkerRequired = True
@@ -554,7 +562,7 @@ class BuildConfig:
             self.debuggerPostRemoteConnectCmds = ''
             self.isDbgRemoteTarget = False
             self.debugArgs = ''
-            
+
             self.envVarSet = '<Use Workspace Settings>'
             self.dbgEnvSet = '<Use Global Settings>'
 
@@ -564,7 +572,7 @@ class BuildConfig:
             #if compiler:
                 #self.compilerType = compiler.name
             self.compilerType = 'unknown'
-            
+
             # TODO: DebuggerMgr 暂不支持
             self.debuggerType = 'GNU gdb debugger'
 
@@ -580,7 +588,7 @@ class BuildConfig:
     def ToXmlNode(self):
         # Create the common nodes
         node = self.commonConfig.ToXmlNode()
-        
+
         node.setAttribute('Name', self.name.decode('utf-8'))
         node.setAttribute('CompilerType', self.compilerType.decode('utf-8'))
         node.setAttribute('DebuggerType', self.debuggerType.decode('utf-8'))
@@ -588,21 +596,21 @@ class BuildConfig:
         node.setAttribute('BuildCmpWithGlobalSettings', self.buildCmpWithGlobalSettings)
         node.setAttribute('BuildLnkWithGlobalSettings', self.buildLnkWithGlobalSettings)
         node.setAttribute('BuildResWithGlobalSettings', self.buildResWithGlobalSettings)
-        
+
         compilerNode = XmlUtils.FindFirstByTagName(node, 'Compiler')
         if compilerNode:
             compilerNode.setAttribute('Required', BoolToString(self.compilerRequired))
             compilerNode.setAttribute('PreCompiledHeader',
                                       self.precompiledHeader.decode('utf-8'))
-        
+
         linkerNode = XmlUtils.FindFirstByTagName(node, 'Linker')
         if linkerNode:
             linkerNode.setAttribute('Required', BoolToString(self.linkerRequired))
-        
+
         resCmpNode = XmlUtils.FindFirstByTagName(node, 'ResourceCompiler')
         if resCmpNode:
             resCmpNode.setAttribute('Required', BoolToString(self.isResCmpNeeded))
-            
+
         generalNode = minidom.Document().createElement('General')
         generalNode.setAttribute('OutputFile', self.outputFile.decode('utf-8'))
         generalNode.setAttribute('IntermediateDirectory',
@@ -619,7 +627,7 @@ class BuildConfig:
         generalNode.setAttribute('PauseExecWhenProcTerminates',
                                  BoolToString(self.pauseWhenExecEnds))
         node.appendChild(generalNode)
-        
+
         debuggerNode = minidom.Document().createElement('Debugger')
         debuggerNode.setAttribute('IsRemote',
                                   BoolToString(self.isDbgRemoteTarget))
@@ -628,21 +636,21 @@ class BuildConfig:
         debuggerNode.setAttribute('DebuggerPath',
                                   self.debuggerPath.decode('utf-8'))
         # node.appendChild(debuggerNode) #?
-        
+
         envNode = minidom.Document().createElement('Environment')
         envNode.setAttribute('EnvVarSetName', self.envVarSet.decode('utf-8'))
         envNode.setAttribute('DbgSetName', self.dbgEnvSet.decode('utf-8'))
         node.appendChild(envNode)
-        
+
         dbgStartupCommands = minidom.Document().createElement('StartupCommands')
         XmlUtils.SetNodeContent(dbgStartupCommands, self.debuggerStartupCmds)
         dbgPostCommands = minidom.Document().createElement('PostConnectCommands')
         XmlUtils.SetNodeContent(dbgPostCommands, self.debuggerPostRemoteConnectCmds)
-        
+
         debuggerNode.appendChild(dbgStartupCommands)
         debuggerNode.appendChild(dbgPostCommands)
         node.appendChild(debuggerNode)
-        
+
         dom = minidom.Document()
         # Add prebuild commands
         preBuildNode = dom.createElement('PreBuild')
@@ -652,7 +660,7 @@ class BuildConfig:
             commandNode.setAttribute('Enabled', BoolToString(i.enabled))
             XmlUtils.SetNodeContent(commandNode, i.command)
             preBuildNode.appendChild(commandNode)
-        
+
         # Add postbuild commands
         postBuildNode = dom.createElement('PostBuild')
         node.appendChild(postBuildNode)
@@ -661,62 +669,62 @@ class BuildConfig:
             commandNode.setAttribute('Enabled', BoolToString(i.enabled))
             XmlUtils.SetNodeContent(commandNode, i.command)
             postBuildNode.appendChild(commandNode)
-        
+
         # Add custom build commands
         customBuildNode = dom.createElement('CustomBuild')
         node.appendChild(customBuildNode)
         customBuildNode.setAttribute('Enabled', BoolToString(self.enableCustomBuild))
-        
+
         # Add the working directory of the cutstom build
         customBuildWDNode = dom.createElement('WorkingDirectory')
         XmlUtils.SetNodeContent(customBuildWDNode, self.customBuildWorkingDir)
         customBuildNode.appendChild(customBuildWDNode)
-        
+
         toolName = dom.createElement('ThirdPartyToolName')
         XmlUtils.SetNodeContent(toolName, self.toolName)
         customBuildNode.appendChild(toolName)
-        
+
         # add the makefile generation command
         makeGenCmd = dom.createElement('MakefileGenerationCommand')
         XmlUtils.SetNodeContent(makeGenCmd, self.makeGenerationCommand)
         customBuildNode.appendChild(makeGenCmd)
-        
+
         singleFileCmd = dom.createElement('SingleFileCommand')
         XmlUtils.SetNodeContent(singleFileCmd, self.singleFileBuildCommand)
         customBuildNode.appendChild(singleFileCmd)
-        
+
         preprocFileCmd = dom.createElement('PreprocessFileCommand')
         XmlUtils.SetNodeContent(preprocFileCmd, self.preprocessFileCommand)
         customBuildNode.appendChild(preprocFileCmd)
-        
+
         # add build and clean commands
         bldCmd = dom.createElement('BuildCommand')
         XmlUtils.SetNodeContent(bldCmd, self.customBuildCmd)
         customBuildNode.appendChild(bldCmd)
-        
+
         clnCmd = dom.createElement('CleanCommand')
         XmlUtils.SetNodeContent(clnCmd, self.customCleanCmd)
         customBuildNode.appendChild(clnCmd)
-        
+
         rebldCmd = dom.createElement('RebuildCommand')
         XmlUtils.SetNodeContent(rebldCmd, self.customRebuildCmd)
         customBuildNode.appendChild(rebldCmd)
-        
+
         # add all 'Targets'
         for k, v in self.customTargets.items():
             customTgtNode = dom.createElement('Target')
             customTgtNode.setAttribute('Name', k.decode('utf-8'))
             XmlUtils.SetNodeContent(customTgtNode, v)
             customBuildNode.appendChild(customTgtNode)
-        
+
         # add the additional rules
         addtionalCmdsNode = dom.createElement('AdditionalRules')
         node.appendChild(addtionalCmdsNode)
-        
+
         preCmd = dom.createElement('CustomPreBuild')
         XmlUtils.SetNodeContent(preCmd, self.customPreBuildRule)
         addtionalCmdsNode.appendChild(preCmd)
-        
+
         postCmd = dom.createElement('CustomPostBuild')
         XmlUtils.SetNodeContent(postCmd, self.customPostBuildRule)
         addtionalCmdsNode.appendChild(postCmd)
@@ -738,7 +746,7 @@ class BuildConfig:
         codeCompleteEngineNode.setAttribute('PredefineMacros',
                                             self.sepCCEngMacArgs)
         node.appendChild(codeCompleteEngineNode)
-        
+
         return node
 
     def ToDict(self):
@@ -816,175 +824,179 @@ class BuildConfig:
         return self.commonConfig.GetPreprocessor()
     def SetPreprocessor(self, pre):
         self.commonConfig.SetPreprocessor(pre)
-    
+
     def GetCompilerType(self):
         return self.compilerType
-    
+
     def GetCompiler(self):
         return BuildSettings.BuildSettingsST.Get().GetCompiler(self.compilerType)
-    
+
     def SetDebugArgs(self, debugArgs):
         self.debugArgs = debugArgs
-    
+
     def SetUseSeparateDebugArgs(self, useSeparateDebugArgs):
         self.useSeparateDebugArgs = useSeparateDebugArgs
-    
+
     def GetDebugArgs(self):
         return self.debugArgs
-    
+
     def GetUseSeparateDebugArgs(self):
         return self.useSeparateDebugArgs
-    
+
     def SetCompilerType(self, cmpType):
         self.compilerType = cmpType
-    
+
     def GetDebuggerType(self):
         return self.debuggerType
-    
+
     def SetDebuggerType(self, type):
         self.debuggerType = type
-    
+
     def GetIncludePath(self):
         return self.commonConfig.GetIncludePath()
-    
+
     def GetCompileOptions(self):
+        '''DEPRECATED'''
         return self.commonConfig.GetCompileOptions()
-    
+
+    def GetCxxCompileOptions(self):
+        return self.commonConfig.GetCxxCompileOptions()
+
     def GetCCompileOptions(self):
         return self.commonConfig.GetCCompileOptions()
 
     def GetCCxxCompileOptions(self):
         return self.commonConfig.GetCCxxCompileOptions()
-    
+
     def GetLinkOptions(self):
         return self.commonConfig.GetLinkOptions()
-    
+
     def GetLibraries(self):
         return self.commonConfig.GetLibraries()
-    
+
     def GetLibPath(self):
         return self.commonConfig.GetLibPath()
-    
+
     def GetPreBuildCommands(self):
         return self.preBuildCommands
-    
+
     def GetPostBuildCommands(self):
         return self.postBuildCommands
-    
+
     def GetName(self):
         return self.name
-    
+
     def IsCompilerRequired(self):
         return self.compilerRequired
-    
+
     def IsLinkerRequired(self):
         return self.linkerRequired
-    
+
     def GetOutputFileName(self):
         return PosixPath(self.outputFile)
-    
+
     def GetIntermediateDirectory(self):
         return PosixPath(self.intermediateDirectory)
 
     def GetOutDir(self):
         return PosixPath(self.intermediateDirectory)
-    
+
     def GetCommand(self):
         return self.command
-    
+
     def GetCommandArguments(self):
         return self.commandArguments
-    
+
     def GetWorkingDirectory(self):
         return PosixPath(self.workingDirectory)
-    
+
     def IsCustomBuild(self):
         return self.enableCustomBuild
-    
+
     def GetCustomBuildCmd(self):
         return self.customBuildCmd
-    
+
     def GetCustomCleanCmd(self):
         return self.customCleanCmd
-    
+
     def GetCustomRebuildCmd(self):
         return self.customRebuildCmd
-    
+
     def SetIncludePath(self, paths):
         self.commonConfig.SetIncludePath(paths)
-    
+
     def SetLibraries(self, libs):
         self.commonConfig.SetLibraries(libs)
-    
+
     def SetLibPath(self, path):
         self.commonConfig.SetLibPath(path)
-    
+
     def SetCompileOptions(self, opts):
         self.commonConfig.SetCompileOptions(opts)
-    
+
     def SetCCompileOptions(self, opts):
         self.commonConfig.SetCCompileOptions(opts)
-    
+
     def SetCCxxCompileOptions(self, opts):
         self.commonConfig.SetCCxxCompileOptions(opts)
-    
+
     def SetLinkOptions(self, opts):
         self.commonConfig.SetLinkOptions(opts)
-    
+
     def SetPreBuildCommands(self, cmds):
         self.preBuildCommands = cmds
-    
+
     def SetPostBuildCommands(self, cmds):
         self.postBuildCommands = cmds
-    
+
     def SetLibraries(self, libs):
         self.commonConfig.SetLibraries(libs)
-    
+
     def SetLibPath(self, paths):
         self.commonConfig.SetLibPath(paths)
-    
+
     def SetName(self, name):
         self.name = name
-    
+
     def SetCompilerRequired(self, required):
         self.compilerRequired = required
-    
+
     def SetLinkerRequired(self, required):
         self.linkerRequired = required
-    
+
     def SetOutputFileName(self, name):
         self.outputFile = name
-    
+
     def SetIntermediateDirectory(self, dir):
         self.intermediateDirectory = dir
-    
+
     def SetCommand(self, cmd):
         self.command = cmd
-    
+
     def SetCommandArguments(self, cmdArgs):
         self.commandArguments = cmdArgs
-    
+
     def SetWorkingDirectory(self, dir):
         self.workingDirectory = dir
-    
+
     def SetCustomBuildCmd(self, cmd):
         self.customBuildCmd = cmd
-    
+
     def SetCustomCleanCmd(self, cmd):
         self.customCleanCmd = cmd
-    
+
     def SetCustomRebuildCmd(self, cmd):
         self.customRebuildCmd = cmd
 
     def EnableCustomBuild(self, enable):
         self.enableCustomBuild = enable
-    
+
     def SetResCompilerRequired(self, required):
         self.isResCmpNeeded = required
-    
+
     def IsResCompilerRequired(self):
         return self.isResCmpNeeded
-    
+
     def SetResCompileIncludePath(self, paths):
         self.commonConfig.SetResCompileIncludePath(paths)
 
@@ -1012,140 +1024,139 @@ class BuildConfig:
     # special custom rules
     def GetPreBuildCustom(self):
         return self.customPreBuildRule
-    
+
     def GetPostBuildCustom(self):
         return self.customPostBuildRule
-    
+
     def SetPreBuildCustom(self, rule):
         self.customPreBuildRule = rule
-        
+
     def SetPostBuildCustom(self, rule):
         self.customPostBuildRule = rule
 
     def SetCustomBuildWorkingDir(self, customBuildWorkingDir):
         self.customBuildWorkingDir = customBuildWorkingDir
-    
+
     def GetCustomBuildWorkingDir(self):
         return self.customBuildWorkingDir
-    
+
     def SetPauseWhenExecEnds(self, pauseWhenExecEnds):
         self.pauseWhenExecEnds = pauseWhenExecEnds
-    
+
     def GetPauseWhenExecEnds(self):
         return self.pauseWhenExecEnds
-    
+
     def SetMakeGenerationCommand(self, makeGenerationCommand):
         self.makeGenerationCommand = makeGenerationCommand
-    
+
     def SetToolName(self, toolName):
         self.toolName = toolName
-    
+
     def GetMakeGenerationCommand(self):
         return self.makeGenerationCommand
-    
+
     def GetToolName(self):
         return self.toolName
-    
+
     def SetSingleFileBuildCommand(self, cmd):
         self.singleFileBuildCommand = cmd
-    
+
     def GetSingleFileBuildCommand(self):
         return self.singleFileBuildCommand
-    
+
     def SetPreprocessFileCommand(self, cmd):
         self.preprocessFileCommand = cmd
-    
+
     def GetPreprocessFileCommand(self):
         return self.preprocessFileCommand
-    
+
     def GetProjectType(self):
         return self.projectType
-    
+
     def SetProjectType(self, type):
         self.projectType = type
-    
+
     def SetDebuggerStartupCmds(self, cmds):
         self.debuggerStartupCmds = cmds
-    
+
     def GetDebuggerStartupCmds(self):
         return self.debuggerStartupCmds
-    
+
     def SetIsDbgRemoteTarget(self, isDbgRemoteTarget):
         self.isDbgRemoteTarget = isDbgRemoteTarget
-    
+
     def GetIsDbgRemoteTarget(self):
         return self.isDbgRemoteTarget
-    
+
     def SetDbgHostName(self, hostName):
         self.dbgHostPort = hostName
-    
+
     def SetDbgHostPort(self, port):
         self.dbgHostPort = port
-    
+
     def GetDbgHostName(self):
         return self.dbgHostName
-    
+
     def GetDbgHostPort(self):
         return self.dbgHostPort
-    
+
     def SetCustomTargets(self, customTargets):
         self.customTargets = customTargets
-    
+
     def GetCustomTargets(self):
         return self.customTargets
-    
+
     def SetDebuggerPath(self, path):
         self.debuggerPath = path
-    
+
     def GetDebuggerPath(self):
         return self.debuggerPath
-    
+
     def SetDebuggerPostRemoteConnectCmds(self, cmds):
         self.debuggerPostRemoteConnectCmds = cmds
-    
+
     def GetDebuggerPostRemoteConnectCmds(self):
         return self.debuggerPostRemoteConnectCmds
-    
+
     def GetBuildCmpWithGlobalSettings(self):
         return self.buildCmpWithGlobalSettings
-    
+
     def SetBuildCmpWithGlobalSettings(self, buildType):
         self.buildCmpWithGlobalSettings = buildType
-    
+
     def GetBuildLnkWithGlobalSettings(self):
         return self.buildLnkWithGlobalSettings
-    
+
     def SetBuildLnkWithGlobalSettings(self, buildType):
         self.buildLnkWithGlobalSettings = buildType
-    
+
     def GetBuildResWithGlobalSettings(self):
         return self.buildResWithGlobalSettings
-    
+
     def SetBuildResWithGlobalSettings(self, buildType):
         self.buildResWithGlobalSettings = buildType
-    
+
     def GetCommonConfiguration(self):
         return self.commonConfig
-    
+
     def SetPrecompiledHeader(self, precompiledHeader):
         self.precompiledHeader = precompiledHeader
-    
+
     def GetPrecompiledHeader(self):
         return self.precompiledHeader
-    
+
     def SetDbgEnvSet(self, dbgEnvSet):
         self.dbgEnvSet = dbgEnvSet
-    
+
     def SetEnvVarSet(self, envVarSet):
         self.envVarSet = envVarSet
-    
+
     def GetDbgEnvSet(self):
         return self.dbgEnvSet
-    
+
     def GetEnvVarSet(self):
         return self.envVarSet
-    
-    
+
 if __name__ == '__main__':
     ins = BuildConfigCommon()
     ins.cCompileOptions = '-g;-Wall;-O0'
