@@ -2886,7 +2886,10 @@ function! g:VimDialog.SetupSyntaxHighlight()
 	syn match VCCheckCtl '\v\[\zsX\ze\]'
 
 	"通用按钮，按钮字符数至少是 2，为了和复选框区别
-	syn match VCButton '\V[\.\{-2,}]'
+	"syn match VCButton '\V[\.\{-2,}]'
+	" NOTE: 因为尾部的ID字符串可能为']'，所以需要处理这种情况，
+	"       不知道非行尾如何表示？
+	syn match VCButton '\V[\.\{-2,}]\ze\.'
 
 	"字符串过长时的提示符号
 	syn match VCExtend '\V@\ze|'
