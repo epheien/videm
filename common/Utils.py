@@ -132,6 +132,56 @@ def ExpandVariables(sString, dVariables, bTrimVar = False):
 
     return sResult
 
+def ExpandBacktick(exp):
+    # 展开所有命令表达式
+    # 只支持 `` 内的表达式, 不支持 $(shell ) 形式
+    # 因为经常用到在 Makefile 里面的变量, 为了统一, 无法支持 $(shell ) 形式
+    # TODO: 用以下正则匹配脱字符包含的字符串 r'`(?:[^`]|(?<=\\)`)*`'
+    tmpExp = ''
+    i = 0
+    while i < len(exp):
+        c = exp[i]
+        if c == '`':
+            backtick = ''
+            found = False
+            i += 1
+            while i < len(exp):
+                if exp[i] == '`':
+                    found = True
+                    break
+                backtick += exp[i]
+                i += 1
+
+            if not found:
+                print "Syntax error in exp: %s, expecting '`'" % exp
+                return exp
+            else:
+                output = os.popen(backtick).read()
+                tmp = ' '.join([x for x in output.split('\n') if x])
+                tmpExp += tmp
+        else:
+            tmpExp += c
+        i += 1
+
+    return tmpExp
+
+def ExpandAllVariables_SList(exprList, workspace, projName, projConfName = '',
+                             fileName = ''):
+    '''批量展开，经常用到'''
+    from EnvVarSettings import EnvVarSettingsST
+    # 先批量展开内部宏
+    exprList = ExpandAllInterMacros(exprList, workspace, projName,
+                                    projConfName, fileName)
+    result = []
+    for exp in exprList:
+        # 再展开环境变量
+        exp = EnvVarSettingsST.Get().ExpandVariables(exp, trim=True)
+        # 最后展开``
+        exp = ExpandBacktick(exp)
+        # 最最后处理转义的 '$'
+        result.append(exp.replace('$$', '$'))
+    return result
+
 def ExpandAllVariables(expression, workspace, projName, projConfName = '', 
                        fileName = ''):
     '''展开所有变量，所有变量引用的形式都会被替换
@@ -154,46 +204,16 @@ def ExpandAllVariables(expression, workspace, projName, projConfName = '',
     exp = ExpandAllInterMacros(exp, workspace, projName, projConfName, fileName)
     # 再展开环境变量
     exp = EnvVarSettingsST.Get().ExpandVariables(exp, trim=True)
-    tmpExp = ''
-    i = 0
-    # 展开所有命令表达式
-    # 只支持 `` 内的表达式, 不支持 $(shell ) 形式
-    # 因为经常用到在 Makefile 里面的变量, 为了统一, 无法支持 $(shell ) 形式
-    # TODO: 用以下正则匹配脱字符包含的字符串 r'`(?:[^`]|(?<=\\)`)*`'
-    while i < len(exp):
-        c = exp[i]
-        if c == '`':
-            backtick = ''
-            found = False
-            i += 1
-            while i < len(exp):
-                if exp[i] == '`':
-                    found = True
-                    break
-                backtick += exp[i]
-                i += 1
-
-            if not found:
-                print "Syntax error in exp: %s, expecting '`'" % exp
-                return exp
-            else:
-                expandedBacktick = backtick
-                output = os.popen(backtick).read()
-                tmp = ' '.join([x for x in output.split('\n') if x])
-                tmpExp += tmp
-        else:
-            tmpExp += c
-        i += 1
-
-    result = tmpExp
-    # 处理转义的 '$'
-    return result.replace('$$', '$')
+    # 最后展开``
+    exp = ExpandBacktick(exp)
+    # 最最后处理转义的 '$'
+    return exp.replace('$$', '$')
 
 def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
                          fileName = ''):
     '''展开所有内部变量
 
-    expression      - 需要展开的表达式, 可为空
+    expression      - 需要展开的表达式, 可为空，可为列表[str1, str2, ...]
     workspace       - 工作区实例, 可为空
     projName        - 项目名字, 可为空
     projConfName    - 项目构建设置名称, 可为空
@@ -223,7 +243,12 @@ def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
     $(CurrentFilePath)
     $(CurrentFileFullPath)
     '''
-    if not '$' in expression:
+    exprList = []
+    if isinstance(expression, list):
+        exprList = expression
+        expression = exprList[0]
+
+    if not ('$' in expression or exprList):
         return expression
 
     dVariables = {}
@@ -253,10 +278,10 @@ def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
                 dVariables['OutDir'] = imd
 
             # NOTE: 是必定包含忽略的文件的
-            if '$(ProjectFiles)' in expression:
+            if '$(ProjectFiles)' in expression or exprList:
                 dVariables['ProjectFiles'] = \
                         ' '.join([ '"%s"' % i for i in project.GetAllFiles()])
-            if '$(ProjectFilesAbs)' in expression:
+            if '$(ProjectFilesAbs)' in expression or exprList:
                 dVariables['ProjectFilesAbs'] = \
                         ' '.join([ '"%s"' % i for i in project.GetAllFiles(True)])
 
@@ -279,10 +304,12 @@ def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
         dVariables['OutDir'] = imd
         dVariables['IntermediateDirectory'] = dVariables['OutDir']
 
-    # 先这样展开，因为内部变量不允许覆盖，内部变量可以保证不嵌套变量
-    expression = ExpandVariables(expression, dVariables, False)
+    if exprList:
+        result = [ExpandVariables(e, dVariables, False) for e in exprList]
+    else:
+        result = ExpandVariables(expression, dVariables, False)
 
-    return expression
+    return result
 
 #===============================================================================
 # shell 命令展开工具

@@ -33,7 +33,10 @@ from GetTemplateDict import GetTemplateDict
 import Utils
 from Misc import SplitSmclStr, JoinToSmclStr, EscStr4DQ, IsWindowsOS, CmpIC
 from Misc import DirSaver, PosixPath, ToVimEval
-from Utils import IsCCppSourceFile, IsCppHeaderFile, ExpandAllVariables
+from Utils import IsCCppSourceFile, \
+                  IsCppHeaderFile, \
+                  ExpandAllVariables, \
+                  ExpandAllVariables_SList
 from Utils import IsCppSourceFile, GetIncludesFromArgs, GetMacrosFromArgs
 from Macros import CPP_HEADER_EXT, C_SOURCE_EXT, CPP_SOURCE_EXT
 from Notifier import Notifier
@@ -1286,7 +1289,9 @@ class VimLiteWorkspace(object):
         if bldConf.useSepCCEngArgs:
             # FIXME: 理论上应该先分割再展开，但可能有效率问题...
             #        只要展开的变量不存在';'就没有问题...
-            return SplitSmclStr(ExpandAllVariables(bldConf.sepCCEngIncArgs))
+            return ExpandAllVariables_SList(
+                    SplitSmclStr(ExpandAllVariables(bldConf.sepCCEngIncArgs)),
+                    self.VLWIns, projName, name)
         else:
             return self.GetProjectIncludePaths(projName, wspConfName)
 
@@ -1298,7 +1303,9 @@ class VimLiteWorkspace(object):
         if not bldConf:
             return []
         if bldConf.useSepCCEngArgs:
-            return SplitSmclStr(ExpandAllVariables(bldConf.sepCCEngMacArgs))
+            return ExpandAllVariables_SList(
+                    SplitSmclStr(bldConf.sepCCEngMacArgs),
+                    self.VLWIns, projName, name)
         else:
             return self.GetProjectPredefineMacros(projName, wspConfName)
 
@@ -1382,9 +1389,9 @@ class VimLiteWorkspace(object):
             compiler = BuildSettingsST().Get().GetCompilerByName(
                 bldConf.GetCompilerType())
             tmpStr = bldConf.GetIncludePath()
-            tmpStr = ExpandAllVariables(tmpStr, self.VLWIns,
-                                                projName, projConfName)
             tmpIncPaths = SplitSmclStr(tmpStr)
+            tmpIncPaths = ExpandAllVariables_SList(tmpIncPaths, self.VLWIns,
+                                                   projName, projConfName)
             for tmpPath in tmpIncPaths:
                 if not tmpPath:
                     # NOTE: os.path.abspath('') 会返回当前目录
@@ -1393,18 +1400,23 @@ class VimLiteWorkspace(object):
                 includePaths.append(os.path.abspath(tmpPath))
 
             tmpStr = bldConf.GetPreprocessor()
-            tmpStr = ExpandAllVariables(tmpStr, self.VLWIns,
-                                                projName, projConfName)
             predefineMacros += [i.strip()
                                 for i in SplitSmclStr(tmpStr) if i.strip()]
+            predefineMacros = ExpandAllVariables_SList(predefineMacros,
+                                                       self.VLWIns, projName,
+                                                       projConfName)
 
         # NOTE: 编译器选项是一个字符串，而不是列表
-        tmpStr = ' '.join(SplitSmclStr(bldConf.GetCCxxCompileOptions() + ' ' 
-                                       + bldConf.GetCCompileOptions()))
+        li = SplitSmclStr(bldConf.GetCCxxCompileOptions()) \
+                + SplitSmclStr(bldConf.GetCCompileOptions())
+        tmpStr = ' '.join(li)
+        # 这样展开理论上是没问题的，除非配置本身存在错误，例如 '-g;$(', 'x)'
         tmpStr = ExpandAllVariables(tmpStr, self.VLWIns, projName, projConfName)
         cCompileOpts.append(tmpStr)
-        tmpStr = ' '.join(SplitSmclStr(bldConf.GetCCxxCompileOptions() + ' ' 
-                                       + bldConf.GetCompileOptions()))
+        li = SplitSmclStr(bldConf.GetCCxxCompileOptions()) \
+                + SplitSmclStr(bldConf.GetCompileOptions())
+        tmpStr = ' '.join(li)
+        # 同上
         tmpStr = ExpandAllVariables(tmpStr, self.VLWIns, projName, projConfName)
         cppCompileOpts.append(tmpStr)
         if flags & 1:
@@ -2067,12 +2079,12 @@ class VimLiteWorkspace(object):
         if not bldcnf or bldcnf.IsCustomBuild():
             return []
         result = []
-        tmpstr = ExpandAllVariables(bldcnf.GetCCxxCompileOptions(),
-                                    self.VLWIns, projname, confname)
-        result += SplitSmclStr(tmpstr)
-        tmpstr = ExpandAllVariables(bldcnf.GetCCompileOptions(),
-                                    self.VLWIns, projname, confname)
-        result += SplitSmclStr(tmpstr)
+        tmpstr = bldcnf.GetCCxxCompileOptions()
+        result += ExpandAllVariables_SList(SplitSmclStr(tmpstr),
+                                           self.VLWIns, projname, confname)
+        tmpstr = bldcnf.GetCCompileOptions()
+        result += ExpandAllVariables_SList(SplitSmclStr(tmpstr),
+                                           self.VLWIns, projname, confname)
         return result
 
     def GetCompileOptions_Cpp(self, projname, confname):
@@ -2081,12 +2093,12 @@ class VimLiteWorkspace(object):
         if not bldcnf or bldcnf.IsCustomBuild():
             return []
         result = []
-        tmpstr = ExpandAllVariables(bldcnf.GetCCxxCompileOptions(),
-                                    self.VLWIns, projname, confname)
-        result += SplitSmclStr(tmpstr)
-        tmpstr = ExpandAllVariables(bldcnf.GetCompileOptions(),
-                                    self.VLWIns, projname, confname)
-        result += SplitSmclStr(tmpstr)
+        tmpstr = bldcnf.GetCCxxCompileOptions()
+        result += ExpandAllVariables_SList(SplitSmclStr(tmpstr),
+                                           self.VLWIns, projname, confname)
+        tmpstr = bldcnf.GetCompileOptions()
+        result += ExpandAllVariables_SList(SplitSmclStr(tmpstr),
+                                           self.VLWIns, projname, confname)
         return result
 
     def GetCompileOptions_IncludePaths(self, projname, confname,
@@ -2096,8 +2108,8 @@ class VimLiteWorkspace(object):
         if not bldcnf or bldcnf.IsCustomBuild():
             return []
         tmpstr = bldcnf.GetIncludePath()
-        tmpstr = ExpandAllVariables(tmpstr, self.VLWIns, projname, confname)
-        result = SplitSmclStr(tmpstr)
+        result = ExpandAllVariables_SList(SplitSmclStr(tmpstr),
+                                          self.VLWIns, projname, confname)
         if abspath:
             projinst = self.GetProjectInstance(projname)
             for idx, path in enumerate(result):
@@ -2112,8 +2124,8 @@ class VimLiteWorkspace(object):
         if not bldcnf or bldcnf.IsCustomBuild():
             return []
         tmpstr = bldcnf.GetPreprocessor()
-        tmpstr = ExpandAllVariables(tmpstr, self.VLWIns, projname, confname)
-        return SplitSmclStr(tmpstr)
+        return ExpandAllVariables_SList(SplitSmclStr(tmpstr),
+                                        self.VLWIns, projname, confname)
 
     def GetCompilerName(self, projname, confname):
         bldcnf = self.VLWIns.GetProjBuildConf(projname, confname)
