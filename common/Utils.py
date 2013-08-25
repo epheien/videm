@@ -147,6 +147,8 @@ def ExpandAllVariables(expression, workspace, projName, projConfName = '',
     fileName        - 文件名字, 要求为绝对路径, 可为空
 
     RETURN          - 展开后的表达式'''
+    from EnvVarSettings import EnvVarSettingsST
+
     exp = expression
     # 先展开内置宏
     exp = ExpandAllInterMacros(exp, workspace, projName, projConfName, fileName)
@@ -208,8 +210,10 @@ def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
     $(ProjectName)
     $(ProjectPath)
     $(ConfigurationName)
-    $(IntermediateDirectory)    - 这个变量可能嵌套
-    $(OutDir)                   - 这个变量可能嵌套
+    - 这两个个变量可能嵌套
+    - 支持嵌套上面的宏，其他的则不支持
+    $(IntermediateDirectory)
+    $(OutDir)
 
     $(ProjectFiles)
     $(ProjectFilesAbs)
@@ -219,8 +223,6 @@ def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
     $(CurrentFilePath)
     $(CurrentFileFullPath)
     '''
-    from EnvVarSettings import EnvVarSettingsST
-
     if not '$' in expression:
         return expression
 
@@ -245,7 +247,7 @@ def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
                 # 先展开中间目录的变量
                 # 中间目录不能包含自身和自身的别名 $(OutDir)
                 # 可包含的变量为此之前添加的变量
-                imd = EnvVarSettingsST.Get().ExpandVariables(imd)
+                #imd = EnvVarSettingsST.Get().ExpandVariables(imd)
                 imd = ExpandVariables(imd, dVariables)
                 dVariables['IntermediateDirectory'] = imd
                 dVariables['OutDir'] = imd
@@ -273,7 +275,7 @@ def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
         del dVariables['IntermediateDirectory']
         imd = ExpandVariables(imd, dVariables, False)
         # 再展开环境变量
-        imd = EnvVarSettingsST.Get().ExpandVariables(imd, True)
+        #imd = EnvVarSettingsST.Get().ExpandVariables(imd, True)
         dVariables['OutDir'] = imd
         dVariables['IntermediateDirectory'] = dVariables['OutDir']
 
