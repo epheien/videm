@@ -20,7 +20,7 @@ let s:VLCalltips.keepCursor = 1 " 不自动结束没有参数的函数 calltips
 
 function! s:InitVariable(varName, defaultVal) "{{{2
     if !exists(a:varName)
-		let {a:varName} = a:defaultVal
+        let {a:varName} = a:defaultVal
         return 1
     endif
     return 0
@@ -349,4 +349,4 @@ function! s:GetArgIndex() "{{{2
 endfunction
 
 
-" vim:fdm=marker:fen:expandtab:smarttab:fdl=1:
+" vim: fdm=marker fen et sw=4 sts=4 fdl=1
