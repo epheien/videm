@@ -537,8 +537,8 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
         echohl WarningMsg
         echo "NOTE1: Recommend 'yes'."
         echo "NOTE2: It will not change original files."
-        echo "NOTE3: It will override existing VimLite's workspace and "
-                    \. "project files."
+        echo "NOTE3: It will override existing Videm's workspace and "
+                \ . "project files."
         echohl Question
         let sAnswer = input("(y/n): ")
         echohl None
@@ -1388,7 +1388,7 @@ function! s:CreateWorkspace(...) "{{{2
     let tmpCtl1 = ctl
 
     let ctl = g:VCCheckItem.New(
-                \'Create the workspace under a seperate directory')
+                \'Create the workspace under a separate directory')
     call ctl.SetId(2)
     call g:newWspDialog.AddControl(ctl)
     call g:newWspDialog.AddBlankLine()
@@ -1630,7 +1630,7 @@ PYTHON_EOF
     call g:newProjDialog.AddBlankLine()
     let projPathCtl = ctl
 
-    let ctl = g:VCCheckItem.New('Create the project under a seperate directory')
+    let ctl = g:VCCheckItem.New('Create the project under a separate directory')
     call ctl.SetId(2)
     call g:newProjDialog.AddControl(ctl)
     call g:newProjDialog.AddBlankLine()
@@ -3742,6 +3742,9 @@ let s:IDS_PSCtls = [
             \'s:ID_PSCtl_UseSepDbgArgs',
             \'s:ID_PSCtl_DebugArgs',
             \'s:ID_PSCtl_IgnoreFiles',
+            \'s:ID_PSCtl_UseSepCCEArgs',
+            \'s:ID_PSCtl_CCEngIncArgs',
+            \'s:ID_PSCtl_CCEngMacArgs',
             \
             \'s:ID_PSCtl_Cmpl_UseWithGlb',
             \'s:ID_PSCtl_Cmpl_COpts',
@@ -3774,6 +3777,7 @@ let s:IDS_PSCtls = [
 call s:InitEnum(s:IDS_PSCtls, 10)
 let s:GIDS_PSCtls = [
             \'s:GID_PSCtl_SepDbgArgs',
+            \'s:GID_PSCtl_SepCCEArgs',
             \'s:GID_PSCtl_CustomBuild',
             \]
 call s:InitEnum(s:GIDS_PSCtls, 10)
@@ -3795,7 +3799,9 @@ $(CurrentFileFullPath)   Expand to current file full path (path and full name)
 '''
     s = '''\
 ==============================================================================
-##### Available Macros #####
++------------------+
+| Available Macros |
++------------------+
 $(WorkspaceName)         Expand to the workspace name
 $(WorkspacePath)         Expand to the workspace path
 $(ProjectName)           Expand to the project name
@@ -3809,21 +3815,35 @@ $(Date)                  Expand to current date
 `expression`             Evaluates the expression inside the backticks into a 
                          string
 
-VimLite will expand `expression` firstly and then expand above $() macros.
+Videm will expand `expression` firstly and then expand above $() macros.
 
-##### Project Settings #####
-Compiler and linker options are string seperated by ';' and join with ' '.
++----------------+
+|Project Settings|
++----------------+
+##
+## Code Complete Arguments
+##
+"Separate Code Complete Arguments" are only used for VIMCCC, exclude OmniCpp.
+If you use other code complete engine, read its help file.
+
+##
+## Compiler And Linker
+##
+Compiler and linker options are string separated by ';' and join with ' '.
 eg: "-g;-Wall" -> "-g -Wall".
 
 If you need a literal ';', just input ";;".
 eg: "-DSmcl=\;;;-Wall" -> "-DSmcl=\; -Wall".
 
 "Include Paths", "Predefine Macros", "Library Paths" and "Libraries" options
-will be seperated by ';' and modify by corresponding compiler pattern and
+will be separated by ';' and modify by corresponding compiler pattern and
 join with ' '.
 eg: ".;test/include" -> "-I. -Itest/include", and be passed to gcc.
 eg: "stdc++;m" -> "-lstdc++ -lm", and be passed to gcc.
 
+##
+## Misc
+##
 Working directory starts with directory of the project file except set it to a
 absolute path.
 '''
@@ -4023,14 +4043,40 @@ function! s:ProjectSettings_OperateContents(dlg, bIsSave, bUsePreValue) "{{{2
                 endif
             else
                 call ctl.SetValue(confDict['useSepDbgArgs'])
-                call dlg.SetActivatedByGId(
-                            \s:GID_PSCtl_SepDbgArgs, confDict['useSepDbgArgs'])
+                call dlg.SetActivatedByGId(s:GID_PSCtl_SepDbgArgs,
+                        \                  confDict['useSepDbgArgs'])
             endif
         elseif ctlId == s:ID_PSCtl_DebugArgs
             if bIsSave
                 let confDict['dbgArgs'] = ctl.GetValue()
             else
                 call ctl.SetValue(confDict['dbgArgs'])
+            endif
+        elseif ctlId == s:ID_PSCtl_UseSepCCEArgs
+            if bIsSave
+                if ctl.GetValue()
+                    let confDict['useSepCCEngArgs'] = ctl.GetValue()
+                else
+                    " vim 的数字传到 python 之后是字符串
+                    " 要求在布尔上下文中为False即可
+                    let confDict['useSepCCEngArgs'] = ''
+                endif
+            else
+                call ctl.SetValue(confDict['useSepCCEngArgs'])
+                call dlg.SetActivatedByGId(s:GID_PSCtl_SepCCEArgs,
+                        \                  confDict['useSepCCEngArgs'])
+            endif
+        elseif ctlId == s:ID_PSCtl_CCEngIncArgs
+            if bIsSave
+                let confDict['sepCCEngIncArgs'] = ctl.GetValue()
+            else
+                call ctl.SetValue(confDict['sepCCEngIncArgs'])
+            endif
+        elseif ctlId == s:ID_PSCtl_CCEngMacArgs
+            if bIsSave
+                let confDict['sepCCEngMacArgs'] = ctl.GetValue()
+            else
+                call ctl.SetValue(confDict['sepCCEngMacArgs'])
             endif
         elseif ctlId == s:ID_PSCtl_IgnoreFiles
             if bIsSave
@@ -4365,25 +4411,46 @@ function! s:ProjectSettings_CreateDialog(sProjectName) "{{{2
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
 
-    let ctl = g:VCCheckItem.New("Use seperate debug arguments")
+    let ctl = g:VCCheckItem.New("Use Separate Debug Arguments")
     call ctl.SetId(s:ID_PSCtl_UseSepDbgArgs)
     call ctl.SetIndent(8)
     call ctl.ConnectActionPostCallback(s:GetSFuncRef('s:ActiveIfCheckCbk'), 
-                \s:GID_PSCtl_SepDbgArgs)
+            \                          s:GID_PSCtl_SepDbgArgs)
     call dlg.AddControl(ctl)
 
-    let ctl = g:VCSingleText.New("Debug Arguments:")
+    let ctl = g:VCSingleText.New("Separate Debug Arguments:")
     call ctl.SetId(s:ID_PSCtl_DebugArgs)
     call ctl.SetGId(s:GID_PSCtl_SepDbgArgs)
     call ctl.SetIndent(8)
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
+
+    " 其他的一些特殊设置
     let sep = g:VCSeparator.New('-')
     call sep.SetIndent(8)
     call dlg.AddControl(sep)
 
-    let ctl = g:VCMultiText.New("Ignored Files "
-                \. "(Please add/remove them by Workspace popup menus):")
+    " 补全引擎参数
+    let ctl = g:VCCheckItem.New("Use Separate Code Complete Arguments")
+    call ctl.SetId(s:ID_PSCtl_UseSepCCEArgs)
+    call ctl.SetIndent(8)
+    call ctl.ConnectActionPostCallback(s:GetSFuncRef('s:ActiveIfCheckCbk'), 
+            \                          s:GID_PSCtl_SepCCEArgs)
+    call dlg.AddControl(ctl)
+    let ctl = g:VCSingleText.New("Separate Code Complete Include Paths:")
+    call ctl.SetId(s:ID_PSCtl_CCEngIncArgs)
+    call ctl.SetGId(s:GID_PSCtl_SepCCEArgs)
+    call ctl.SetIndent(8)
+    call dlg.AddControl(ctl)
+    let ctl = g:VCSingleText.New("Separate Code Complete Predefine Macros:")
+    call ctl.SetId(s:ID_PSCtl_CCEngMacArgs)
+    call ctl.SetGId(s:GID_PSCtl_SepCCEArgs)
+    call ctl.SetIndent(8)
+    call dlg.AddControl(ctl)
+    call dlg.AddBlankLine()
+
+    let ctl = g:VCMultiText.New(
+            \"Ignored Files (Please add/remove them by Workspace popup menus):")
     call ctl.SetId(s:ID_PSCtl_IgnoreFiles)
     call ctl.SetIndent(8)
     call dlg.AddControl(ctl)

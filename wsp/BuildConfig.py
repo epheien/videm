@@ -362,6 +362,11 @@ class BuildConfig:
         self.ignoredFiles = set() # 忽略的文件集合，元素为文件的工作区路径字符串
                                   # 保存的是工作区路径的相对路径
 
+        # added on 2013-08-05
+        self.useSepCCEngArgs = False
+        self.sepCCEngIncArgs = ''
+        self.sepCCEngMacArgs = ''
+
         if xmlNode:
             self.name = XmlUtils.ReadString(xmlNode, 'Name')
             self.compilerType = XmlUtils.ReadString(xmlNode, 'CompilerType')
@@ -500,13 +505,27 @@ class BuildConfig:
                 self.debugArgs = XmlUtils.ReadString(
                     generalNode, 'DebugArguments')
 
-            # <IgnoredFiles><IgnoredFile Name = "xxx/yyy.c"/></IgnoredFiles>
-            ignoredFilesNode = XmlUtils.FindFirstByTagName(
-                xmlNode, 'IgnoredFiles')
+            # <IgnoredFiles><IgnoredFile Name="xxx/yyy.c"/></IgnoredFiles>
+            ignoredFilesNode = XmlUtils.FindFirstByTagName(xmlNode,
+                                                           'IgnoredFiles')
             if ignoredFilesNode:
                 for i in ignoredFilesNode.childNodes:
                     if i.nodeName == 'IgnoredFile':
                         self.ignoredFiles.add(i.getAttribute('Name').encode('utf-8'))
+
+            # <CodeCompleteEngine UseSeparateArguments="no"
+            #  IncludePaths=""
+            #  PredefineMacros=""/>
+            #
+            codeCompleteEngineNode = XmlUtils.FindFirstByTagName(
+                    xmlNode, 'CodeCompleteEngine')
+            if codeCompleteEngineNode:
+                self.useSepCCEngArgs = XmlUtils.ReadBool(
+                        codeCompleteEngineNode, 'UseSeparateArguments', False)
+                self.sepCCEngIncArgs = codeCompleteEngineNode.getAttribute(
+                        'IncludePaths').encode('utf-8')
+                self.sepCCEngMacArgs = codeCompleteEngineNode.getAttribute(
+                        'PredefineMacros').encode('utf-8')
             
         else:
             # create default project settings
@@ -709,6 +728,16 @@ class BuildConfig:
             ignoredFileNode.setAttribute('Name', i.decode('utf-8'))
             ignoredFilesNode.appendChild(ignoredFileNode)
         node.appendChild(ignoredFilesNode)
+
+        # add "CodeCompleteEngine" node
+        codeCompleteEngineNode = dom.createElement('CodeCompleteEngine')
+        codeCompleteEngineNode.setAttribute('UseSeparateArguments',
+                                            BoolToString(self.useSepCCEngArgs))
+        codeCompleteEngineNode.setAttribute('IncludePaths',
+                                            self.sepCCEngIncArgs)
+        codeCompleteEngineNode.setAttribute('PredefineMacros',
+                                            self.sepCCEngMacArgs)
+        node.appendChild(codeCompleteEngineNode)
         
         return node
 
@@ -729,6 +758,11 @@ class BuildConfig:
         li = list(self.ignoredFiles)
         li.sort()
         d['ignFiles'] = li
+
+        ###
+        d['useSepCCEngArgs'] = 1 if self.useSepCCEngArgs else 0
+        d['sepCCEngIncArgs'] = self.sepCCEngIncArgs
+        d['sepCCEngMacArgs'] = self.sepCCEngMacArgs
 
         d['PCH'] = self.precompiledHeader
         d['cmplOptsFlag'] = self.buildCmpWithGlobalSettings
@@ -758,6 +792,11 @@ class BuildConfig:
         self.useSeparateDebugArgs = d['useSepDbgArgs']
         self.debugArgs = d['dbgArgs']
         self.ignoredFiles = set(d['ignFiles'])
+
+        ###
+        self.useSepCCEngArgs = d['useSepCCEngArgs']
+        self.sepCCEngIncArgs = d['sepCCEngIncArgs']
+        self.sepCCEngMacArgs = d['sepCCEngMacArgs']
 
         self.precompiledHeader = d['PCH']
         self.buildCmpWithGlobalSettings = d['cmplOptsFlag']

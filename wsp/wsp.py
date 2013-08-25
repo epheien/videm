@@ -1277,6 +1277,28 @@ class VimLiteWorkspace(object):
         '''获取用于parser的头文件搜索路径，这些路径*不*用于构建'''
         return self.GetTagsSearchPaths()
 
+    def GetProjectIncludePaths4CodeComplete(self, projName, wspConfName = ''):
+        '''获取用于代码补全的包含路径'''
+        name = self.GetPorjectBuildConfigName(projName, wspConfName)
+        bldConf = self.VLWIns.GetProjBuildConf(projName, name)
+        if not bldConf:
+            return []
+        if bldConf.useSepCCEngArgs:
+            return SplitSmclStr(bldConf.sepCCEngIncArgs)
+        else:
+            return self.GetProjectIncludePaths(projName, wspConfName)
+
+    def GetProjectPredefineMacros4CodeComplete(self, projName, wspConfName = ''):
+        '''获取用于代码补全的预定义宏'''
+        name = self.GetPorjectBuildConfigName(projName, wspConfName)
+        bldConf = self.VLWIns.GetProjBuildConf(projName, name)
+        if not bldConf:
+            return []
+        if bldConf.useSepCCEngArgs:
+            return SplitSmclStr(bldConf.sepCCEngMacArgs)
+        else:
+            return self.GetProjectPredefineMacros(projName, wspConfName)
+
     def GetProjectIncludePaths(self, projName, wspConfName = ''):
         '''获取指定项目指定构建设置的头文件搜索路径，
         包括 C 和 C++ 的，并且会展开编译选项
@@ -1394,37 +1416,57 @@ class VimLiteWorkspace(object):
         if flags & 8:
             # 预定义宏
             results += predefineMacros
-        # FIXME: 根据 switch 来解析命令行，这个设计有待改正
+
+        # 根据 switch 来解析命令行，只支持内置的编译器
+        sw_map_inc = {
+            'VC++': '/I',
+            'clang': '-I',
+            'clang++': '-I',
+            'gnu gcc': '-I',
+            'gnu g++': '-I',
+        }
+        sw_map_mac = {
+            'VC++': '/D',
+            'clang': '-D',
+            'clang++': '-D',
+            'gnu gcc': '-D',
+            'gnu g++': '-D',
+        }
+
         if flags & 16:
             # 解析后的 C 编译器的包含目录
             if compiler and compiler.incPat:
-                sw = compiler.incPat.replace('$(Dir)', '')
-                tmpOpts = ' '.join(cCompileOpts)
-                tmp = GetIncludesFromArgs(tmpOpts, sw)
-                results += [os.path.abspath(i.lstrip(sw))
-                            for i in tmp]
+                sw = sw_map_inc.get(compiler.name, '')
+                if sw:
+                    tmpOpts = ' '.join(cCompileOpts)
+                    tmp = GetIncludesFromArgs(tmpOpts, sw)
+                    results += [os.path.abspath(i.lstrip(sw))
+                                for i in tmp]
         if flags & 32:
             # 解析后的 C++ 编译器的包含目录
             if compiler and compiler.incPat:
-                sw = compiler.incPat.replace('$(Dir)', '')
-                tmpOpts = ' '.join(cppCompileOpts)
-                tmp = GetIncludesFromArgs(tmpOpts, sw)
-                results += [os.path.abspath(i.lstrip(sw))
-                            for i in tmp]
+                sw = sw_map_inc.get(compiler.name, '')
+                if sw:
+                    tmpOpts = ' '.join(cppCompileOpts)
+                    tmp = GetIncludesFromArgs(tmpOpts, sw)
+                    results += [os.path.abspath(i.lstrip(sw))
+                                for i in tmp]
         if flags & 64:
             # 解析后的 C 编译器的预定义宏
             if compiler and compiler.macPat:
-                sw = compiler.macPat.replace('$(Mac)', '')
-                tmpOpts = ' '.join(cCompileOpts)
-                tmp = GetMacrosFromArgs(tmpOpts, sw)
-                results += [i.lstrip(sw) for i in tmp]
+                sw = sw_map_mac.get(compiler.name, '')
+                if sw:
+                    tmpOpts = ' '.join(cCompileOpts)
+                    tmp = GetMacrosFromArgs(tmpOpts, sw)
+                    results += [i.lstrip(sw) for i in tmp]
         if flags & 128:
             # 解析后的 C++ 编译器的预定义宏
             if compiler and compiler.macPat:
-                sw = compiler.macPat.replace('$(Mac)', '')
-                tmpOpts = ' '.join(cppCompileOpts)
-                tmp = GetMacrosFromArgs(tmpOpts, sw)
-                results += [i.lstrip(sw) for i in tmp]
+                sw = sw_map_mac.get(compiler.name, '')
+                if sw:
+                    tmpOpts = ' '.join(cppCompileOpts)
+                    tmp = GetMacrosFromArgs(tmpOpts, sw)
+                    results += [i.lstrip(sw) for i in tmp]
 
         return results
 
