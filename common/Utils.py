@@ -243,13 +243,18 @@ def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
     $(CurrentFilePath)
     $(CurrentFileFullPath)
     '''
+    if not expression:
+        return expression
+
     exprList = []
     if isinstance(expression, list):
+        # 字符串列表
         exprList = expression
         expression = exprList[0]
-
-    if not ('$' in expression or exprList):
-        return expression
+    else:
+        # 字符串
+        if not '$' in expression:
+            return expression
 
     dVariables = {}
 
