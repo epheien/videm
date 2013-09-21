@@ -251,9 +251,10 @@ class Project:
                 if absPath:
                     fileName = os.path.abspath(fileName)
 
-                wspFilePath = JoinWspPath(curWspPath, os.path.basename(fileName))
-                if wspFilePath in ignoredFiles:
-                    #ignoredFiles.remove(wspFilePath)
+                #igfile = JoinWspPath(curWspPath, os.path.basename(fileName))
+                igfile = i.getAttribute('Name')
+                if igfile in ignoredFiles:
+                    #ignoredFiles.remove(igfile)
                     pass
                 else:
                     files.append(fileName)
