@@ -25,6 +25,19 @@ FOLD_PREFIX = '+'
 FILE_PREFIX = '-'
 IGNORED_FILE_PREFIX = '#'
 
+class WspCpbdData(object):
+    '''剪切板数据对象'''
+    def __init__(self, projname = '', data = None):
+        self.projname = projname
+        self.data = data
+
+    def Dump(self):
+        v = self.data
+        if not isinstance(v, list):
+            v = [v]
+        for elem in v:
+            print elem, elem.getAttribute('Name')
+
 class WorkspaceClipboard(object):
     '''工作空间的剪切板，暂时只支持工作空间的虚拟目录节点和文件节点'''
     def __init__(self):
@@ -47,10 +60,7 @@ class WorkspaceClipboard(object):
         if not self.container:
             return
         v = self.Peek()
-        if not isinstance(v, list):
-            v = [v]
-        for elem in v:
-            print elem, elem.getAttribute('Name')
+        v.Dump()
 
 def ConvertWspFileToNewFormat(fileName):
     ins = VLWorkspace(fileName)
@@ -1374,15 +1384,23 @@ class VLWorkspace(object):
             return None
 
         node = self.filesIndex[fileName]
-        parentNode = node.parentNode
-        projName = ''
-        while parentNode:
-            if parentNode.nodeName == 'CodeLite_Project':
-                projName = parentNode.getAttribute('Name')
-                break
-            parentNode = parentNode.parentNode
+        projName = self.GetProjectNameByNode(node)
 
         return self.FindProjectByName(projName)
+
+    def GetProjectNameByNode(self, node):
+        while node:
+            if node.nodeName == 'CodeLite_Project':
+                return node.getAttribute('Name')
+            node = node.parentNode
+        return ''
+
+    def GetProjectNameByLineNum(self, lineNum):
+        '''返回某行所属的项目名字'''
+        datum = self.GetDatumByLineNum(lineNum)
+        if not datum:
+            return ''
+        return self.GetProjectNameByNode(datum['node'])
 
     def GetWspPathByLineNum(self, lineNum):
         '''根据行号获取工作区路径'''
@@ -1779,12 +1797,16 @@ class VLWorkspace(object):
         baseNodeType = self.GetNodeTypeByLineNum(lineNum)
         baseNodeDepth = self.GetNodeDepthByLineNum(lineNum)
 
+        errmsg = ''
+
         if length <= 0:
-            return False
+            errmsg = 'Invalid operation'
+            return False, errmsg
 
         # 暂时只支持剪切目录和文件
         if not (baseNodeType == TYPE_VIRTUALDIRECTORY or baseNodeType == TYPE_FILE):
-            return False
+            errmsg = 'Invalid operation'
+            return False, errmsg
 
         # 现时最简单的处理，只支持剪切同类型同深度的节点
         for i in range(1, length):
@@ -1792,13 +1814,15 @@ class VLWorkspace(object):
             nodeType = self.GetNodeTypeByLineNum(ln)
             nodeDepth = self.GetNodeDepthByLineNum(ln)
             if not (nodeType == baseNodeType and nodeDepth == baseNodeDepth):
-                return False
+                errmsg = 'Invalid operation'
+                return False, errmsg
         else:
-            return True
+            return True, errmsg
 
     def _SanityCheck4PasteNodes(self, lineNum):
         '''
-        # TODO
+        NOTE: 会访问剪切板
+
         * 现时只支持同一个项目内剪切粘贴
 
         * 剪切板内容为单个或多个文件节点
@@ -1808,17 +1832,30 @@ class VLWorkspace(object):
             # 只允许在项目、目录下粘贴
         
         '''
+        errmsg = ''
+        if not self.clipboard.Peek():
+            errmsg = 'Clipboard is empty'
+            return False, errmsg
+
+        cpbdData = self.clipboard.Peek()
+        projName = self.GetProjectNameByLineNum(lineNum)
+        if projName != cpbdData.projname:
+            errmsg = 'Can not cut and paste nodes via different projects'
+            return False, errmsg
+
         nodeType = self.GetNodeTypeByLineNum(lineNum)
         if nodeType == TYPE_VIRTUALDIRECTORY or nodeType == TYPE_PROJECT:
-            return True
+            return True, errmsg
         else:
-            return False
+            return False, errmsg
 
     def CutNodes(self, lineNum, length):
         '''返回剪切成功的行数'''
-        if not self._SanityCheck4CutNodes(lineNum, length):
+        ret, err = self._SanityCheck4CutNodes(lineNum, length)
+        if not ret:
             return 0
 
+        projName = self.GetProjectNameByLineNum(lineNum)
         result = 0
         delNodes = []
         for i in range(length):
@@ -1834,9 +1871,9 @@ class VLWorkspace(object):
             result += self.DeleteNode(lineNum, save)
 
         if length > 1:
-            self.clipboard.Push(delNodes)
+            self.clipboard.Push(WspCpbdData(projName, delNodes))
         else:
-            self.clipboard.Push(delNodes[0])
+            self.clipboard.Push(WspCpbdData(projName, delNodes[0]))
 
         return result
 
@@ -1844,13 +1881,12 @@ class VLWorkspace(object):
         '''返回粘贴成功的行数
         0:  非法操作
         -1: 存在名字冲突'''
-        if not self._SanityCheck4PasteNodes(lineNum):
+        ret, err = self._SanityCheck4PasteNodes(lineNum)
+        if not ret:
             return 0
 
-        if not self.clipboard.Peek():
-            return 0
-
-        v = self.clipboard.Peek()
+        cpbdData = self.clipboard.Peek()
+        v = cpbdData.data
         if not isinstance(v, list):
             v = [v]
 

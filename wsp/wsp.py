@@ -2012,8 +2012,9 @@ class VimLiteWorkspace(object):
         projInst.SetSettings(settings)
 
     def CutNodes(self, row, length):
-        if not self.VLWIns._SanityCheck4CutNodes(row, length):
-            print 'Invalid Operation'
+        ret, err = self.VLWIns._SanityCheck4CutNodes(row, length)
+        if not ret:
+            print err
             return
 
         # 如果节点已经展开，先折叠
@@ -2027,6 +2028,11 @@ class VimLiteWorkspace(object):
             vim.command("call s:RefreshBuffer()")
 
     def PasteNodes(self, row):
+        ret, err = self.VLWIns._SanityCheck4PasteNodes(row)
+        if not ret:
+            print err
+            return
+
         ret = self.VLWIns.PasteNodes(row)
         #print 'row = %d, ret = %d' % (row, ret)
         if ret == 0:
