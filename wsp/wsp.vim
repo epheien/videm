@@ -1186,6 +1186,18 @@ function! s:ToggleHelpInfo(...) "{{{2
     call add(lHelpInfo, sLine)
     call add(lHelpInfo, '')
 
+    let sLine = '" ----------------------------'
+    call add(lHelpInfo, sLine)
+    let sLine = '" Tree node operation~'
+    call add(lHelpInfo, sLine)
+    let sLine = printf('" %s: Cut one node', s:SGet(prefix.'CutOneNode'))
+    call add(lHelpInfo, sLine)
+    let sLine = printf('" %s: Cut nodes (visual mode)', s:SGet(prefix.'CutNodes'))
+    call add(lHelpInfo, sLine)
+    let sLine = printf('" %s: Paste nodes', s:SGet(prefix.'PasteNodes'))
+    call add(lHelpInfo, sLine)
+    call add(lHelpInfo, '')
+
     delfunction s:SGet
 
     if flag == 0
