@@ -53,6 +53,15 @@ def _ConvertIgnoredFiles(project, ignoredFiles):
         if node:
             ignoredFiles.add(node.getAttribute('Name').encode('utf-8'))
 
+def _CleanupIgnoredFiles(project, ignoredFiles):
+    '''清理无效的条目'''
+    cp = ignoredFiles.copy()
+    ignoredFiles.clear()
+    s = set(project.GetAllFiles())
+    for elem in cp:
+        if elem in s:
+            ignoredFiles.add(elem)
+
 def JoinWspPath(a, *p):
     """Join two or more pathname components, inserting WSP_PATH_SEP as needed.
     If any component is an absolute path, all previous path components
@@ -125,11 +134,14 @@ class Project:
 
     def _ConvertSettings(self):
         '''兼容处理'''
-        if self.version < 100:
-            bldConf = self.settings.GetFirstBuildConfiguration()
-            while bldConf:
+        bldConf = self.settings.GetFirstBuildConfiguration()
+        while bldConf:
+            if self.version < 100:
                 _ConvertIgnoredFiles(self, bldConf.ignoredFiles)
-                bldConf = self.settings.GetNextBuildConfiguration()
+            else:
+                # 清掉无效的条目
+                _CleanupIgnoredFiles(self, bldConf.ignoredFiles)
+            bldConf = self.settings.GetNextBuildConfiguration()
         # 更新版本号，不保存，除非明确要求
         self.version = PROJECT_VERSION
         self.rootNode.setAttribute('Version', str(self.version))

@@ -397,7 +397,8 @@ class VLWorkspace(object):
         return result
 
     def DisableFileByLineNum(self, lineNum, autoSave = True):
-        '''禁用行号指定的文件，成功返回行号，失败返回 0'''
+        '''禁用行号指定的文件，成功返回行号，失败返回 0
+        保存的就是 xml 节点的 "Name" 的属性的值'''
         datum = self.GetDatumByLineNum(lineNum)
         nodeType = self.GetNodeTypeByLineNum(lineNum)
         if not datum or nodeType != TYPE_FILE:
