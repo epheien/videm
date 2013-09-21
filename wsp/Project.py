@@ -55,6 +55,8 @@ def _ConvertIgnoredFiles(project, ignoredFiles):
 
 def _CleanupIgnoredFiles(project, ignoredFiles):
     '''清理无效的条目'''
+    if not ignoredFiles:
+        return
     cp = ignoredFiles.copy()
     ignoredFiles.clear()
     s = set(project.GetAllFiles())
