@@ -131,17 +131,22 @@ class Project:
                 self.rootNode, 'Settings'))
 
             self._ConvertSettings()
+            self._CleanupSettings()
+
+    def _CleanupSettings(self):
+        bldConf = self.settings.GetFirstBuildConfiguration()
+        while bldConf:
+            # 清掉无效的条目
+            _CleanupIgnoredFiles(self, bldConf.ignoredFiles)
+            bldConf = self.settings.GetNextBuildConfiguration()
 
     def _ConvertSettings(self):
         '''兼容处理'''
-        bldConf = self.settings.GetFirstBuildConfiguration()
-        while bldConf:
-            if self.version < 100:
+        if self.version < 100:
+            bldConf = self.settings.GetFirstBuildConfiguration()
+            while bldConf:
                 _ConvertIgnoredFiles(self, bldConf.ignoredFiles)
-            else:
-                # 清掉无效的条目
-                _CleanupIgnoredFiles(self, bldConf.ignoredFiles)
-            bldConf = self.settings.GetNextBuildConfiguration()
+                bldConf = self.settings.GetNextBuildConfiguration()
         # 更新版本号，不保存，除非明确要求
         self.version = PROJECT_VERSION
         self.rootNode.setAttribute('Version', str(self.version))
