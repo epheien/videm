@@ -1986,6 +1986,33 @@ class VimLiteWorkspace(object):
         settings.globalSettings.FromDict(glbCnfDict)
         projInst.SetSettings(settings)
 
+    def CutNodes(self, row, length):
+        if not self.VLWIns._SanityCheck4CutNodes(row, length):
+            print 'Invalid Operation'
+            return
+
+        # 如果节点已经展开，先折叠
+        if self.VLWIns.IsNodeExpand(row):
+            self.FoldNode()
+
+        ret = self.VLWIns.CutNodes(row, length)
+        #print 'row = %d, length = %d, ret = %d' % (row, length, ret)
+        if ret > 0:
+            # 剪切操作的刷新比较麻烦，暂时如此处理
+            vim.command("call s:RefreshBuffer()")
+
+    def PasteNodes(self, row):
+        ret = self.VLWIns.PasteNodes(row)
+        #print 'row = %d, ret = %d' % (row, ret)
+        if ret == 0:
+            print 'Invalid Operation'
+        elif ret == -1:
+            print 'Name Conflict'
+        elif ret > 0:
+            vim.command("call s:RefreshBuffer()")
+            # 粘贴成功的话，顺便展开
+            self.ExpandNode()
+
     #===========================================================================
     # 基本操作 ===== 结束
     #===========================================================================

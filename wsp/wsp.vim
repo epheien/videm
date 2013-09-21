@@ -177,6 +177,9 @@ let s:DefaultSettings = {
     \ '.videm.wsp.keybind.GotoPrevSibling'  : '<C-p>',
     \ '.videm.wsp.keybind.RefreshBuffer'    : 'R',
     \ '.videm.wsp.keybind.ToggleHelpInfo'   : '<F1>',
+    \ '.videm.wsp.keybind.CutOneNode'       : 'dd',
+    \ '.videm.wsp.keybind.CutNodes'         : 'd',
+    \ '.videm.wsp.keybind.PasteNodes'       : '<C-p>',
     \
     \ '.videm.cc.Current'       : 'omnicpp',
     \ '.videm.symdb.Current'    : 'gtags',
@@ -737,6 +740,16 @@ function! s:SetupKeyMappings() "设置键盘映射 {{{2
     exec 'nnoremap <silent> <buffer>'
             \ videm#settings#Get('.videm.wsp.keybind.ToggleHelpInfo')
             \ ':call <SID>ToggleHelpInfo()<CR>'
+
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.CutOneNode')
+            \ ':call <SID>CutOneNode()<CR>'
+    exec 'xnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.CutNodes')
+            \ ':<C-u>call <SID>CutNodes()<CR>'
+    exec 'nnoremap <silent> <buffer>'
+            \ videm#settings#Get('.videm.wsp.keybind.PasteNodes')
+            \ ':call <SID>PasteNodes()<CR>'
 endfunction
 
 
@@ -1257,6 +1270,24 @@ function! s:ToggleBriefHelp(...) "{{{2
             return s:ToggleBriefHelp(1)
         endif
     endif
+endfunction
+"}}}
+function! s:CutOneNode() "{{{2
+    let row = line('.')
+    py ws.CutNodes(int(vim.eval('row')), 1)
+endfunction
+"}}}
+function! s:CutNodes() "{{{2
+    let start = line("'<")
+    let end = line("'>")
+    let length = end - start + 1
+
+    py ws.CutNodes(int(vim.eval('start')), int(vim.eval('length')))
+endfunction
+"}}}
+function! s:PasteNodes() "{{{2
+    let row = line('.')
+    py ws.PasteNodes(int(vim.eval('row')))
 endfunction
 "}}}
 "}}}1

@@ -25,6 +25,33 @@ FOLD_PREFIX = '+'
 FILE_PREFIX = '-'
 IGNORED_FILE_PREFIX = '#'
 
+class WorkspaceClipboard(object):
+    '''工作空间的剪切板，暂时只支持工作空间的虚拟目录节点和文件节点'''
+    def __init__(self):
+        self.container = []
+
+    def Push(self, v):
+        self.container.append(v)
+
+    def Pop(self):
+        if self.container:
+            return self.container.pop(-1)
+        return None
+
+    def Peek(self):
+        if self.container:
+            return self.container[-1]
+        return None
+
+    def Dump(self):
+        if not self.container:
+            return
+        v = self.Peek()
+        if not isinstance(v, list):
+            v = [v]
+        for elem in v:
+            print elem, elem.getAttribute('Name')
+
 def ConvertWspFileToNewFormat(fileName):
     ins = VLWorkspace(fileName)
     ins.ConvertToNewFileFormat()
@@ -224,6 +251,9 @@ class VLWorkspace(object):
 
         # 状态
         self.status = type(self).STATUS_CLOSED
+
+        # 剪切板
+        self.clipboard = WorkspaceClipboard()
 
         if fileName:
             try:
@@ -1110,11 +1140,12 @@ class VLWorkspace(object):
 
         #TODO: 重新排序
 
-    def DeleteNode(self, lineNum):
+    def DeleteNode(self, lineNum, save = True):
         '''返回删除的行数，也即为 Vim 显示中减少的行数。
         支持项目、虚拟目录、文件'''
         index = self.DoGetIndexByLineNum(lineNum)
-        if index < 0: return 0
+        if index < 0:
+            return 0
 
         type = self.GetNodeType(lineNum)
         if type != TYPE_VIRTUALDIRECTORY and type != TYPE_FILE \
@@ -1169,10 +1200,11 @@ class VLWorkspace(object):
         del self.vimLineData[ index : index + delLineCount ]
 
         # 保存改变
-        if type == TYPE_PROJECT:
-            self.Save()
-        else:
-            project.Save()
+        if save:
+            if type == TYPE_PROJECT:
+                self.Save()
+            else:
+                project.Save()
 
         return delLineCount
 
@@ -1741,6 +1773,125 @@ class VLWorkspace(object):
 
         matrix.SetSelectedConfigurationName(selConfName)
         self.SetBuildMatrix(matrix)
+
+    def _SanityCheck4CutNodes(self, lineNum, length):
+        '''无问题，返回True，否则返回False'''
+        baseNodeType = self.GetNodeTypeByLineNum(lineNum)
+        baseNodeDepth = self.GetNodeDepthByLineNum(lineNum)
+
+        if length <= 0:
+            return False
+
+        # 暂时只支持剪切目录和文件
+        if not (baseNodeType == TYPE_VIRTUALDIRECTORY or baseNodeType == TYPE_FILE):
+            return False
+
+        # 现时最简单的处理，只支持剪切同类型同深度的节点
+        for i in range(1, length):
+            ln = lineNum + i
+            nodeType = self.GetNodeTypeByLineNum(ln)
+            nodeDepth = self.GetNodeDepthByLineNum(ln)
+            if not (nodeType == baseNodeType and nodeDepth == baseNodeDepth):
+                return False
+        else:
+            return True
+
+    def _SanityCheck4PasteNodes(self, lineNum):
+        '''
+        # TODO
+        * 现时只支持同一个项目内剪切粘贴
+
+        * 剪切板内容为单个或多个文件节点
+            # 只允许在项目、目录下粘贴
+
+        * 剪切板内容为单个或多个目录节点
+            # 只允许在项目、目录下粘贴
+        
+        '''
+        nodeType = self.GetNodeTypeByLineNum(lineNum)
+        if nodeType == TYPE_VIRTUALDIRECTORY or nodeType == TYPE_PROJECT:
+            return True
+        else:
+            return False
+
+    def CutNodes(self, lineNum, length):
+        '''返回剪切成功的行数'''
+        if not self._SanityCheck4CutNodes(lineNum, length):
+            return 0
+
+        result = 0
+        delNodes = []
+        for i in range(length):
+            save = False
+            if i == length - 1:
+                save = True
+
+            # 删除的索引是一直不变的，因为节点一直往上推
+            datum = self.GetDatumByLineNum(lineNum)
+            # 保存的节点
+            delNodes.append(datum['node'])
+            # 实际的删除操作
+            result += self.DeleteNode(lineNum, save)
+
+        if length > 1:
+            self.clipboard.Push(delNodes)
+        else:
+            self.clipboard.Push(delNodes[0])
+
+        return result
+
+    def PasteNodes(self, lineNum):
+        '''返回粘贴成功的行数
+        0:  非法操作
+        -1: 存在名字冲突'''
+        if not self._SanityCheck4PasteNodes(lineNum):
+            return 0
+
+        if not self.clipboard.Peek():
+            return 0
+
+        v = self.clipboard.Peek()
+        if not isinstance(v, list):
+            v = [v]
+
+        datum = self.GetDatumByLineNum(lineNum)
+        parentNode = datum['node']
+        # 要检查名字冲突...
+        for node in v:
+            # 每个节点分别检查名字冲突
+            name = node.getAttribute('Name')
+            if self.DoCheckNameConflict(parentNode, name):
+                return -1
+
+        # 清掉
+        self.clipboard.Pop()
+
+        result = 0
+        # ok，所有检查已经过关，粘贴
+        nodeType = self.DoGetTypeOfNode(v[0])
+        if   nodeType == TYPE_FILE:
+            vlen = len(v)
+            for idx, node in enumerate(v):
+                save = False
+                if idx == vlen - 1:
+                    save = True
+                name = node.getAttribute('Name')
+                result += self.DoAddVdirOrFileNode(lineNum, nodeType, name,
+                                                   save, insertingNode = node)
+        elif nodeType == TYPE_VIRTUALDIRECTORY:
+            vlen = len(v)
+            for idx, node in enumerate(v):
+                save = False
+                if idx == vlen - 1:
+                    save = True
+                name = node.getAttribute('Name')
+                result += self.DoAddVdirOrFileNode(lineNum, nodeType, name,
+                                                   save, insertingNode = node)
+        else:
+            pass
+
+        # FIXME: 现在这个返回值毫无意义
+        return result
 
 #=====
 
