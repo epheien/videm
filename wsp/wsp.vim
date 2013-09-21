@@ -4141,7 +4141,10 @@ function! s:ProjectSettings_OperateContents(dlg, bIsSave, bUsePreValue) "{{{2
                 " 这个是不允许修改的，所以不用保存了
                 "let confDict['ignFiles'] = ctl.GetValue()
             else
-                call ctl.SetValue(confDict['ignFiles'])
+                "call ctl.SetValue(confDict['ignFiles'])
+                py vim.command("call ctl.SetValue(%s)" % ToVimEval(
+                        \        PrettyIgnoredFiles(vim.eval('sProjectName'),
+                        \               vim.eval("confDict['ignFiles']"))))
             endif
         elseif ctlId == s:ID_PSCtl_Cmpl_UseWithGlb
             if bIsSave

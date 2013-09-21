@@ -38,10 +38,26 @@ from Utils import IsCCppSourceFile, \
                   ExpandAllVariables, \
                   ExpandAllVariables_SList
 from Utils import IsCppSourceFile, GetIncludesFromArgs, GetMacrosFromArgs
-from Macros import CPP_HEADER_EXT, C_SOURCE_EXT, CPP_SOURCE_EXT
+from Macros import CPP_HEADER_EXT, C_SOURCE_EXT, CPP_SOURCE_EXT, WSP_PATH_SEP
 from Notifier import Notifier
 
 VimLiteDir = vim.eval('g:VidemDir')
+
+def ToAbsPath(project, path):
+    ds = DirSaver()
+    os.chdir(project.dirName)
+    return os.path.abspath(path)
+
+def PrettyIgnoredFiles(projName, ignFiles):
+    project = ws.VLWIns.FindProjectByName(projName)
+    result = []
+    for igf in ignFiles:
+        wp = ws.VLWIns.GetWspFilePathByFileName(ToAbsPath(project, igf))
+        if not wp:
+            continue
+        wp = wp.partition(WSP_PATH_SEP)[2].partition(WSP_PATH_SEP)[2]
+        result.append(wp)
+    return result
 
 def GenerateMenuList(li):
     liLen = len(li)

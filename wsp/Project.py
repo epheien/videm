@@ -10,6 +10,48 @@ from ProjectSettings import ProjectSettings
 from Macros import WSP_PATH_SEP, PROJECT_FILE_SUFFIX
 from Misc import GetMTime, DirSaver, IsWindowsOS
 
+# 项目配置文件的版本
+PROJECT_VERSION = 100
+
+def _GetNodeByIgnoredPath(project, path):
+    ps = path.split('/')
+    node = project.rootNode
+    # 遍历路径
+    for idx, p in enumerate(ps[:-1]):
+        # 逐个路径寻找
+        for child in node.childNodes:
+            if child.nodeName == 'VirtualDirectory' or child.nodeName == 'File':
+                name = child.getAttribute('Name')
+                if name == p:
+                    node = child
+                    #print name
+                    break
+        else:
+            # 遍历完毕都找不到的话，就是找不到
+            return None
+
+    if node is project.rootNode or node.nodeName == 'File':
+        return None
+
+    # 叶子节点的查找
+    for child in node.childNodes:
+        if child.nodeName == 'File':
+            # 详细检查
+            if os.path.basename(child.getAttribute('Name')) == ps[-1]:
+                #print 'OK,', child.getAttribute('Name')
+                return child
+    else:
+        return None
+
+def _ConvertIgnoredFiles(project, ignoredFiles):
+    '''转换，用于兼容老的配置方式'''
+    cp = ignoredFiles.copy()
+    ignoredFiles.clear()
+    for elem in cp:
+        # 人肉转，因为要减少依赖
+        node = _GetNodeByIgnoredPath(project, elem)
+        if node:
+            ignoredFiles.add(node.getAttribute('Name').encode('utf-8'))
 
 def JoinWspPath(a, *p):
     """Join two or more pathname components, inserting WSP_PATH_SEP as needed.
@@ -54,6 +96,9 @@ class Project:
         self.tranActive = False
         self.modifyTime = 0
         self.settings = None
+
+        self.version = 0
+
         if fileName:
             try:
                 self.doc = minidom.parse(fileName)
@@ -61,8 +106,12 @@ class Project:
                 print 'Invalid fileName:', fileName
                 raise IOError
             self.rootNode = XmlUtils.GetRoot(self.doc)
-            self.name = XmlUtils.GetRoot(self.doc).getAttribute('Name')\
-                    .encode('utf-8')
+            self.name = self.rootNode.getAttribute('Name').encode('utf-8')
+
+            # 添加版本号
+            if self.rootNode.hasAttribute('Version'):
+                self.version = int(self.rootNode.getAttribute('Version'))
+
             # 绝对路径
             self.fileName = os.path.abspath(fileName)
             # NOTE: 还必须是真实路径
@@ -71,6 +120,19 @@ class Project:
             self.modifyTime = GetMTime(fileName)
             self.settings = ProjectSettings(XmlUtils.FindFirstByTagName(
                 self.rootNode, 'Settings'))
+
+            self._ConvertSettings()
+
+    def _ConvertSettings(self):
+        '''兼容处理'''
+        if self.version < 100:
+            bldConf = self.settings.GetFirstBuildConfiguration()
+            while bldConf:
+                _ConvertIgnoredFiles(self, bldConf.ignoredFiles)
+                bldConf = self.settings.GetNextBuildConfiguration()
+        # 更新版本号，不保存，除非明确要求
+        self.version = PROJECT_VERSION
+        self.rootNode.setAttribute('Version', str(self.version))
 
     def GetName(self):
         '''Get project name'''

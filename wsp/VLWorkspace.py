@@ -357,11 +357,12 @@ class VLWorkspace(object):
         # 获取非副本
         bldConf = settings.GetBuildConfiguration(projSelConfName, False)
 
-        fileWspPath = GetWspPathByNode(datum['node'])
-        relFileWspPath = fileWspPath.partition(WSP_PATH_SEP)[2]\
-                .partition(WSP_PATH_SEP)[2]
+        #fileWspPath = GetWspPathByNode(datum['node'])
+        #igfile = fileWspPath.partition(WSP_PATH_SEP)[2]\
+                #.partition(WSP_PATH_SEP)[2]
+        igfile = datum['node'].getAttribute('Name')
 
-        if relFileWspPath in bldConf.ignoredFiles:
+        if igfile in bldConf.ignoredFiles:
             return True
         else:
             return False
@@ -373,15 +374,18 @@ class VLWorkspace(object):
         if not datum or nodeType != TYPE_FILE:
             return 0
 
-        fileWspPath = GetWspPathByNode(datum['node'])
-        relFileWspPath = fileWspPath.partition(WSP_PATH_SEP)[2]\
-                .partition(WSP_PATH_SEP)[2]
+        #fileWspPath = GetWspPathByNode(datum['node'])
+        #igfile = fileWspPath.partition(WSP_PATH_SEP)[2]\
+                #.partition(WSP_PATH_SEP)[2]
+
+        # 使用xml节点保存的名字
+        igfile = datum['node'].getAttribute('Name')
 
         result = 0
 
         ignoredFiles = self.GetCurIgnoredFilesByDatum(datum)
         try:
-            ignoredFiles.remove(relFileWspPath)
+            ignoredFiles.remove(igfile)
         except KeyError:
             result = 0
         else:
@@ -399,17 +403,18 @@ class VLWorkspace(object):
         if not datum or nodeType != TYPE_FILE:
             return 0
 
-        fileWspPath = GetWspPathByNode(datum['node'])
-        relFileWspPath = fileWspPath.partition(WSP_PATH_SEP)[2]\
-                .partition(WSP_PATH_SEP)[2]
+        #fileWspPath = GetWspPathByNode(datum['node'])
+        #igfile = fileWspPath.partition(WSP_PATH_SEP)[2]\
+                #.partition(WSP_PATH_SEP)[2]
+        igfile = datum['node'].getAttribute('Name')
 
         result = 0
 
         ignoredFiles = self.GetCurIgnoredFilesByDatum(datum)
-        if relFileWspPath in ignoredFiles:
+        if igfile in ignoredFiles:
             result = 0
         else:
-            ignoredFiles.add(relFileWspPath)
+            ignoredFiles.add(igfile)
             result = lineNum
 
         if autoSave:
