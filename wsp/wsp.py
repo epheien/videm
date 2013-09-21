@@ -216,9 +216,16 @@ class VimLiteWorkspace(object):
 #            'Build Order... (Unrealized)', 
 #            'Re-Tag Project (Unrealized)', 
 #            'Sort Items (Unrealized)', 
+            'Add a New File...', 
+            'Add Existing Files...', 
+            '-Sep7-',
             'New Virtual Folder...', 
             'Import Files From Directory...', 
             '-Sep4-', 
+            'Enable Files (Non-Recursive)',
+            'Disable Files (Non-Recursive)',
+            'Swap Enabling (Non-Recursive)',
+            '-Sep8-',
 #            'Rename Project... (Unrealized)', 
             'Remove Project', 
             '-Sep5-', 
@@ -1632,6 +1639,66 @@ class VimLiteWorkspace(object):
         for d in importDirs:
             self.ImportFilesFromDirectory(row, d, filters)
 
+    def __MenuOper_AddANewFile(self, row, useGui = True):
+        project = self.VLWIns.GetDatumByLineNum(row)['project']
+        # NOTE: gnome 3 中的这个函数已经无法输入文件名了，禁用掉
+        if useGui and vim.eval('has("browse")') != '0' and False:
+            name = vim.eval('browse("", "Add a New File...", "%s", "")' 
+                % project.dirName)
+            # 若返回相对路径, 是相对于当前工作目录的相对路径
+            if name:
+                name = os.path.abspath(name)
+        else:
+            name = vim.eval(
+                'inputdialog("\nEnter the File Name to be created:\n'
+                '(CWD is: %s)\n")' % ToVimEval(project.dirName))
+        if name:
+            ds = DirSaver()
+            try:
+                # 若文件不存在, 创建之
+                if project.dirName:
+                    os.chdir(project.dirName)
+                if not os.path.exists(name):
+                    try:
+                        os.makedirs(os.path.dirname(name))
+                    except OSError:
+                        pass
+                    os.mknod(name, 0644)
+            except:
+                # 创建文件失败
+                print "Can not create the new file: '%s'" % name
+                return
+            del ds
+            self.AddFileNode(row, name)
+
+    def __MenuOper_AddExistingFiles(self, row, useGui = True):
+        project = self.VLWIns.GetDatumByLineNum(row)['project']
+        ds = DirSaver()
+        try:
+            if project.dirName:
+                os.chdir(project.dirName)
+        except OSError:
+            print "chdir failed, cwd is: %s" % os.getcwd()
+        if useGui and vim.eval("executable('zenity')") == '1':
+            # zenity 返回的是绝对路径
+            names = vim.eval('system(\'zenity --file-selection ' \
+                    '--multiple --title="Add Existing Files"' \
+                    ' 2>/dev/null\')')
+            names = names[:-1].split('|')
+            self.AddFileNodes(row, names)
+        else:
+            names = vim.eval(
+                'vlutils#Inputs("\nEnter the file name to be added:\n",'
+                ' "", "file")')
+            li = []
+            for name in names:
+                if not os.path.exists(name):
+                    print '%s not found, ignore' % name
+                    continue
+                li.append(os.path.abspath(name))
+            self.AddFileNodes(row, li)
+        del ds
+
     def MenuOperation(self, menu, useGui = True):
         row, col = self.window.cursor
         nodeType = self.VLWIns.GetNodeTypeByLineNum(row)
@@ -1722,6 +1789,10 @@ class VimLiteWorkspace(object):
             elif choice == 'Set As Active':
                 self.VLWIns.SetActiveProjectByLineNum(row)
                 self.HlActiveProject()
+            elif choice == 'Add a New File...':
+                self.__MenuOper_AddANewFile(row, useGui)
+            elif choice == 'Add Existing Files...':
+                self.__MenuOper_AddExistingFiles(row, useGui)
             elif choice == 'New Virtual Folder...':
                 name = vim.eval(
                     'inputdialog("\nEnter the Virtual Directory Name:\n")')
@@ -1732,6 +1803,12 @@ class VimLiteWorkspace(object):
                 os.chdir(project.dirName)
                 self.__MenuOper_ImportFilesFromDirectory(row, useGui)
                 del ds
+            elif choice == 'Enable Files (Non-Recursive)':
+                self.SetEnablingOfVirDir(row, choice)
+            elif choice == 'Disable Files (Non-Recursive)':
+                self.SetEnablingOfVirDir(row, choice)
+            elif choice == 'Swap Enabling (Non-Recursive)':
+                self.SetEnablingOfVirDir(row, choice)
             elif choice == 'Remove Project':
                 input = vim.eval('confirm("\nAre you sure to remove project '\
                 '\\"%s\\" ?", ' '"&Yes\n&No\n&Cancel")' % EscStr4DQ(projName))
@@ -1778,61 +1855,9 @@ class VimLiteWorkspace(object):
             project = self.VLWIns.GetDatumByLineNum(row)['project']
             projName = project.GetName()
             if choice == 'Add a New File...':
-                # NOTE: gnome 3 中的这个函数已经无法输入文件名了，禁用掉
-                if useGui and vim.eval('has("browse")') != '0' and False:
-                    name = vim.eval('browse("", "Add a New File...", "%s", "")' 
-                        % project.dirName)
-                    # 若返回相对路径, 是相对于当前工作目录的相对路径
-                    if name:
-                        name = os.path.abspath(name)
-                else:
-                    name = vim.eval(
-                        'inputdialog("\nEnter the File Name to be created:\n'
-                        '(CWD is: %s)\n")' % ToVimEval(project.dirName))
-                if name:
-                    ds = DirSaver()
-                    try:
-                        # 若文件不存在, 创建之
-                        if project.dirName:
-                            os.chdir(project.dirName)
-                        if not os.path.exists(name):
-                            try:
-                                os.makedirs(os.path.dirname(name))
-                            except OSError:
-                                pass
-                            os.mknod(name, 0644)
-                    except:
-                        # 创建文件失败
-                        print "Can not create the new file: '%s'" % name
-                        return
-                    del ds
-                    self.AddFileNode(row, name)
+                self.__MenuOper_AddANewFile(row, useGui)
             elif choice == 'Add Existing Files...':
-                ds = DirSaver()
-                try:
-                    if project.dirName:
-                        os.chdir(project.dirName)
-                except OSError:
-                    print "chdir failed, cwd is: %s" % os.getcwd()
-                if useGui and vim.eval("executable('zenity')") == '1':
-                    # zenity 返回的是绝对路径
-                    names = vim.eval('system(\'zenity --file-selection ' \
-                            '--multiple --title="Add Existing Files"' \
-                            ' 2>/dev/null\')')
-                    names = names[:-1].split('|')
-                    self.AddFileNodes(row, names)
-                else:
-                    names = vim.eval(
-                        'vlutils#Inputs("\nEnter the file name to be added:\n",'
-                        ' "", "file")')
-                    li = []
-                    for name in names:
-                        if not os.path.exists(name):
-                            print '%s not found, ignore' % name
-                            continue
-                        li.append(os.path.abspath(name))
-                    self.AddFileNodes(row, li)
-                del ds
+                self.__MenuOper_AddExistingFiles(row, useGui)
             elif choice == 'New Virtual Folder...':
                 name = vim.eval(
                     'inputdialog("\nEnter the Virtual Directory Name:\n")')
