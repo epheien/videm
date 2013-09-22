@@ -1979,8 +1979,8 @@ class VimLiteWorkspace(object):
         f(startLnum, False)
         f(startLnum, True) # 保存
 
+        #print startLnum, endLnum + 1
         # 简单处理，刷新遍历过的全部节点
-        print startLnum, endLnum + 1
         self.RefreshLines(startLnum, endLnum + 1)
 
     def GetProjectCurrentConfigName(self, projName):
