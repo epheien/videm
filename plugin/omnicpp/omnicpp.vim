@@ -143,7 +143,7 @@ class ParseCurrentFileThread(threading.Thread):
 PYTHON_EOF
     endif
 
-    " NOTE: 不是c或c++类型的文件，不继续，这个判断可能和VimLite的py模块不一致
+    " NOTE: 不是c或c++类型的文件，不继续，这个判断可能和Videm的py模块不一致
     if &filetype !=# 'c' && &filetype !=# 'cpp'
         return
     endif
@@ -514,6 +514,9 @@ function! videm#plugin#omnicpp#Disable() "{{{2
     py VidemWorkspace.UnregDelNodePostHook(DelNodePostHook, 0)
     py VidemWorkspace.UnregRnmNodePostHook(RnmNodePostHook, 0)
     py VidemWorkspace.wsp_ntf.Unregister(VidemWspOmniCppHook, 0)
+    " 删除自动命令前先用自动命令进行清理
+    doautocmd VidemCCOmniCpp VimLeave *
+    " 删除自动命令
     augroup VidemCCOmniCpp
         autocmd!
     augroup END
