@@ -897,8 +897,7 @@ function! s:InstallMenuBarMenu() "{{{2
                 \:call <SID>EnvVarSettings()<CR>
 
 endfunction
-
-
+"}}}
 function! s:InstallToolBarMenu() "{{{2
     "anoremenu 1.500 ToolBar.-Sep15- <Nop>
 
@@ -917,8 +916,28 @@ function! s:InstallToolBarMenu() "{{{2
 
     let &runtimepath = rtp_bak
 endfunction
+"}}}
+function! s:IsWorkspaceFile(file)
+    py if ws.VLWIns.IsWorkspaceFile(vim.eval("a:file")):
+            \ vim.command('return 1')
+    return 0
+endfunction
+" 关闭所有打开的工作空间的文件的缓冲区
+function! s:CloseWorkspaceFiles() "{{{2
+    let buffer_count = bufnr('$')
+    for idx in range(1, buffer_count)
+        if !bufloaded(idx)
+            continue
+        endif
 
-
+        let filename = fnamemodify(bufname(idx), ':p')
+        if s:IsWorkspaceFile(filename)
+            " TODO 需要优雅的删除方式
+            exec 'confirm bdelete' idx
+        endif
+    endfor
+endfunction
+"}}}
 "}}}1
 "===============================================================================
 "===============================================================================

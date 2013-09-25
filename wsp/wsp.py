@@ -353,8 +353,10 @@ class VimLiteWorkspace(object):
         if not self.IsOpen():
             return
         VidemWorkspace.wsp_ntf.CallChain('close_pre', self)
-        vim.command('doautocmd VLWorkspace VimLeave *')
+        # XXX: 这个自动命令需要更明确的语义，暂时未用
+        #vim.command('doautocmd VLWorkspace VimLeave *')
         vim.command('redraw | echo ""') # 清理输出...
+        vim.command('call s:CloseWorkspaceFiles()')
         self.VLWIns.CloseWorkspace()
         self.RefreshStatusLine()
         VidemWorkspace.wsp_ntf.CallChain('close_post', self)
