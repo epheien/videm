@@ -917,11 +917,12 @@ function! s:InstallToolBarMenu() "{{{2
     let &runtimepath = rtp_bak
 endfunction
 "}}}
-function! s:IsWorkspaceFile(file)
+function! s:IsWorkspaceFile(file) "{{{2
     py if ws.VLWIns.IsWorkspaceFile(vim.eval("a:file")):
             \ vim.command('return 1')
     return 0
 endfunction
+"}}}
 " 关闭所有打开的工作空间的文件的缓冲区
 function! s:CloseWorkspaceFiles() "{{{2
     let buffer_count = bufnr('$')
