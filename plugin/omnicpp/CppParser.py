@@ -14,7 +14,8 @@ import json
 try:
     import CxxParser
 except:
-    pass
+    print 'Failed to import CxxParser, libCxxParser not found?'
+    #raise
 
 from CppTokenizer import CPP_KEYOWORD
 from CppTokenizer import CPP_WORD

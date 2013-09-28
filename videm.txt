@@ -834,6 +834,7 @@ A videm setting method will like this >
         call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
         call videm#settings#Set('.videm.cc.vimccc.Enable', 1)
     catch
+        echomsg "Failed to call videm#settings#Set()"
     endtry
 
 Some symbol searching key mapping >
