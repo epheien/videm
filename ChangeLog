@@ -1,3 +1,6 @@
+2013-09-29 fanhe <fanhed@163.com>
+ * wsp: 符号数据库支持 quickfix，新增选项 '.videm.symdb.Quickfix': 1
+
 2013-09-28 fanhe <fanhed@163.com>
  * wsp: 添加符号数据库的鼠标右键菜单 '.videm.wsp.EnablePopUpMenu': 1
  * wsp: 提升符号数据库的易用性

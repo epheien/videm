@@ -265,6 +265,10 @@ The key to toggle help info. >
     If set to 1, videm will display some items for Symbol Database in
     |popup-menu| menu.
 
+*.videm.symdb.Quickfix*                 number (default 1)
+    If set to 1, videm will open quifix window after searching symbol from
+    symbol database if necessary.
+
 ------------------------------------------------------------------------------
 4.2. Commands                           *videm-ProjectManager-Commands*
 

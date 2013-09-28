@@ -184,6 +184,9 @@ let s:DefaultSettings = {
     \
     \ '.videm.cc.Current'       : 'omnicpp',
     \ '.videm.symdb.Current'    : 'gtags',
+    \
+    \ 
+    \ '.videm.symdb.Quickfix'               : 1,
 \ }
 
 let s:CompatSettings = {
@@ -5056,6 +5059,40 @@ function! s:SymdbPreproc() "{{{2
     return 1
 endfunction
 "}}}
+function! s:SetupSymdbQuickfix(...) "{{{2
+    " cscopequickfix 的选项
+    let opt = get(a:000, 0, '')
+    augroup VLWorkspace
+        autocmd! QuickFixCmdPost * call s:SymdbQuifixHook()
+    augroup END
+    if opt !=# 'keep' " 支持一个特殊值
+        let s:cscopequickfix_bak = &cscopequickfix
+        let &cscopequickfix = opt
+    endif
+endfunction
+"}}}
+function! s:SymdbQuifixHook() "{{{2
+    " 先清理
+    call s:CleanSymdbQuickfix()
+
+    if len(getqflist()) <= 1
+        return
+    endif
+
+    " 打开 quickfix 窗口
+    bo cw
+endfunction
+"}}}
+function! s:CleanSymdbQuickfix() "{{{2
+    " 删除自动命令
+    autocmd! VLWorkspace QuickFixCmdPost
+    " 恢复选项
+    if exists('s:cscopequickfix_bak')
+        let &cscopequickfix = s:cscopequickfix_bak
+        unlet s:cscopequickfix_bak
+    endif
+endfunction
+"}}}
 " 搜索符号定义
 function! s:SearchSymbolDefinition(symbol) "{{{2
     if empty(a:symbol)
@@ -5064,8 +5101,14 @@ function! s:SearchSymbolDefinition(symbol) "{{{2
     if !s:SymdbPreproc()
         return 1
     endif
-    "redraw
-    exec 'cs find g' a:symbol
+    if videm#settings#Get('.videm.symdb.Quickfix')
+        call s:SetupSymdbQuickfix('keep')
+    endif
+    try
+        exec 'cs find g' a:symbol
+    catch
+        call s:CleanSymdbQuickfix()
+    endtry
 endfunction
 "}}}
 " 搜索符号声明
@@ -5076,7 +5119,14 @@ function! s:SearchSymbolDeclaration(symbol) "{{{2
     if !s:SymdbPreproc()
         return 1
     endif
-    exec 'cs find g' a:symbol
+    if videm#settings#Get('.videm.symdb.Quickfix')
+        call s:SetupSymdbQuickfix('keep')
+    endif
+    try
+        exec 'cs find g' a:symbol
+    catch
+        call s:CleanSymdbQuickfix()
+    endtry
 endfunction
 "}}}
 " 搜索符号调用
@@ -5087,8 +5137,14 @@ function! s:SearchSymbolCalling(symbol) "{{{2
     if !s:SymdbPreproc()
         return 1
     endif
-    " TODO cscopequickfix
-    exec 'cs find c' a:symbol
+    if videm#settings#Get('.videm.symdb.Quickfix')
+        call s:SetupSymdbQuickfix('c-')
+    endif
+    try
+        exec 'cs find c' a:symbol
+    catch
+        call s:CleanSymdbQuickfix()
+    endtry
 endfunction
 "}}}
 " 搜索符号引用
@@ -5099,8 +5155,15 @@ function! s:SearchSymbolReference(symbol) "{{{2
     if !s:SymdbPreproc()
         return 1
     endif
-    " TODO cscopequickfix
-    exec 'cs find s' a:symbol
+    if videm#settings#Get('.videm.symdb.Quickfix')
+        call s:SetupSymdbQuickfix('s-')
+    endif
+    try
+        exec 'cs find s' a:symbol
+    "catch /^Vim\%((\a\+)\)\=:E259/ " 捕获特定的错误，E259 表示查找失败
+    catch
+        call s:CleanSymdbQuickfix()
+    endtry
 endfunction
 "}}}
 "}}}1
