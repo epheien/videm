@@ -5044,6 +5044,7 @@ function! s:SymdbPreproc() "{{{2
     let sAnswer = input(prompt)
     echohl None
     if sAnswer[0:0] !=? 'y'
+        redraw | echo ''
         return 0
     endif
 
@@ -5051,7 +5052,7 @@ function! s:SymdbPreproc() "{{{2
     echo "\nInitializing symbol database..."
     call Videm_SymdbInit()
     " 防止 Videm_SymdbInit() 有打印，影响输出美感
-    echo ''
+    redraw | echo ''
     return 1
 endfunction
 "}}}
