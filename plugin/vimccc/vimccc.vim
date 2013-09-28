@@ -2,7 +2,7 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-05-18
-" Change:   2013-05-19
+" Change:   2013-09-28
 
 "===============================================================================
 " VIMCCC 插件
@@ -153,7 +153,7 @@ endfunction
 
 function! s:GetTagsSettingsHelpText() "{{{2
     let s = "Run the following command to get gcc search paths:\n"
-    let s .= "  gcc -v -x c++ /dev/null -fsyntax-only\n"
+    let s .= "  echo \"\" | gcc -v -x c++ -fsyntax-only\n"
     return s
 endfunction
 "}}}

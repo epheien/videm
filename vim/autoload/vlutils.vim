@@ -51,7 +51,7 @@ endfunction
 "}}}
 " 把路径分割符替换为 posix 的 '/'
 function! vlutils#PosixPath(sPath) "{{{2
-    if has('win32') || has('win64')
+    if vlutils#IsWindowsOS()
         return substitute(a:sPath, '\', '/', 'g')
     else
         return a:sPath

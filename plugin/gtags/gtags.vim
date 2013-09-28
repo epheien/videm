@@ -2,7 +2,7 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-05-18
-" Change:   2013-05-18
+" Change:   2013-09-28
 
 let s:enable = 0
 
@@ -74,7 +74,7 @@ function! s:InitVLWGtagsDatabase(bIncremental) "{{{2
 
     if !empty(lFiles)
         if vlutils#IsWindowsOS()
-            " Windows 的 cscope 不能处理 \ 分割的路径
+            " Windows 的 gtags 不能处理 \ 分割的路径
             call map(lFiles, 'vlutils#PosixPath(v:val)')
         endif
         call writefile(lFiles, sGlbFilesFile)
@@ -116,6 +116,7 @@ function! videm#plugin#gtags#ConnectGtagsDatabase(...) "{{{2
         if sDir ==# '.' || empty(sDir)
             let sDir = getcwd()
         endif
+        let s:cscopeprg_bak = &cscopeprg
         let &cscopeprg = videm#settings#Get('.videm.symdb.gtags.CscopeProg')
         set cscopetagorder=0
         set cscopetag
@@ -254,6 +255,11 @@ function! videm#plugin#gtags#Disable() "{{{2
     call Videm_UnregisterSymdbUpdateHook('videm#plugin#gtags#UpdateDatabase')
     " kill symdb
     py if ws.IsOpen(): vim.command("silent! cs kill GTAGS")
+    " 尽量还原选项
+    if exists('s:cscopeprg_bak')
+        let &cscopeprg = s:cscopeprg_bak
+        unlet s:cscopeprg_bak
+    endif
     let s:enable = 0
 endfunction
 "}}}

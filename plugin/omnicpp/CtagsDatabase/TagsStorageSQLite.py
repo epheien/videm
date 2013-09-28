@@ -1327,27 +1327,32 @@ class TagsStorageSQLite(ITagsStorage):
             self.cache.Clear()
 
 
-#VIMLITE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# FIXME
-VIMLITE_DIR = os.path.expanduser('~/.videm')
+try:
+    # 暂时用这种尝试方法
+    import vim
+    VIDEM_DIR = vim.eval('g:VidemDir')
+except ImportError:
+    print '%s: Can not get VidemDir, fallback to Linux case' % __file__
+    # only for Linux
+    VIDEM_DIR = os.path.expanduser('~/.videm')
 
-#CTAGS = 'ctags'
-#CTAGS = os.path.expanduser('~/bin/vlctags2')
-CPPTAGSDB = os.path.expanduser('~/bin/cpptagsdb')
-if platform.architecture()[0] == '64bit':
-    if platform.system() == 'Windows':
-        CTAGS = os.path.join(VIMLITE_DIR, 'bin', 'vlctags2.exe')
-    else:
-        CTAGS = os.path.join(VIMLITE_DIR, 'bin', 'vlctags2')
+if platform.system() == 'Windows':
+    CTAGS = os.path.join(VIDEM_DIR, 'bin', 'vlctags2.exe')
 else:
-    if platform.system() == 'Windows':
-        CTAGS = os.path.join(VIMLITE_DIR, 'bin', 'vlctags2.exe')
-    else:
-        CTAGS = os.path.join(VIMLITE_DIR, 'bin', 'vlctags2')
+    CTAGS = os.path.join(VIDEM_DIR, 'bin', 'vlctags2')
 CTAGS_OPTS = '--excmd=pattern --sort=no --fields=aKmSsnit '\
         '--c-kinds=+px --c++-kinds=+px'
-CTAGS_OPTS_LIST = ['--excmd=pattern', '--sort=no', '--fields=aKmSsnit',
-                   '--c-kinds=+px', '--c++-kinds=+px']
+CTAGS_OPTS_LIST = [
+    '--excmd=pattern',
+    '--sort=no',
+    '--fields=aKmSsnit',
+    '--c-kinds=+px',
+    '--c++-kinds=+px',
+]
+
+# *DEPRECATE*
+CPPTAGSDB = os.path.expanduser('~/bin/cpptagsdb')
+
 # 强制视全部文件为 C++
 CTAGS_OPTS += ' --language-force=c++'
 CTAGS_OPTS_LIST += ['--language-force=c++']

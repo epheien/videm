@@ -41,7 +41,9 @@ from Utils import IsCppSourceFile, GetIncludesFromArgs, GetMacrosFromArgs
 from Macros import CPP_HEADER_EXT, C_SOURCE_EXT, CPP_SOURCE_EXT, WSP_PATH_SEP
 from Notifier import Notifier
 
+# 这个变量仅用于后向兼容
 VimLiteDir = vim.eval('g:VidemDir')
+VidemDir = vim.eval('g:VidemDir')
 
 def ToAbsPath(project, path):
     ds = DirSaver()
@@ -1194,9 +1196,9 @@ class VimLiteWorkspace(object):
             #print envs
             d = os.environ.copy()
             d.update(envsDict)
-            global VimLiteDir
+            global VidemDir
             if IsWindowsOS():
-                vlterm = os.path.join(VimLiteDir, 'vlexec.py')
+                vlterm = os.path.join(VidemDir, 'vlexec.py')
                 if not prog.endswith('.exe'): prog += '.exe'
                 prog = os.path.realpath(prog)
                 #p = subprocess.Popen('C:\\WINDOWS\\system32\\cmd.exe /c '
@@ -1213,7 +1215,7 @@ class VimLiteWorkspace(object):
                                      env=d)
                 p.wait()
             else:
-                vlterm = os.path.join(VimLiteDir, 'vlterm')
+                vlterm = os.path.join(VidemDir, 'vlterm')
                 #os.system('~/.vimlite/vimlite_run "%s" '\
                     #'~/.vimlite/vimlite_exec %s %s %s &' % (prog, envs, prog,
                                                             #args))

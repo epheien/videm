@@ -4,6 +4,7 @@
 from xml.dom import minidom
 import sys
 import os
+import os.path
 import shutil
 import XmlUtils
 
@@ -719,6 +720,7 @@ class VLWorkspace(object):
         else:
             return 0
 
+        # NOTE: 统一使用 posix 风格
         if IsWindowsOS():
             name = PosixPath(name)
 
@@ -1081,6 +1083,7 @@ class VLWorkspace(object):
         return self.lineOffset + len(self.vimLineData) - 1
 
     def GetFileByLineNum(self, lineNum, absPath = False):
+        '''这里是否获取文件名的唯一入口？'''
         datum = self.GetDatumByLineNum(lineNum)
         if not datum or self.GetNodeType(lineNum) != TYPE_FILE:
             return ''
@@ -1091,7 +1094,7 @@ class VLWorkspace(object):
             ds = DirSaver()
             os.chdir(datum['project'].dirName)
             file = os.path.abspath(file)
-        return file
+        return os.path.normpath(file)
 
     def GetDispNameByLineNum(self, lineNum):
         datum = self.GetDatumByLineNum(lineNum)
