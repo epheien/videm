@@ -183,6 +183,9 @@ function! s:ThisInit() "{{{2
                     \ call <SID>Autocmd_UpdateGtagsDatabase(expand('%:p'))
         augroup END
     endif
+    " 统一hook
+    call Videm_RegisterSymdbInitHook('videm#plugin#gtags#InitDatabase', '')
+    call Videm_RegisterSymdbUpdateHook('videm#plugin#gtags#UpdateDatabase', '')
 endfunction
 "}}}
 " 各种检查，返回 0 表示失败，否则返回 1
@@ -225,6 +228,14 @@ function! videm#plugin#gtags#Init() "{{{2
     let s:enable = 1
 endfunction
 "}}}
+function! videm#plugin#gtags#InitDatabase(...) "{{{2
+    call s:InitVLWGtagsDatabase(0)
+endfunction
+"}}}
+function! videm#plugin#gtags#UpdateDatabase(...) "{{{2
+    call s:UpdateVLWGtagsDatabase()
+endfunction
+"}}}
 function! videm#plugin#gtags#Disable() "{{{2
     if !s:enable
         return
@@ -238,6 +249,9 @@ function! videm#plugin#gtags#Disable() "{{{2
         autocmd!
     augroup END
     augroup! VidemSyndbGtags
+    " 删除统一hook
+    call Videm_UnregisterSymdbInitHook('videm#plugin#gtags#InitDatabase')
+    call Videm_UnregisterSymdbUpdateHook('videm#plugin#gtags#UpdateDatabase')
     " kill symdb
     py if ws.IsOpen(): vim.command("silent! cs kill GTAGS")
     let s:enable = 0

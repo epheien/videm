@@ -1,6 +1,11 @@
+2013-09-28 fanhe <fanhed@163.com>
+ * wsp: 添加符号数据库的鼠标右键菜单 '.videm.wsp.EnablePopUpMenu': 1
+ * wsp: 提升符号数据库的易用性
+
 2013-09-21 fanhe <fanhed@163.com>
  * wsp: 支持节点的剪切和粘贴操作
  * wsp: 项目下可存放文件节点
+ * wsp: 完善了文件禁用机制
 
 2013-08-25 fanhe <fanhed@163.com>
  * wsp: 补全引擎独立参数设置

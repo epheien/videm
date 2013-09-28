@@ -293,6 +293,14 @@ function! videm#plugin#cscope#ConnectCscopeDatabase(...) "{{{2
     py del l_ds
 endfunction
 "}}}
+function! videm#plugin#cscope#InitDatabase(...) "{{{2
+    call s:InitVLWCscopeDatabase(1)
+endfunction
+"}}}
+function! videm#plugin#cscope#UpdateDatabase(...) "{{{2
+    call s:UpdateVLWCscopeDatabase(1)
+endfunction
+"}}}
 function! s:ThisInit() "{{{2
     call s:InitPythonIterfaces()
     py VidemWorkspace.wsp_ntf.Register(VidemWspCscopeHook, 0, None)
@@ -301,6 +309,9 @@ function! s:ThisInit() "{{{2
                 \               call <SID>InitVLWCscopeDatabase(1)
     command! -nargs=0 VCscopeUpdateDatabase 
                 \               call <SID>UpdateVLWCscopeDatabase(1)
+    " 统一hook
+    call Videm_RegisterSymdbInitHook('videm#plugin#cscope#InitDatabase', '')
+    call Videm_RegisterSymdbUpdateHook('videm#plugin#cscope#UpdateDatabase', '')
 endfunction
 "}}}
 function! videm#plugin#cscope#SettingsHook(event, data, priv) "{{{2
@@ -353,6 +364,9 @@ function! videm#plugin#cscope#Disable() "{{{2
     " 命令
     delcommand VCscopeInitDatabase
     delcommand VCscopeUpdateDatabase
+    " 删除统一hook
+    call Videm_UnregisterSymdbInitHook('videm#plugin#cscope#InitDatabase')
+    call Videm_UnregisterSymdbUpdateHook('videm#plugin#cscope#UpdateDatabase')
     " kill symdb
     let sCsOutFile = GetWspName() . videm#settings#Get('.videm.symdb.cscope.OutFile')
     py if ws.IsOpen(): vim.command("exec 'silent! cs kill' fnameescape(sCsOutFile)")

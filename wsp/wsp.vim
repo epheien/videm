@@ -154,6 +154,7 @@ let s:DefaultSettings = {
     \ '.videm.wsp.HlCursorLine'     : 1,
     \ '.videm.wsp.LinkToEditor'     : 1,
     \ '.videm.wsp.EnableMenuBar'    : 1,
+    \ '.videm.wsp.EnablePopUpMenu'  : 1,
     \ '.videm.wsp.EnableToolBar'    : 1,
     \ '.videm.wsp.ShowWspName'      : 1,
     \ '.videm.wsp.SaveBeforeBuild'  : 1,
@@ -570,6 +571,11 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
         call s:InstallToolBarMenu()
     endif
 
+    if videm#settings#Get('.videm.wsp.EnablePopUpMenu')
+        " 添加右键弹出菜单
+        call s:InstallPopUpMenu()
+    endif
+
     " 载入插件，应该在初始化所有公共设施后、初始化任何工作区实例前执行
     call s:LoadPlugin()
 
@@ -915,6 +921,70 @@ function! s:InstallToolBarMenu() "{{{2
                 \:call <SID>RunActiveProject()<CR>
 
     let &runtimepath = rtp_bak
+endfunction
+"}}}
+" 用于在可视/选择模式获取选择的字符串，只支持单行的，如果跨行，返回空字符串
+function! s:GetVisualSelection() "{{{2
+    let spos = getpos("'<")
+    let epos = getpos("'>")
+    if spos[1] != epos[1]
+        " 跨行了
+        return ''
+    endif
+
+    let line = getline(spos[1])
+    let sidx = spos[2] - 1
+    let eidx = epos[2] - 1
+    if &selection ==# 'exclusive'
+        let eidx -= 1
+    endif
+
+    let result = line[sidx : eidx]
+    "echomsg result
+    return result
+endfunction
+"}}}
+" 可视/选择模式的入口，会预处理字符串
+function! s:VisualSearchSymbol(choice) "{{{2
+    let word = s:GetVisualSelection()
+    if empty(word) || word =~# '\W'
+        call s:echow('Invalid selection for searching symbol')
+        return
+    endif
+
+    if     a:choice ==# 'Definition'
+        call <SID>SearchSymbolDefinition(word)
+    elseif a:choice ==# 'Declaration'
+        call <SID>SearchSymbolDeclaration(word)
+    elseif a:choice ==# 'Calling'
+        call <SID>SearchSymbolCalling(word)
+    elseif a:choice ==# 'Reference'
+        call <SID>SearchSymbolReference(word)
+    endif
+endfunction
+"}}}
+function! s:InstallPopUpMenu() "{{{2
+    nnoremenu <silent> 1.55 PopUp.Search\ Definition
+            \ :call <SID>SearchSymbolDefinition(expand('<cword>'))<CR>
+    nnoremenu <silent> 1.55 PopUp.Search\ Declaration
+            \ :call <SID>SearchSymbolDeclaration(expand('<cword>'))<CR>
+    nnoremenu <silent> 1.55 PopUp.Search\ Calling
+            \ :call <SID>SearchSymbolCalling(expand('<cword>'))<CR>
+    nnoremenu <silent> 1.55 PopUp.Search\ Reference
+            \ :call <SID>SearchSymbolReference(expand('<cword>'))<CR>
+    nnoremenu <silent> 1.55 PopUp.-SEP- <Nop>
+
+    vnoremenu <silent> 1.55 PopUp.Search\ Definition
+            \ :<C-u>call <SID>VisualSearchSymbol('Definition')<CR>
+    vnoremenu <silent> 1.55 PopUp.Search\ Declaration
+            \ :<C-u>call <SID>VisualSearchSymbol('Declaration')<CR>
+    vnoremenu <silent> 1.55 PopUp.Search\ Calling
+            \ :<C-u>call <SID>VisualSearchSymbol('Calling')<CR>
+    vnoremenu <silent> 1.55 PopUp.Search\ Reference
+            \ :<C-u>call <SID>VisualSearchSymbol('Reference')<CR>
+    "vnoremenu <silent> 1.55 PopUp.Debug
+            "\ :<C-u>call <SID>GetVisualSelection()<CR>
+    vnoremenu <silent> 1.55 PopUp.-SEP- <Nop>
 endfunction
 "}}}
 function! s:IsWorkspaceFile(file) "{{{2
@@ -4808,6 +4878,81 @@ endfunction
 "}}}1
 " =================== 代码导航 ===================
 "{{{1
+" ===== 符号数据库统一框架的接口 =====
+function s:EmptyFunc(...) "{{{2
+    echomsg 'calling empty function...'
+endfunction
+"}}}
+let s:SymdbInitHook = s:GetSFuncRef('s:EmptyFunc')
+let s:SymdbInitHookData = ''
+let s:SymdbUpdateHook = s:GetSFuncRef('s:EmptyFunc')
+let s:SymdbUpdateHookData = ''
+function! Videm_DumpSymdbHook() "{{{2
+    echo s:SymdbInitHook
+    echo s:SymdbInitHookData
+    echo s:SymdbUpdateHook
+    echo s:SymdbUpdateHookData
+    return ''
+endfunction
+"}}}
+function! Videm_RegisterSymdbInitHook(hook, data) "{{{2
+    if type(a:hook) == type('')
+        let s:SymdbInitHook = function(a:hook)
+    else
+        let s:SymdbInitHook = a:hook
+    endif
+    unlet s:SymdbInitHookData
+    let s:SymdbInitHookData = a:data
+endfunction
+"}}}
+function! Videm_UnregisterSymdbInitHook(hook) "{{{2
+    if type(a:hook) == type('')
+        let Hook = function(a:hook)
+    else
+        let Hook = a:hook
+    endif
+    if s:SymdbInitHook != Hook
+        return
+    endif
+
+    let s:SymdbInitHook = s:GetSFuncRef('s:EmptyFunc')
+    unlet s:SymdbInitHookData
+    let s:SymdbInitHookData = ''
+endfunction
+"}}}
+function! Videm_RegisterSymdbUpdateHook(hook, data) "{{{2
+    if type(a:hook) == type('')
+        let s:SymdbUpdateHook = function(a:hook)
+    else
+        let s:SymdbUpdateHook = a:hook
+    endif
+    unlet s:SymdbUpdateHookData
+    let s:SymdbUpdateHookData = a:data
+endfunction
+"}}}
+function! Videm_UnregisterSymdbUpdateHook(hook) "{{{2
+    if type(a:hook) == type('')
+        let Hook = function(a:hook)
+    else
+        let Hook = a:hook
+    endif
+    if s:SymdbUpdateHook != Hook
+        return
+    endif
+
+    let s:SymdbUpdateHook = s:GetSFuncRef('s:EmptyFunc')
+    unlet s:SymdbUpdateHookData
+    let s:SymdbUpdateHookData = ''
+endfunction
+"}}}
+function! Videm_SymdbInit() "{{{2
+    return s:SymdbInitHook(s:SymdbInitHookData)
+endfunction
+"}}}
+function! Videm_SymdbUpdate() "{{{2
+    return s:SymdbUpdateHook(s:SymdbUpdateHookData)
+endfunction
+"}}}
 function! s:SymdbInited() "{{{2
     let output = vlutils#GetCmdOutput('cs show')
     let lines = split(output, '\n')
@@ -4825,17 +4970,39 @@ function! s:SymdbInited() "{{{2
     return 0
 endfunction
 "}}}
+" 符号数据库预处理，提示初始化等等
+" @return: 1 - ok，0 - fail
+function! s:SymdbPreproc() "{{{2
+    if s:SymdbInited()
+        return 1
+    endif
+
+    echohl WarningMsg
+    let prompt  = 'Symbol database has not been initialized, '
+    let prompt .= 'would you like to initialize it now? (y/n): '
+    let sAnswer = input(prompt)
+    echohl None
+    if sAnswer[0:0] !=? 'y'
+        return 0
+    endif
+
+    " 初始化
+    echo "\nInitializing symbol database..."
+    call Videm_SymdbInit()
+    " 防止 Videm_SymdbInit() 有打印，影响输出美感
+    echo ''
+    return 1
+endfunction
+"}}}
 " 搜索符号定义
 function! s:SearchSymbolDefinition(symbol) "{{{2
     if empty(a:symbol)
         return 0
     endif
-    if !s:SymdbInited()
-        call s:echow('Please initialize the symbol database firstly.')
-        call getchar()
+    if !s:SymdbPreproc()
         return 1
     endif
-    redraw
+    "redraw
     exec 'cs find g' a:symbol
 endfunction
 "}}}
@@ -4844,12 +5011,9 @@ function! s:SearchSymbolDeclaration(symbol) "{{{2
     if empty(a:symbol)
         return 0
     endif
-    if !s:SymdbInited()
-        call s:echow('Please initialize the symbol database firstly.')
-        call getchar()
+    if !s:SymdbPreproc()
         return 1
     endif
-    redraw
     exec 'cs find g' a:symbol
 endfunction
 "}}}
@@ -4858,12 +5022,9 @@ function! s:SearchSymbolCalling(symbol) "{{{2
     if empty(a:symbol)
         return 0
     endif
-    if !s:SymdbInited()
-        call s:echow('Please initialize the symbol database firstly.')
-        call getchar()
+    if !s:SymdbPreproc()
         return 1
     endif
-    redraw
     " TODO cscopequickfix
     exec 'cs find c' a:symbol
 endfunction
@@ -4873,12 +5034,9 @@ function! s:SearchSymbolReference(symbol) "{{{2
     if empty(a:symbol)
         return 0
     endif
-    if !s:SymdbInited()
-        call s:echow('Please initialize the symbol database firstly.')
-        call getchar()
+    if !s:SymdbPreproc()
         return 1
     endif
-    redraw
     " TODO cscopequickfix
     exec 'cs find s' a:symbol
 endfunction
