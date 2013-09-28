@@ -132,7 +132,7 @@ endfunction
 "}}}1
 "{{{1
 "标识用控件 ID {{{2
-let s:ID_TagsSettingsIncludePaths = 10
+let s:ID_TagsSettingsIncludePaths = videm#wsp#TagsSettings_ID_SearchPaths
 
 function! s:TagsSettings() "{{{2
     let dlg = s:CreateTagsSettingsDialog()
@@ -153,7 +153,7 @@ endfunction
 
 function! s:GetTagsSettingsHelpText() "{{{2
     let s = "Run the following command to get gcc search paths:\n"
-    let s .= "  echo \"\" | gcc -v -x c++ -fsyntax-only\n"
+    let s .= "  echo \"\" | gcc -v -x c++ - -fsyntax-only\n"
     return s
 endfunction
 "}}}
@@ -163,16 +163,11 @@ function! s:CreateTagsSettingsDialog() "{{{2
     py ins = TagsSettingsST.Get()
 
 "===============================================================================
-    " 头文件搜索路径
-    let ctl = g:VCMultiText.New(
-            \ "Add search paths for the vlctags and libclang parser:")
-    call ctl.SetId(s:ID_TagsSettingsIncludePaths)
-    call ctl.SetIndent(4)
-    py vim.command("let includePaths = %s" % ToVimEval(ins.includePaths))
-    call ctl.SetValue(includePaths)
-    call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
+    " 公用的公共控件
+    let ctls = Videm_GetTagsSettingsControls()
+    for ctl in ctls
+        call dlg.AddControl(ctl)
+    endfor
 
     call dlg.ConnectSaveCallback(s:GetSFuncRef("s:SaveTagsSettingsCbk"), "")
 

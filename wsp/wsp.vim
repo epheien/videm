@@ -3752,6 +3752,7 @@ PYTHON_EOF
     py vim.command("return %s" % ToVimEval(GetWspSettingsHelpText()))
 endfunction
 "}}}
+" 这个动作可以定制，具有一定的定义性，用于 OmniCpp 和 VIMCCC
 function! s:CreateWspSettingsDialog() "{{{2
     let dlg = g:VimDialog.New('== Workspace Settings ==')
     call dlg.SetExtraHelpContent(s:GetWspSettingsHelpText())
@@ -3873,6 +3874,65 @@ function! s:CreateWspSettingsDialog() "{{{2
     call dlg.AddFooterButtons()
     return dlg
 endfunction
+"}}}
+" 导出的控件 ID
+let videm#wsp#TagsSettings_ID_SearchPaths = 10000
+" FIXME: 上面那个变量可以导出，但是本脚本就不能使用，why?
+let s:ID_TagsSettingsSearchPaths = videm#wsp#TagsSettings_ID_SearchPaths
+" 获取 tags 设置的一些公共的控件
+function! s:TagsSettings_ReinitSearchPathsHook(ctl, data) "{{{2
+    let spctl = a:data
+    echohl WarningMsg
+    let prompt = 'It will re-initialize the search paths by gcc, are you sure? (y/n): '
+    let answer = input(prompt)
+    echohl None
+    " 这就是清掉输出的正确方法
+    redraw | echo ''
+    if answer[0 : 0] !~? 'y'
+        return
+    endif
+
+    " 重新初始化
+    py vim.command("let paths = %s" % ToVimEval(GetGccIncludeSearchPaths()))
+    if empty(paths)
+        echohl Error
+        echo "Failed to get search paths by gcc, nothing changed"
+        echohl None
+        return 1
+    endif
+    call spctl.SetValue(paths)
+    call spctl.owner.RefreshCtl(spctl)
+endfunction
+"}}}
+function! Videm_GetTagsSettingsControls(...) "{{{2
+    let indent = get(a:000, 0, 4)
+    let ctls = []
+    " 头文件搜索路径
+    let ctl = g:VCMultiText.New(
+            \ "Add search paths for the vlctags, libclang and other parsers:")
+    " XXX BUG?!
+    "call ctl.SetId(videm#wsp#TagsSettings_ID_SearchPaths)
+    call ctl.SetId(s:ID_TagsSettingsSearchPaths)
+    call ctl.SetIndent(indent)
+    py vim.command("let includePaths = %s" %
+            \      ToVimEval(TagsSettingsST.Get().includePaths))
+    call ctl.SetValue(includePaths)
+    call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
+    call add(ctls, ctl)
+    let spctl = ctl
+
+    let ctl = g:VCButtonLine.New('Re-initialize the search paths: ')
+    call ctl.SetIndent(indent)
+    call ctl.AddButton("Reset...")
+    call ctl.ConnectButtonCallback(
+            \ 0, s:GetSFuncRef('s:TagsSettings_ReinitSearchPathsHook'), spctl)
+    call add(ctls, ctl)
+
+    call add(ctls, g:VCBlankLine.New())
+
+    return ctls
+endfunction
+"}}}
 "}}}1
 " =================== 项目设置 ===================
 "{{{1

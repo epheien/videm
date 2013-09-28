@@ -1753,6 +1753,7 @@ endfunction
 "Class: VCButtonLine 按钮控件类，用于实现按钮 "{{{1
 let g:VCButtonLine = {}
 function! g:VCButtonLine.New(label, ...) "{{{2
+    " TODO label 没有使用
     let new = copy(self)
 
     "继承

@@ -187,10 +187,7 @@ def GetGccIncludeSearchPaths():
             break
 
         if start:
-            if IsWindowsOS():
-                result.append(os.path.realpath(line.strip()))
-            else:
-                result.append(line.strip())
+            result.append(os.path.normpath(line.strip))
 
     return result
 
