@@ -3893,6 +3893,7 @@ function! s:TagsSettings_ReinitSearchPathsHook(ctl, data) "{{{2
     endif
 
     " 重新初始化
+    py from TagsSettings import GetGccIncludeSearchPaths
     py vim.command("let paths = %s" % ToVimEval(GetGccIncludeSearchPaths()))
     if empty(paths)
         echohl Error
