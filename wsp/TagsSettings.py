@@ -187,7 +187,7 @@ def GetGccIncludeSearchPaths():
             break
 
         if start:
-            result.append(os.path.normpath(line.strip))
+            result.append(os.path.normpath(line.strip()))
 
     return result
 
