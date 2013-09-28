@@ -261,6 +261,10 @@ The key to toggle help info. >
 *.videm.wsp.ShowBriefHelp*              number (default 1)
     If set to 1, videm will display a brief help in workspace buffer.
 
+*.videm.wsp.EnablePopUpMenu*            number (default 1)
+    If set to 1, videm will display some items for Symbol Database in
+    |popup-menu| menu.
+
 ------------------------------------------------------------------------------
 4.2. Commands                           *videm-ProjectManager-Commands*
 
@@ -695,9 +699,9 @@ Map <CR> (return) key to auto trigger function calltips after select a
 function item in the code completion popup menu. >
     let g:VLOmniCpp_MapReturnToDispCalltips = 1
 
-Use libCxxParser.so, an simple C++ parser written in C++. It is very fast and
+Use libCxxParser.so, a simple C++ parser written in C++. It is very fast and
 provide more accurate local variables parsing. You need compile and install it
-first if you want it. >
+firstly if you want it. >
     let g:VLOmniCpp_UseLibCxxParser = 0
 
 The libCxxParser.so path. On Windows, you need set this variable correctly. >
@@ -810,34 +814,29 @@ command "break {file}:{line}". So the condition of breakpoint will be lost. >
 ------------------------------------------------------------------------------
 8.1. Configuration Sample               *videm-ConfigSample*
 
-Configuration sample of videm >
-    let g:VLWorkspaceSaveAllBeforeBuild = 1
-    let g:VLOmniCpp_ItemSelectionMode = 10
-    let g:VLCalltips_IndicateArgument = 0
-    let g:VLCalltips_EnableSyntaxTest = 0
-    let g:VLWDbgSaveBreakpointsInfo = 0
+If you wish use gvim and mouse, the following configuration will be helpful >
+    set nocompatible
+    filetype plugin indent on
+    syntax on
 
-If use VIMCCC >
-    let g:VLWorkspaceCodeCompleteEngine = "vimccc"
-    let g:VIMCCC_ItemSelectionMode = 10
-    let g:VIMCCC_CompleteMacros = 1
-
-A videm setting method will like this >
+    set mouse=a
     let g:VLCalltips_IndicateArgument = 0
-    let g:VLCalltips_EnableSyntaxTest = 0
-    let g:VIMCCC_ItemSelectionMode = 10
-    let g:VIMCCC_CompleteMacros = 1
+    let g:VLOmniCpp_UseLibCxxParser = 1
+    let g:VLWorkspaceSymbolDatabase = 'gtags'
     try
+        call videm#settings#Set('.videm.wsp.ShowBriefHelp', 0)
+        call videm#settings#Set('.videm.wsp.keybind.PopupMenu', '<RightRelease>')
+        call videm#settings#Set('.videm.wsp.LinkToEditor', 0)
         call videm#settings#Set('.videm.wsp.SaveBeforeBuild', 1)
-        call videm#settings#Set('.videm.cc.omnicpp.ItemSelectMode', 10)
-        call videm#settings#Set('.videm.dbg.pyclewn.SaveBpInfo', 0)
-        call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
-        call videm#settings#Set('.videm.cc.vimccc.Enable', 1)
     catch
         echomsg "Failed to call videm#settings#Set()"
     endtry
 
-Some symbol searching key mapping >
+If you wish use VIMCCC >
+    let g:VLWorkspaceCodeCompleteEngine = "vimccc"
+    let g:VIMCCC_CompleteMacros = 1
+
+Suggested symbol searching key mapping >
     nnoremap <C-\>g :VSearchSymbolDefinition <C-R>=expand("<cword>")<CR><CR>
     nnoremap <C-\>p :VSearchSymbolDeclaration <C-R>=expand("<cword>")<CR><CR>
     nnoremap <C-\>c :VSearchSymbolCalling <C-R>=expand("<cword>")<CR><CR>
@@ -918,6 +917,43 @@ search paths for parser in 'videm -> (OmniCpp Tags|VIMCCC) Settings' . >
        When "g:VimTagsManager_InclAllCondCmplBrch" is not 0, OmniCpp will
        follow all preprocessor branch, so the symbol "func2" will not be
        parsed. If you do not want to change OmniCpp options, change your code.
+
+    Q: How can I keep OmniCpp tags database up-to-date? ~
+    A: Videm will parse file after saving it, but there is some case videm
+       will not parse new files. These are all cases:
+        * Added new projects
+        * Added new files
+        * Modified "OmniCpp Tags Settings...""
+        * Modified "Workspace Settings..."
+        * Changed workspace build configuration
+        * Modified "Settings" of project
+       So, after the above actions, please select a "Parse Workspace" menu
+       item manually.
+
+    Q: What different about "Parse Workspace" series menu items? ~
+    A:  * Parse Workspace (Full, Async)
+            Regenerate the tags database and parse all workspace files and all
+            headers included by workspace files asynchronously.
+
+        * Parse Workspace (Quick, Async)
+            Parse all workspace files and all headers included by workspace
+            files asynchronously. Needless parsing will be ignored.
+
+        * Parse Workspace (Full)
+            Regenerate the tags database and parse all workspace files and all
+            headers included by workspace files synchronously.
+
+        * Parse Workspace (Quick)
+            Parse all workspace files and all headers included by workspace
+            files synchronously. Needless parsing will be ignored.
+
+        * Parse Workspace (Full, Shallow)
+            Regenerate the tags database and parse all workspace files
+            asynchronously.
+
+        * Parse Workspace (Quick, Shallow)
+            Parse all workspace files asynchronously. Needless parsing will be
+            ignored.
 
 ==============================================================================
 9. Limitation                           *videm-Limitation*
