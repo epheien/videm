@@ -619,8 +619,9 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
                     \   len(matchstr(getline('.'), '^.\{-1,}[-+*]'))-2-2)
                     \.'.[-+*]', 'bcW')<CR>
 
-        autocmd BufReadPost * call <SID>Autocmd_WorkspaceEditorOptions()
-        autocmd BufEnter    * call <SID>Autocmd_LocateCurrentFile()
+        autocmd BufReadPost         * call <SID>Autocmd_WorkspaceEditorOptions()
+        autocmd BufEnter            * call <SID>Autocmd_LocateCurrentFile()
+        autocmd SessionLoadPost     * call videm#wsp#InitWorkspace('')
     augroup END
 
     " 设置标题栏
@@ -651,7 +652,8 @@ function! GetWspConfName() "{{{2
     py vim.command("return %s" % ToVimEval(ws.cache_confName))
 endfunction
 "}}}
-function! s:CreateVLWorkspaceWin() "创建窗口 {{{2
+" 创建窗口，会确保一个标签页只打开一个工作空间窗口
+function! s:CreateVLWorkspaceWin() "{{{2
     "create the workspace window
     let splitMethod = g:VLWorkspaceWinPos ==? "left" ? "topleft " : "botright "
     let splitSize = g:VLWorkspaceWinSize
@@ -661,8 +663,14 @@ function! s:CreateVLWorkspaceWin() "创建窗口 {{{2
         silent! exec splitMethod . 'vertical ' . splitSize . ' new'
         silent! exec "edit" fnameescape(t:VLWorkspaceBufName)
     else
-        silent! exec splitMethod . 'vertical ' . splitSize . ' split'
-        silent! exec "buffer" fnameescape(t:VLWorkspaceBufName)
+        if bufwinnr(t:VLWorkspaceBufName) != -1
+            " 缓冲区已经打开并可见，跳过去即可
+            exec bufwinnr(t:VLWorkspaceBufName) 'wincmd w'
+        else
+            " 缓冲区隐藏了，重新打开
+            silent! exec splitMethod . 'vertical ' . splitSize . ' split'
+            silent! exec "buffer" fnameescape(t:VLWorkspaceBufName)
+        endif
     endif
 
     setlocal winfixwidth
