@@ -487,6 +487,10 @@ function! videm#wsp#InitWorkspace(sWspFile) "{{{2
     call s:InitVLWorkspace(a:sWspFile)
 endfunction
 "}}}2
+function! videm#wsp#IsStarted() "{{{2
+    return g:VLWorkspaceHasStarted
+endfunction
+"}}}
 function! s:InitVLWorkspace(file) " 初始化 {{{2
     let sFile = a:file
 
