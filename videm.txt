@@ -55,7 +55,11 @@ Videm mainly consists of the following modules:
                                         generates makefile for you.
 
     * Code Completion:                  An enhanced OmniCpp plugin and a clang 
-                                        code completion plugin.
+                                        code completion plugin. Generally,
+                                        Code completion engine can also supply
+                                        code navigation such as "Goto Symbol
+                                        Definition" and "Goto Symbol
+                                        Declaration".
 
                                         OmniCpp supports the following 
                                         completion: namespace, structure, 
@@ -66,7 +70,8 @@ Videm mainly consists of the following modules:
                                         supports mostly accurate code
                                         completion.
 
-    * Symbol Database                   Cscope and gnu global.
+    * Symbol Database                   Cscope and gnu global. Symbol database
+                                        just for code browsing and navigation.
 
     * Debugger Integration:             Gdb integration, by pyclewn.
 
@@ -306,6 +311,10 @@ The key to toggle help info. >
     VCompilersSettings                  Open 'Compilers Settings' dialog.
 
     VBuildersSettings                   Open 'Builders Settings' dialog.
+
+    VSymbolDatabaseInit                 Initialize the symbol database.
+
+    VSymbolDatabaseUpdate               Update the symbol database.
 
     VSearchSymbolDefinition {symbol}    Search this symbol definition.
 

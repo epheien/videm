@@ -150,20 +150,24 @@ class VimLiteWorkspace(object):
 
     # 工作空间右键菜单列表
     # menu_hook(wsp, data)
-    popupMenuW = [ 'Please select an operation:', 
-        'Create a New Project...', 
-        'Add an Existing Project...', 
-        '-Sep_Workspace-', 
-        'New Workspace...', 
-        'Open Workspace...', 
-        'Close Workspace', 
-        'Reload Workspace', 
-        '-Sep_BatchBuilds-', 
-        'Batch Builds', 
-        '-Sep_Settings-', 
-        'Workspace Build Configuration...', 
-        'Workspace Batch Build Settings...', 
-        'Workspace Settings...' ]
+    popupMenuW = ['Please select an operation:',
+        'Create a New Project...',
+        'Add an Existing Project...',
+        '-Sep_Workspace-',
+        'New Workspace...',
+        'Open Workspace...',
+        'Close Workspace',
+        'Reload Workspace',
+        '-Sep_BatchBuilds-',
+        'Batch Builds',
+        '-Sep_Symdb-',
+        'Initialize Symbol Database',
+        'Update Symbol Database',
+        '-Sep_Settings-',
+        'Workspace Build Configuration...',
+        'Workspace Batch Build Settings...',
+        'Workspace Settings...',
+    ]
 
     # 'menu': [hook, priv]
     # hook(wsp, item, priv)
@@ -1779,6 +1783,10 @@ class VimLiteWorkspace(object):
                 self.RefreshBuffer()
             elif choice == 'Reload Workspace':
                 self.ReloadWorkspace()
+            elif choice == 'Initialize Symbol Database':
+                vim.command("call Videm_SymdbInit()")
+            elif choice == 'Update Symbol Database':
+                vim.command("call Videm_SymdbUpdate()")
             elif choice == 'Workspace Build Configuration...':
                 vim.command("call s:WspBuildConfigManager()")
             elif choice == 'Workspace Batch Build Settings...':

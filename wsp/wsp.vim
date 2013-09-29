@@ -885,6 +885,9 @@ function! s:InstallCommands() "{{{2
 
     command! -nargs=? -bar VOpenIncludeFile call <SID>OpenIncludeFile()
 
+    command! -nargs=0 -bar VSymbolDatabaseInit      call Videm_SymdbInit()
+    command! -nargs=0 -bar VSymbolDatabaseUpdate    call Videm_SymdbUpdate()
+
     command! -nargs=1 -bar VSearchSymbolDefinition
                 \           call <SID>SearchSymbolDefinition(<q-args>)
     command! -nargs=1 -bar VSearchSymbolDeclaration
@@ -3905,7 +3908,11 @@ function! s:TagsSettings_ReinitSearchPathsHook(ctl, data) "{{{2
         return 1
     endif
     call spctl.SetValue(paths)
-    call spctl.owner.RefreshCtl(spctl)
+    if !empty(spctl.owner)
+        let dlg = spctl.owner
+        call dlg.SetModified(1)
+        call dlg.RefreshCtl(spctl)
+    endif
 endfunction
 "}}}
 function! Videm_GetTagsSettingsControls(...) "{{{2
@@ -4944,7 +4951,10 @@ endfunction
 "{{{1
 " ===== 符号数据库统一框架的接口 =====
 function s:EmptyFunc(...) "{{{2
-    echomsg 'calling empty function...'
+    "echomsg 'calling empty function...'
+    echohl WarningMsg
+    echomsg "Without using any symbol database, nothing to do"
+    echohl None
 endfunction
 "}}}
 let s:SymdbInitHook = s:GetSFuncRef('s:EmptyFunc')
@@ -5010,11 +5020,17 @@ function! Videm_UnregisterSymdbUpdateHook(hook) "{{{2
 endfunction
 "}}}
 function! Videm_SymdbInit() "{{{2
-    return s:SymdbInitHook(s:SymdbInitHookData)
+    "echo 'Initializing Symbol Database...'
+    let ret = s:SymdbInitHook(s:SymdbInitHookData)
+    "redraw | echo 'Done'
+    return ret
 endfunction
 "}}}
 function! Videm_SymdbUpdate() "{{{2
-    return s:SymdbUpdateHook(s:SymdbUpdateHookData)
+    "echo 'Updating Symbol Database...'
+    let ret = s:SymdbUpdateHook(s:SymdbUpdateHookData)
+    "redraw | echo 'Done'
+    return ret
 endfunction
 "}}}
 function! s:SymdbInited() "{{{2
@@ -5026,8 +5042,10 @@ function! s:SymdbInited() "{{{2
             continue
         endif
         let s = substitute(line, '^\s*\d\+\s\+\d\+\s\+', '', '')
+        " 只取basename检查
+        let bname = fnamemodify(s, ':t')
         " 工作空间名字就是特征
-        if stridx(s, wspname) == 0 || stridx(s, 'GTAGS') == 0
+        if stridx(bname, wspname) == 0 || bname ==# 'GTAGS'
             return 1
         endif
     endfor

@@ -185,8 +185,9 @@ PYTHON_EOF
     set cscopetagorder=0
     set cscopetag
     "set nocsverb
-    exec 'silent! cs kill' fnameescape(sCsOutFile)
-    exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
+    "exec 'silent! cs kill' fnameescape(sCsOutFile)
+    "exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
+    call vlutils#CscopeAdd(sCsOutFile, sDir)
     "set csverb
 
     py del l_ds
@@ -265,7 +266,8 @@ function! s:UpdateVLWCscopeDatabase(...) "{{{2
     if sDir ==# '.' || empty(sDir)
         let sDir = getcwd()
     endif
-    exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
+    "exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
+    call vlutils#CscopeAdd(sCsOutFile, sDir)
 
     py del l_ds
 endfunction
@@ -287,8 +289,9 @@ function! videm#plugin#cscope#ConnectCscopeDatabase(...) "{{{2
         let &cscopeprg = videm#settings#Get('.videm.symdb.cscope.Program')
         set cscopetagorder=0
         set cscopetag
-        exec 'silent! cs kill' fnameescape(sCsOutFile)
-        exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
+        "exec 'silent! cs kill' fnameescape(sCsOutFile)
+        "exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
+        call vlutils#CscopeAdd(sCsOutFile, sDir)
     endif
     py del l_ds
 endfunction

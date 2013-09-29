@@ -21,12 +21,12 @@ endfunction
 " 初始化变量, 仅在没有变量定义时才赋值
 " Param1: sVarName - 变量名, 必须是可作为标识符的字符串
 " Param2: defaultVal - 默认值, 可为任何类型
-" Return: 1 表示赋值为默认, 否则为 0
+" Return: 0 表示赋值为默认, 否则为 1
 function! vlutils#InitVariable(sVarName, defaultVal) "{{{2
-    if !exists(a:sVarName)
-        let {a:sVarName} = a:defaultVal
+    if exists(a:sVarName)
         return 1
     endif
+    let {a:sVarName} = a:defaultVal
     return 0
 endfunction
 "}}}
@@ -34,19 +34,13 @@ endfunction
 " 主要用于“安全”地运行某些命令，例如窗口跳转
 " TODO: 这个名字太容易混淆了，迟早要干掉
 function! vlutils#Exec(sCmd) "{{{2
-    try
-        exec 'noautocmd' a:sCmd
-    catch
-    endtry
+    exec 'noautocmd' a:sCmd
 endfunction
 "}}}
 " 与 exec 命令类似，但是运行时 set eventignore=all
 " 主要用于“安全”地运行某些命令，例如窗口跳转
 function! vlutils#ExecNoau(sCmd) "{{{2
-    try
-        exec 'noautocmd' a:sCmd
-    catch
-    endtry
+    exec 'noautocmd' a:sCmd
 endfunction
 "}}}
 " 把路径分割符替换为 posix 的 '/'
@@ -400,6 +394,7 @@ function! vlutils#Inputs(prompt, ...) "{{{2
     return lResult
 endfunction
 "}}}
+" 进度条函数，arg1 - 当前进度，[arg2] - 总体进度
 function vlutils#Progress(n, ...) "{{{2
     let n = a:n
     let m = get(a:000, 0, 100)
@@ -413,6 +408,47 @@ function vlutils#Progress(n, ...) "{{{2
     echon repeat(' ', nRange - nRatio)
     echon printf("%4d%%", n * 100 / m)
     redraw
+    return ''
+endfunction
+"}}}
+" 添加 cscope 数据库的动作，统一 cs add 动作，用于处理缺陷
+function! vlutils#CscopeAdd(file, ...) "{{{2
+    let file = a:file
+    let prepath = get(a:000, 0, '')
+    let flags = get(a:000, 1, '')
+
+    if empty(file)
+        return -1
+    endif
+
+    if file =~# '\s'
+        " fallback
+        let relfile = fnamemodify(file, ':.')
+        if relfile =~# '\s'
+            let msg = printf('Cscope can not support this file path: %s', file)
+            call vlutils#EchoWarnMsg(msg)
+            return -1
+        endif
+        let file = relfile
+    endif
+
+    if prepath =~# '\s'
+        let msg = printf('Cscope can not support this pre-path: %s',
+                \        prepath)
+        call vlutils#EchoWarnMsg(msg)
+        return -1
+    endif
+
+    exec 'silent! cs kill' fnameescape(file)
+
+    let cmd = printf('cs add %s', fnameescape(file))
+    if !empty(prepath)
+        let cmd .= ' ' . fnameescape(prepath)
+    endif
+    if !empty(flags)
+        let cmd .= ' ' . flags
+    endif
+    exec cmd
 endfunction
 "}}}
 " 供 vimdialog 使用的一个共用回调函数，一般情况下请不要使用
@@ -849,6 +885,25 @@ let s:os.pathsep = s:os.path.pathsep
 let s:os.defpath = s:os.path.defpath
 let s:os.extsep = s:os.path.extsep
 let s:os.altsep = s:os.path.altsep
+
+function! s:os.path.basename(p) "{{{2
+    return fnamemodify(a:p, ':t')
+endfunction
+"}}}
+function! s:os.path.dirname(p) "{{{2
+    return fnamemodify(a:p, ':h')
+endfunction
+"}}}
+function! s:os.path.extname(p) "{{{2
+    return fnamemodify(a:p, ':e')
+endfunction
+"}}}
+function! s:os.path.splitext(p) "{{{2
+    let ext = fnamemodify(a:p, ':e')
+    let r = fnamemodify(a:p, ':r')
+    return [r, self.extsep . ext]
+endfunction
+"}}}
 
 " 导出全局变量
 let g:vlutils#os = s:os

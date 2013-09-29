@@ -120,8 +120,9 @@ function! videm#plugin#gtags#ConnectGtagsDatabase(...) "{{{2
         let &cscopeprg = videm#settings#Get('.videm.symdb.gtags.CscopeProg')
         set cscopetagorder=0
         set cscopetag
-        exec 'silent! cs kill' fnameescape(sGlbOutFile)
-        exec 'cs add' fnameescape(sGlbOutFile) fnameescape(sDir)
+        "exec 'silent! cs kill' fnameescape(sGlbOutFile)
+        "exec 'cs add' fnameescape(sGlbOutFile) fnameescape(sDir)
+        call vlutils#CscopeAdd(sGlbOutFile, sDir)
         let s:bHadConnGtagsDb = 1
     endif
 endfunction

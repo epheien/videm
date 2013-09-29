@@ -616,7 +616,7 @@ def OmniCppWMenuAction(remove=False):
         for item in li:
             VidemWorkspace.RemoveWMenu(item)
     else:
-        idx = VidemWorkspace.popupMenuW.index('-Sep_Settings-')
+        idx = VidemWorkspace.popupMenuW.index('-Sep_Symdb-')
         for item in li:
             VidemWorkspace.InsertWMenu(idx, item,
                                        OmniCppMenuWHook, videm_cc_omnicpp)
