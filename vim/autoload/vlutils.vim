@@ -451,6 +451,37 @@ function! vlutils#CscopeAdd(file, ...) "{{{2
     exec cmd
 endfunction
 "}}}
+" 用于保存vim选项，最终用于恢复
+" 参数支持两种方式传入，(['a', 'b']) 或 ('a', 'b')
+function! vlutils#SaveVimOptions(...) "{{{2
+    let opts = a:000
+    let length = len(a:000)
+    if length == 1 && type(get(a:000, 0)) == type([])
+        let opts = get(a:000, 0)
+    endif
+
+    let dict = {}
+    for opt in opts
+        exec 'let val = &' . opt
+        let dict[opt] = val
+    endfor
+    return dict
+endfunction
+"}}}
+function! vlutils#RestoreVimOptions(optdict) "{{{2
+    for [key, val] in items(a:optdict)
+        if type(val) == type('')
+            " 字符串型
+            let cmd = printf("let &%s = '%s'",
+                    \        key, substitute(val, "'", "''", "g"))
+        else
+            " 数值和布尔型
+            let cmd = printf('let &%s = %d', key, val)
+        endif
+        exec cmd
+    endfor
+endfunction
+"}}}
 " 供 vimdialog 使用的一个共用回调函数，一般情况下请不要使用
 " eg. call ctl.ConnectButtonCallback(function('vlutils#EditTextBtnCbk'), &ft)
 function! vlutils#EditTextBtnCbk(ctl, data) "{{{2

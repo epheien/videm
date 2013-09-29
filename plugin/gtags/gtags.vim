@@ -116,10 +116,6 @@ function! videm#plugin#gtags#ConnectGtagsDatabase(...) "{{{2
         if sDir ==# '.' || empty(sDir)
             let sDir = getcwd()
         endif
-        let s:cscopeprg_bak = &cscopeprg
-        let &cscopeprg = videm#settings#Get('.videm.symdb.gtags.CscopeProg')
-        set cscopetagorder=0
-        set cscopetag
         "exec 'silent! cs kill' fnameescape(sGlbOutFile)
         "exec 'cs add' fnameescape(sGlbOutFile) fnameescape(sDir)
         call vlutils#CscopeAdd(sGlbOutFile, sDir)
@@ -185,6 +181,13 @@ function! s:ThisInit() "{{{2
                     \ call <SID>Autocmd_UpdateGtagsDatabase(expand('%:p'))
         augroup END
     endif
+    " 保存并设置一些选项
+    let save_opts = ['cscopeprg', 'cscopetagorder', 'cscopetag', 'cscopeverbose']
+    let s:opts_bak = vlutils#SaveVimOptions(save_opts)
+    let &cscopeprg = videm#settings#Get('.videm.symdb.gtags.CscopeProg')
+    set cscopetagorder=0
+    set cscopetag
+    set cscopeverbose
     " 统一hook
     call Videm_RegisterSymdbInitHook('videm#plugin#gtags#InitDatabase', '')
     call Videm_RegisterSymdbUpdateHook('videm#plugin#gtags#UpdateDatabase', '')
@@ -257,9 +260,9 @@ function! videm#plugin#gtags#Disable() "{{{2
     " kill symdb
     py if ws.IsOpen(): vim.command("silent! cs kill GTAGS")
     " 尽量还原选项
-    if exists('s:cscopeprg_bak')
-        let &cscopeprg = s:cscopeprg_bak
-        unlet s:cscopeprg_bak
+    if exists('s:opts_bak')
+        call vlutils#RestoreVimOptions(s:opts_bak)
+        unlet s:opts_bak
     endif
     let s:enable = 0
 endfunction

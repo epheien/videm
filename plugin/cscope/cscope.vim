@@ -182,13 +182,9 @@ PYTHON_EOF
         let sDir = getcwd()
     endif
 
-    set cscopetagorder=0
-    set cscopetag
-    "set nocsverb
     "exec 'silent! cs kill' fnameescape(sCsOutFile)
     "exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
     call vlutils#CscopeAdd(sCsOutFile, sDir)
-    "set csverb
 
     py del l_ds
 endfunction
@@ -286,9 +282,6 @@ function! videm#plugin#cscope#ConnectCscopeDatabase(...) "{{{2
         if sDir ==# '.' || empty(sDir)
             let sDir = getcwd()
         endif
-        let &cscopeprg = videm#settings#Get('.videm.symdb.cscope.Program')
-        set cscopetagorder=0
-        set cscopetag
         "exec 'silent! cs kill' fnameescape(sCsOutFile)
         "exec 'cs add' fnameescape(sCsOutFile) fnameescape(sDir)
         call vlutils#CscopeAdd(sCsOutFile, sDir)
@@ -315,6 +308,13 @@ function! s:ThisInit() "{{{2
     " 统一hook
     call Videm_RegisterSymdbInitHook('videm#plugin#cscope#InitDatabase', '')
     call Videm_RegisterSymdbUpdateHook('videm#plugin#cscope#UpdateDatabase', '')
+    " 保存并设置一些选项
+    let save_opts = ['cscopeprg', 'cscopetagorder', 'cscopetag', 'cscopeverbose']
+    let s:opts_bak = vlutils#SaveVimOptions(save_opts)
+    let &cscopeprg = videm#settings#Get('.videm.symdb.cscope.Program')
+    set cscopetagorder=0
+    set cscopetag
+    set cscopeverbose
 endfunction
 "}}}
 function! videm#plugin#cscope#SettingsHook(event, data, priv) "{{{2
@@ -373,6 +373,11 @@ function! videm#plugin#cscope#Disable() "{{{2
     " kill symdb
     let sCsOutFile = GetWspName() . videm#settings#Get('.videm.symdb.cscope.OutFile')
     py if ws.IsOpen(): vim.command("exec 'silent! cs kill' fnameescape(sCsOutFile)")
+    " 尽量还原选项
+    if exists('s:opts_bak')
+        call vlutils#RestoreVimOptions(s:opts_bak)
+        unlet s:opts_bak
+    endif
     let s:enable = 0
 endfunction
 "}}}
