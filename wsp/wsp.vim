@@ -3043,7 +3043,8 @@ function! s:CreateBatchBuildSettingsDialog() "{{{2
     let dSetsCtl = ctl
     call ctl.SetId(s:ID_BatchBuildSettingsNames)
     call ctl.SetIndent(4)
-    py vim.command("let lNames = %s" % ws.VLWSettings.GetBatchBuildNames())
+    py vim.command("let lNames = %s"
+            \      % ToVimEval(ws.VLWSettings.GetBatchBuildNames()))
     for sName in lNames
         call ctl.AddItem(sName)
     endfor
@@ -3052,9 +3053,10 @@ function! s:CreateBatchBuildSettingsDialog() "{{{2
     call dlg.AddControl(ctl)
 
     " 顺序列表控件
-    py vim.command('let lProjectNames = %s' % ws.VLWIns.GetProjectList())
+    py vim.command('let lProjectNames = %s'
+            \      % ToVimEval(ws.VLWIns.GetProjectList()))
     py vim.command('let lBatchBuild = %s' 
-                \% ws.VLWSettings.GetBatchBuildList('Default'))
+            \      % ToVimEval(ws.VLWSettings.GetBatchBuildList('Default')))
 
     let ctl = g:VCTable.New('', 2)
     let dListCtl = ctl
