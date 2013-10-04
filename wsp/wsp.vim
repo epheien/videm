@@ -161,6 +161,7 @@ let s:DefaultSettings = {
     \ '.videm.wsp.HlSourceFile'     : 1,
     \ '.videm.wsp.ActProjHlGroup'   : 'SpecialKey',
     \ '.videm.wsp.ShowBriefHelp'    : 1,
+    \ '.videm.wsp.SessionOptions'   : 'buffers,curdir,folds,help,localoptions,tabpages,winsize,resize',
     \
     \ '.videm.wsp.keybind.ShowMenu'         : '.',
     \ '.videm.wsp.keybind.PopupMenu'        : ',',
@@ -644,6 +645,7 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     let s:bHadInited = 1
 endfunction
 "}}}
+" *DEPRECATED*
 function! GetWspName() "{{{2
     py vim.command("return %s" % ToVimEval(ws.VLWIns.name))
 endfunction
@@ -875,13 +877,13 @@ function! s:InstallCommands() "{{{2
     endif
 
     command! -nargs=0 -bar VBuildActiveProject    
-                \                           call <SID>BuildActiveProject()
+            \                           call <SID>BuildActiveProject()
     command! -nargs=0 -bar VCleanActiveProject    
-                \                           call <SID>CleanActiveProject()
+            \                           call <SID>CleanActiveProject()
     command! -nargs=0 -bar VRunActiveProject      
-                \                           call <SID>RunActiveProject()
+            \                           call <SID>RunActiveProject()
     command! -nargs=0 -bar VBuildAndRunActiveProject 
-                \                           call <SID>BuildAndRunActiveProject()
+            \                           call <SID>BuildAndRunActiveProject()
 
     command! -nargs=0 -bar VEnvVarSetttings   call <SID>EnvVarSettings()
     command! -nargs=0 -bar VCompilersSettings call <SID>CompilersSettings()
@@ -890,7 +892,7 @@ function! s:InstallCommands() "{{{2
     command! -nargs=0 -bar VSwapSourceHeader  call <SID>SwapSourceHeader()
 
     command! -nargs=0 -bar VLocateCurrentFile 
-                \                           call <SID>LocateFile(expand('%:p'))
+            \                           call <SID>LocateFile(expand('%:p'))
 
     command! -nargs=? -bar VFindFiles       call <SID>FindFiles(<q-args>)
     command! -nargs=? -bar VFindFilesIC     call <SID>FindFiles(<q-args>, 1)
@@ -901,13 +903,18 @@ function! s:InstallCommands() "{{{2
     command! -nargs=0 -bar VSymbolDatabaseUpdate    call Videm_SymdbUpdate()
 
     command! -nargs=1 -bar VSearchSymbolDefinition
-                \           call <SID>SearchSymbolDefinition(<q-args>)
+            \               call <SID>SearchSymbolDefinition(<q-args>)
     command! -nargs=1 -bar VSearchSymbolDeclaration
-                \           call <SID>SearchSymbolDeclaration(<q-args>)
+            \               call <SID>SearchSymbolDeclaration(<q-args>)
     command! -nargs=1 -bar VSearchSymbolCalling
-                \           call <SID>SearchSymbolCalling(<q-args>)
+            \               call <SID>SearchSymbolCalling(<q-args>)
     command! -nargs=1 -bar VSearchSymbolReference
-                \           call <SID>SearchSymbolReference(<q-args>)
+            \               call <SID>SearchSymbolReference(<q-args>)
+
+    command! -nargs=1 -bar VSaveSession
+            \               call s:SaveSession(<q-args>)
+    command! -nargs=1 -bar -complete=file VLoadSession
+            \               call s:LoadSession(<q-args>)
 endfunction
 "}}}
 function! s:InstallMenuBarMenu() "{{{2
@@ -5202,12 +5209,59 @@ endfunction
 " ============================================================================
 " ============================================================================
 
-function VidemVersion() "{{{2
+" 会话文件的后缀，前缀统一为工作空间名字
+let s:videm_session_suffix = '.session'
+
+function! Videm_GetVersion() "{{{2
     if s:bHadInited
         py vim.command("return %d" % VIMLITE_VER)
     else
         return 0
     endif
+endfunction
+"}}}
+function! Videm_GetWorkspaceName() "{{{2
+    py vim.command("return %s" % ToVimEval(ws.VLWIns.name))
+endfunction
+"}}}
+" *DEPRECATED*
+function! VidemVersion() "{{{2
+    return Videm_GetVersion()
+endfunction
+"}}}
+function! s:SaveSession(filename) "{{{2
+    let filename = a:filename
+    if empty(filename)
+        " 空文件名的话，表示使用默认的名字
+        let filename = printf('%s%s',
+                \              Videm_GetWorkspaceName(), s:videm_session_suffix)
+    endif
+    let sessionoptions_bak = &sessionoptions
+    let &sessionoptions = videm#settings#Get('.videm.wsp.SessionOptions')
+    py l_session = VidemSession()
+    py vim.command("let ret = %d" % l_session.Save(vim.eval('filename')))
+    py del l_session
+    let &sessionoptions = sessionoptions_bak
+    if ret != 0
+        call s:echow('Failed to save videm session!')
+    endif
+    return ret
+endfunction
+"}}}
+function! s:LoadSession(filename) "{{{2
+    let filename = a:filename
+    if empty(filename)
+        " 空文件名的话，表示使用默认的名字
+        let filename = printf('%s%s',
+                \              Videm_GetWorkspaceName(), s:videm_session_suffix)
+    endif
+    py l_session = VidemSession()
+    py vim.command("let ret = %d" % l_session.Load(vim.eval('filename')))
+    py del l_session
+    if ret != 0
+        call s:echow('Failed to load videm session!')
+    endif
+    return ret
 endfunction
 "}}}
 function! s:InitPythonInterfaces() "{{{2

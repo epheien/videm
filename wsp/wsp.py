@@ -40,6 +40,7 @@ from Utils import IsCCppSourceFile, \
 from Utils import IsCppSourceFile, GetIncludesFromArgs, GetMacrosFromArgs
 from Macros import CPP_HEADER_EXT, C_SOURCE_EXT, CPP_SOURCE_EXT, WSP_PATH_SEP
 from Notifier import Notifier
+from VidemSession import VidemSession
 
 # 这个变量仅用于后向兼容
 VimLiteDir = vim.eval('g:VidemDir')
@@ -150,7 +151,9 @@ class VimLiteWorkspace(object):
 
     # 工作空间右键菜单列表
     # menu_hook(wsp, data)
-    popupMenuW = ['Please select an operation:',
+    popupMenuW = [
+        'Please select an operation:',
+        # ==========================
         'Create a New Project...',
         'Add an Existing Project...',
         '-Sep_Workspace-',
@@ -158,6 +161,9 @@ class VimLiteWorkspace(object):
         'Open Workspace...',
         'Close Workspace',
         'Reload Workspace',
+        '-Sep_Session-',
+        'Load Session...',
+        'Save Session...',
         '-Sep_BatchBuilds-',
         'Batch Builds',
         '-Sep_Symdb-',
@@ -1772,7 +1778,7 @@ class VimLiteWorkspace(object):
                         'browse("", "Open Workspace", getcwd(), "")')
                 else:
                     fileName = vim.eval(
-                        'input("\nPlease Enter the file name:\n", '\
+                        'input("\nPlease enter the file name:\n", '\
                         '"%s/", "file")' % (os.getcwd(),))
                 if fileName:
                     self.CloseWorkspace()
@@ -1783,6 +1789,25 @@ class VimLiteWorkspace(object):
                 self.RefreshBuffer()
             elif choice == 'Reload Workspace':
                 self.ReloadWorkspace()
+            elif choice == 'Load Session...':
+                if useGui and vim.eval('has("browse")') != '0':
+                    fileName = vim.eval(
+                        'browse("", "Load Session", "%s", "")' 
+                        % self.VLWIns.dirName)
+                else:
+                    fileName = vim.eval(
+                        'input("\nPlease enter the session file name:\n", '\
+                        '"%s/", "file")' % (os.getcwd(),))
+                if fileName:
+                    vim.command("call s:LoadSession(%s)" % ToVimEval(fileName))
+            elif choice == 'Save Session...':
+                # NOTE: gnome3中的browse()函数无法输入文件名，换inputdialog()
+                name = vim.eval(
+                    'inputdialog("\nEnter the session file name to be created:\n'
+                    '(CWD is: %s)\n")' % ToVimEval(self.VLWIns.dirName))
+                if name:
+                    vim.command("call s:SaveSession(%s)" % ToVimEval(
+                                    os.path.join(self.VLWIns.dirName, name)))
             elif choice == 'Initialize Symbol Database':
                 vim.command("call Videm_SymdbInit()")
             elif choice == 'Update Symbol Database':
