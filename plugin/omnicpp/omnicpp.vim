@@ -606,8 +606,8 @@ def OmniCppWMenuAction(remove=False):
         '-Sep_OmniCpp-',
         'Parse Workspace (Full, Async)',
         'Parse Workspace (Quick, Async)',
-        'Parse Workspace (Full)',
-        'Parse Workspace (Quick)',
+        #'Parse Workspace (Full)',
+        #'Parse Workspace (Quick)',
         'Parse Workspace (Full, Shallow)',
         'Parse Workspace (Quick, Shallow)',
     ]

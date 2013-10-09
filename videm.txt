@@ -955,20 +955,12 @@ search paths for parser in 'videm -> (OmniCpp Tags|VIMCCC) Settings' . >
             Parse all workspace files and all headers included by workspace
             files asynchronously. Needless parsing will be ignored.
 
-        * Parse Workspace (Full)
-            Regenerate the tags database and parse all workspace files and all
-            headers included by workspace files synchronously.
-
-        * Parse Workspace (Quick)
-            Parse all workspace files and all headers included by workspace
-            files synchronously. Needless parsing will be ignored.
-
         * Parse Workspace (Full, Shallow)
             Regenerate the tags database and parse all workspace files
-            asynchronously.
+            synchronously.
 
         * Parse Workspace (Quick, Shallow)
-            Parse all workspace files asynchronously. Needless parsing will be
+            Parse all workspace files synchronously. Needless parsing will be
             ignored.
 
 ==============================================================================
