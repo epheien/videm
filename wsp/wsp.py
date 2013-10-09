@@ -349,17 +349,19 @@ class VimLiteWorkspace(object):
         return vim.current.window
 
     def OpenWorkspace(self, fileName):
-        if fileName:
-            VidemWorkspace.wsp_ntf.CallChain('open_pre', self)
-            self.VLWIns.OpenWorkspace(fileName)
-            self.VLWIns._SetStatus(type(self.VLWIns).STATUS_CLOSED)
-            # 这里载入工作区设置的时候，工作区应该是CLOSE状态
-            # 实现问题，因为获取配置文件需要先打开工作区
-            self.LoadWspSettings()
-            self.VLWIns._SetStatus(type(self.VLWIns).STATUS_OPEN)
-            self.RefreshStatusLine()
-            self.HlActiveProject()
-            VidemWorkspace.wsp_ntf.CallChain('open_post', self)
+        if not fileName:
+            return
+        VidemWorkspace.wsp_ntf.CallChain('open_pre', self)
+        self.VLWIns.OpenWorkspace(fileName)
+        self.VLWIns._SetStatus(type(self.VLWIns).STATUS_CLOSED)
+        # 这里载入工作区设置的时候，工作区应该是CLOSE状态
+        # 实现问题，因为获取配置文件需要先打开工作区
+        self.LoadWspSettings()
+        self.VLWIns._SetStatus(type(self.VLWIns).STATUS_OPEN)
+        self.RefreshStatusLine()
+        self.HlActiveProject()
+        VidemWorkspace.wsp_ntf.CallChain('open_post', self)
+        vim.command('call s:AutoLoadSession()') # 会话处理
 
     def CloseWorkspace(self):
         if not self.IsOpen():
@@ -367,6 +369,7 @@ class VimLiteWorkspace(object):
         VidemWorkspace.wsp_ntf.CallChain('close_pre', self)
         # XXX: 这个自动命令需要更明确的语义，暂时未用
         #vim.command('doautocmd VLWorkspace VimLeave *')
+        vim.command('call s:AutoSaveSession()') # 会话处理
         vim.command('redraw | echo ""') # 清理输出...
         vim.command('call s:CloseWorkspaceFiles()')
         self.VLWIns.CloseWorkspace()

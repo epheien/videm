@@ -161,6 +161,7 @@ let s:DefaultSettings = {
     \ '.videm.wsp.HlSourceFile'     : 1,
     \ '.videm.wsp.ActProjHlGroup'   : 'SpecialKey',
     \ '.videm.wsp.ShowBriefHelp'    : 1,
+    \ '.videm.wsp.AutoSession'      : 0,
     \ '.videm.wsp.SessionOptions'   : 'buffers,curdir,folds,help,localoptions,tabpages,winsize,resize',
     \
     \ '.videm.wsp.keybind.ShowMenu'         : '.',
@@ -590,21 +591,10 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     " 备份全局配置，这个动作要在载入所有插件之后
     call videm#wsp#WspConfSave(s:WspConfBakp)
 
-    " 打开工作区文件，初始化全局变量
-    "py ws = VimLiteWorkspace(vim.eval('sFile'))
-    py ws = VimLiteWorkspace()
-    " 以后统一使用 videm
-    py videm.wsp = ws
-    py videm.org.cpp = ws
-    py ws.OpenWorkspace(vim.eval('sFile'))
-    py ws.RefreshBuffer()
-    if videm#settings#Get('.videm.wsp.ShowBriefHelp')
-        call s:ToggleBriefHelp()
-    endif
-
     " 安装命令
     call s:InstallCommands()
 
+    " 安装自动命令
     augroup VLWorkspace
         autocmd Syntax dbgvar nnoremap <buffer> 
                     \<CR> :exec "Cfoldvar " . line(".")<CR>
@@ -623,12 +613,26 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
         autocmd BufReadPost         * call <SID>Autocmd_WorkspaceEditorOptions()
         autocmd BufEnter            * call <SID>Autocmd_LocateCurrentFile()
         autocmd SessionLoadPost     * call videm#wsp#InitWorkspace('')
+        " NOTE: 现在vim退出的时候，不会先把工作空间关掉，所以需要这个自动命令
+        autocmd VimLeavePre         * call s:AutoSaveSession()
     augroup END
 
     " 设置标题栏
     if videm#settings#Get('.videm.wsp.ShowWspName')
         set titlestring=%(<%{GetWspName()}>\ %)%t%(\ %M%)
                 \%(\ (%{expand(\"%:~:h\")})%)%(\ %a%)%(\ -\ %{v:servername}%)
+    endif
+
+    " 打开工作区文件，初始化全局变量
+    "py ws = VimLiteWorkspace(vim.eval('sFile'))
+    py ws = VimLiteWorkspace()
+    " 以后统一使用 videm
+    py videm.wsp = ws
+    py videm.org.cpp = ws
+    py ws.OpenWorkspace(vim.eval('sFile'))
+    py ws.RefreshBuffer()
+    if videm#settings#Get('.videm.wsp.ShowBriefHelp')
+        call s:ToggleBriefHelp()
     endif
 
     " 用于项目设置的全局变量
@@ -5262,6 +5266,28 @@ function! s:LoadSession(filename) "{{{2
         call s:echow('Failed to load videm session!')
     endif
     return ret
+endfunction
+"}}}
+function! s:AutoLoadSession() "{{{2
+    if !videm#settings#Get('.videm.wsp.AutoSession')
+        return
+    endif
+    py if not videm.wsp.IsOpen(): vim.command('return')
+    py vim.command("let dir = %s" % ToVimEval(videm.wsp.VLWIns.dirName))
+    let filename = s:os.path.join(dir,
+            \               Videm_GetWorkspaceName() . s:videm_session_suffix)
+    return s:LoadSession(filename)
+endfunction
+"}}}
+function! s:AutoSaveSession() "{{{2
+    if !videm#settings#Get('.videm.wsp.AutoSession')
+        return
+    endif
+    py if not videm.wsp.IsOpen(): vim.command('return')
+    py vim.command("let dir = %s" % ToVimEval(videm.wsp.VLWIns.dirName))
+    let filename = s:os.path.join(dir,
+            \               Videm_GetWorkspaceName() . s:videm_session_suffix)
+    return s:SaveSession(filename)
 endfunction
 "}}}
 function! s:InitPythonInterfaces() "{{{2

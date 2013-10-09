@@ -274,6 +274,9 @@ The key to toggle help info. >
     If set to 1, videm will open quifix window after searching symbol from
     symbol database if necessary.
 
+*.videm.wsp.AutoSession*                number (default 0)
+    If set to 1, videm will save or load session of workspace automatically.
+
 ------------------------------------------------------------------------------
 4.2. Commands                           *videm-ProjectManager-Commands*
 
