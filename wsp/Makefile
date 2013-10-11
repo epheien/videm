@@ -18,6 +18,7 @@ files := \
     VLWorkspace.py \
     VLWorkspaceSettings.py \
     XmlUtils.py \
+    VidemSession.py \
 
 
 all:
