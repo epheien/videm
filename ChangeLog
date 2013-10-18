@@ -1,3 +1,6 @@
+2013-10-18 fanhe <fanhed@163.com>
+ * wsp: 使用 g:videm_user_options 字典来快速设置用户自定义选项
+
 2013-10-09 fanhe <fanhed@163.com>
  * wsp: 会话支持, 并新增选项 '.videm.wsp.AutoSession': 0
 

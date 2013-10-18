@@ -322,6 +322,17 @@ function! s:InitCompatSettings() "{{{2
     call s:RefreshBackwardOptions()
 endfunction
 "}}}2
+function! s:InitUserSettings() "{{{2
+    if !(exists('g:videm_user_options') && type(g:videm_user_options) == type({}))
+        return 1
+    endif
+
+    for [key, val] in items(g:videm_user_options)
+        call videm#settings#Set(key, val)
+    endfor
+    return 0
+endfunction
+"}}}2
 function! s:InitSettings() "{{{2
     if videm#settings#Get('.videm.Compatible')
         call s:InitCompatSettings()
@@ -330,6 +341,8 @@ function! s:InitSettings() "{{{2
 endfunction
 "}}}2
 
+" 初始化用户的选项
+call s:InitUserSettings()
 " 这里就直接初始化配置，无须等待到正式打开工作区的时候了
 call s:InitSettings()
 " ============================================================================
