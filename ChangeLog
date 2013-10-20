@@ -1,3 +1,7 @@
+2013-10-20 fanhe <fanhed@163.com>
+ * all: 全部更新为新选项方式
+ * wsp: 工作区局部配置的刷新顺序强制为先刷新禁用的，再刷新启用的
+
 2013-10-18 fanhe <fanhed@163.com>
  * wsp: 使用 g:videm_user_options 字典来快速设置用户自定义选项
 

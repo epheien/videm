@@ -24,6 +24,8 @@ let s:OmniCppSettings = {
     \ '.videm.cc.omnicpp.ItemSelectMode'        : 2,
     \ '.videm.cc.omnicpp.GotoDeclKey'           : '<C-p>',
     \ '.videm.cc.omnicpp.GotoImplKey'           : '<C-]>',
+    \ '.videm.cc.omnicpp.UseLibCxxParser'       : 0,
+    \ '.videm.cc.omnicpp.InclAllCondCmplBrch'   : 1,
     \ '.videm.cc.omnicpp.LibCxxParserPath'      : s:os.path.join(g:VidemDir,
     \                                                   '/lib/libCxxParser.so'),
 \ }
@@ -40,6 +42,7 @@ let s:CompatSettings = {
     \ 'g:VLOmniCpp_GotoDeclarationKey'  : '.videm.cc.omnicpp.GotoDeclKey',
     \ 'g:VLOmniCpp_GotoImplementationKey'   : '.videm.cc.omnicpp.GotoImplKey',
     \ 'g:VLOmniCpp_LibCxxParserPath'    : '.videm.cc.omnicpp.LibCxxParserPath',
+    \ 'g:VLOmniCpp_UseLibCxxParser'     : '.videm.cc.omnicpp.UseLibCxxParser',
 \ }
 
 function! s:InitCompatSettings() "{{{2
@@ -51,7 +54,18 @@ function! s:InitCompatSettings() "{{{2
     endfor
 endfunction
 "}}}2
+" 初始化反转的兼容选项，即实现处还是使用 g:XXX 判断，但是支持开始的时候使用
+" '.videm.xxx' 来设置
+function! s:InitInverseCompatSettings() "{{{2
+    for [oldopt, newopt] in items(s:CompatSettings)
+        if videm#settings#Has(newopt)
+            let {oldopt} = videm#settings#Get(newopt)
+        endif
+    endfor
+endfunction
+"}}}2
 function! s:InitSettings() "{{{2
+    call s:InitInverseCompatSettings()
     if videm#settings#Get('.videm.Compatible')
         call s:InitCompatSettings()
     endif
@@ -484,9 +498,6 @@ function! videm#plugin#omnicpp#Init() "{{{2
     call videm#wsp#WspOptRegister('.videm.cc.omnicpp.Enable',
             \                   videm#settings#Get('.videm.cc.omnicpp.Enable'))
     call videm#wsp#WspRestartOptRegister('.videm.cc.omnicpp.Enable')
-    if !videm#settings#Get('.videm.cc.omnicpp.Enable', 0)
-        return
-    endif
     call s:ThisInit()
     let s:enable = 1
 endfunction

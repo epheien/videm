@@ -14,10 +14,36 @@ let s:ctls = {}
 let s:enable = 0
 
 let s:VIMCCCSettings = {
-    \ '.videm.cc.vimccc.Enable'             : 0,
+    \ '.videm.cc.vimccc.Enable'                     : 0,
+    \ '.videm.cc.vimccc.ClangLibraryPath'           : '',
+    \ '.videm.cc.vimccc.CompleteMacros'             : 0,
+    \ '.videm.cc.vimccc.CompletePatterns'           : 0,
+    \ '.videm.cc.vimccc.IgnoreCase'                 : &ignorecase,
+    \ '.videm.cc.vimccc.MayCompleteDot'             : 1,
+    \ '.videm.cc.vimccc.MayCompleteArrow'           : 1,
+    \ '.videm.cc.vimccc.MayCompleteColon'           : 1,
+    \ '.videm.cc.vimccc.ItemSelectionMode'          : 2,
+    \ '.videm.cc.vimccc.MapReturnToDispCalltips'    : 1,
+    \ '.videm.cc.vimccc.GotoDeclKey'                : '<C-p>',
+    \ '.videm.cc.vimccc.GotoImplKey'                : '<C-]>',
+    \ '.videm.cc.vimccc.AutoPopupMenu'              : 1,
+    \ '.videm.cc.vimccc.AutoTriggerCharCount'       : 2,
 \ }
 
 let s:CompatSettings = {
+    \ 'g:VIMCCC_ClangLibraryPath'         : '.videm.cc.vimccc.ClangLibraryPath',
+    \ 'g:VIMCCC_CompleteMacros'           : '.videm.cc.vimccc.CompleteMacros',
+    \ 'g:VIMCCC_CompletePatterns'         : '.videm.cc.vimccc.CompletePatterns',
+    \ 'g:VIMCCC_IgnoreCase'               : '.videm.cc.vimccc.IgnoreCase',
+    \ 'g:VIMCCC_MayCompleteDot'           : '.videm.cc.vimccc.MayCompleteDot',
+    \ 'g:VIMCCC_MayCompleteArrow'         : '.videm.cc.vimccc.MayCompleteArrow',
+    \ 'g:VIMCCC_MayCompleteColon'         : '.videm.cc.vimccc.MayCompleteColon',
+    \ 'g:VIMCCC_ItemSelectionMode'        : '.videm.cc.vimccc.ItemSelectionMode',
+    \ 'g:VIMCCC_MapReturnToDispCalltips'  : '.videm.cc.vimccc.MapReturnToDispCalltips',
+    \ 'g:VIMCCC_GotoDeclarationKey'       : '.videm.cc.vimccc.GotoDeclKey',
+    \ 'g:VIMCCC_GotoImplementationKey'    : '.videm.cc.vimccc.GotoImplKey',
+    \ 'g:VIMCCC_AutoPopupMenu'            : '.videm.cc.vimccc.AutoPopupMenu',
+    \ 'g:VIMCCC_TriggerCharCount'         : '.videm.cc.vimccc.AutoTriggerCharCount',
 \ }
 
 function! s:InitCompatSettings() "{{{2
@@ -29,7 +55,16 @@ function! s:InitCompatSettings() "{{{2
     endfor
 endfunction
 "}}}2
+function! s:InitInverseCompatSettings() "{{{2
+    for [oldopt, newopt] in items(s:CompatSettings)
+        if videm#settings#Has(newopt)
+            let {oldopt} = videm#settings#Get(newopt)
+        endif
+    endfor
+endfunction
+"}}}2
 function! s:InitSettings() "{{{2
+    call s:InitInverseCompatSettings()
     if videm#settings#Get('.videm.Compatible')
         call s:InitCompatSettings()
     endif

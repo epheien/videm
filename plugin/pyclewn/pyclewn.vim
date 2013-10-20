@@ -19,6 +19,7 @@ let s:CompatSettings = {
     \ 'g:VLWDbgWatchVarKey'         : '.videm.dbg.pyclewn.WatchVarKey',
     \ 'g:VLWDbgPrintVarKey'         : '.videm.dbg.pyclewn.PrintVarKey',
     \ 'g:VLWorkspaceDbgConfName'    : '.videm.dbg.pyclewn.ConfName',
+    \ 'g:VLWDbgFrameSignBackground' : '.videm.dbg.pyclewn.FrameSignBackground',
 \ }
 
 function! s:InitCompatSettings() "{{{2
@@ -30,7 +31,16 @@ function! s:InitCompatSettings() "{{{2
     endfor
 endfunction
 "}}}2
+function! s:InitInverseCompatSettings() "{{{2
+    for [oldopt, newopt] in items(s:CompatSettings)
+        if videm#settings#Has(newopt)
+            let {oldopt} = videm#settings#Get(newopt)
+        endif
+    endfor
+endfunction
+"}}}2
 function! s:InitSettings() "{{{2
+    call s:InitInverseCompatSettings()
     if videm#settings#Get('.videm.Compatible')
         call s:InitCompatSettings()
     endif

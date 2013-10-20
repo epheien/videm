@@ -82,12 +82,6 @@ call s:InitVariable('g:VLWorkspaceSaveAllBeforeBuild', 0)
 call s:InitVariable('g:VLWorkspaceHighlightSourceFile', 1)
 call s:InitVariable('g:VLWorkspaceActiveProjectHlGroup', 'SpecialKey')
 
-" 0 -> none, 1 -> cscope, 2 -> global tags
-call s:InitVariable('g:VLWorkspaceSymbolDatabase', 'cscope')
-
-" 补全引擎选择，'none', 'omnicpp', 'vimccc'
-call s:InitVariable("g:VLWorkspaceCodeCompleteEngine", 'omnicpp')
-
 "=======================================
 " 标记是否已经运行
 call s:InitVariable("g:VLWorkspaceHasStarted", 0)
@@ -182,7 +176,7 @@ let s:DefaultSettings = {
     \ '.videm.wsp.keybind.ToggleHelpInfo'   : '<F1>',
     \ '.videm.wsp.keybind.CutOneNode'       : 'dd',
     \ '.videm.wsp.keybind.CutNodes'         : 'd',
-    \ '.videm.wsp.keybind.PasteNodes'       : '<C-p>',
+    \ '.videm.wsp.keybind.PasteNodes'       : '<C-v>',
     \
     \ '.videm.cc.Current'       : 'omnicpp',
     \ '.videm.symdb.Current'    : 'gtags',
@@ -222,6 +216,19 @@ let s:CompatSettings = {
     \ 'g:VLWRefreshBufferKey'       : '.videm.wsp.keybind.RefreshBuffer',
     \ 'g:VLWToggleHelpInfo'         : '.videm.wsp.keybind.ToggleHelpInfo',
 \ }
+
+" 这些是需要反转来使用的选项，设置的时候支持已新选项的方式设置
+let s:InverseCompatSettings = {
+    \ 'g:VLWorkspaceSymbolDatabase'     : '.videm.wsp.SymbolDatabase',
+    \ 'g:VLWorkspaceCodeCompleteEngine' : '.videm.wsp.CodeCompleteEngine',
+    \
+    \ 'g:VLCalltips_DispCalltipsKey'    : '.videm.common.calltips.DispCalltipsKey',
+    \ 'g:VLCalltips_NextCalltipsKey'    : '.videm.common.calltips.NextCalltipsKey',
+    \ 'g:VLCalltips_PrevCalltipsKey'    : '.videm.common.calltips.PrevCalltipsKey',
+    \ 'g:VLCalltips_IndicateArgument'   : '.videm.common.calltips.IndicateArgument',
+    \ 'g:VLCalltips_EnableSyntaxTest'   : '.videm.common.calltips.EnableSyntaxTest',
+\ }
+
 " ============================================================================
 " 工作区可局部配置的信息 {{{1
 let s:WspConfTmpl = {
@@ -272,12 +279,29 @@ endfunction
 "}}}
 function! videm#wsp#WspConfSetCurr(conf, ...) "{{{2
     let refresh = get(a:000, 0, 1)
-    for item in items(a:conf)
+    let conf = a:conf
+
+    " 排序，先处理禁用的，再处理启用的
+    let pres = []
+    let posts = []
+    for opt in keys(conf)
+        " NOTE: 需要遵守这个约定: 'xxx.Enable' 选项
+        if opt =~? '\.Enable$' && conf[opt]
+            call add(posts, opt)
+        else
+            call add(pres, opt)
+        endif
+    endfor
+
+    let all = pres + posts
+
+    for opt in all
         " 只允许设置指定的选项
-        if has_key(s:WspConfTmpl, item[0])
-            call videm#settings#Set(item[0], item[1], refresh)
+        if has_key(s:WspConfTmpl, opt)
+            let val = conf[opt]
+            call videm#settings#Set(opt, val, refresh)
             " hook
-            call videm#wsp#SettingsHook('set', {'opt': item[0], 'val': item[1]},
+            call videm#wsp#SettingsHook('set', {'opt': opt, 'val': val},
                     \                   refresh)
         endif
     endfor
@@ -312,6 +336,25 @@ endfunction
 "}}}
 "}}}
 " ============================================================================
+" 新老选项优先级问题
+" 1、如果 '.videm.Compatible' 非零，则老选项优先，否则参考2
+" 2、如果需要反转的选项的新老选项同时设置，那么新选项优先，会无条件把新选项的
+"    值赋予老选项。需要反转的选项无法通过设置新选项的方式适时刷新老选项
+function! s:InitInverseCompatSettings() "{{{2
+    for [oldopt, newopt] in items(s:InverseCompatSettings)
+        if videm#settings#Has(newopt)
+            let {oldopt} = videm#settings#Get(newopt)
+        endif
+    endfor
+
+    " 特殊处理这两个历史选项
+    " 0 -> none, 1 -> cscope, 2 -> global tags
+    call s:InitVariable('g:VLWorkspaceSymbolDatabase', 'cscope')
+
+    " 补全引擎选择，'none', 'omnicpp', 'vimccc'
+    call s:InitVariable("g:VLWorkspaceCodeCompleteEngine", 'omnicpp')
+endfunction
+"}}}2
 function! s:InitCompatSettings() "{{{2
     for item in items(s:CompatSettings)
         if !exists(item[0])
@@ -341,10 +384,6 @@ function! s:InitSettings() "{{{2
 endfunction
 "}}}2
 
-" 初始化用户的选项
-call s:InitUserSettings()
-" 这里就直接初始化配置，无须等待到正式打开工作区的时候了
-call s:InitSettings()
 " ============================================================================
 " 标识是否第一次初始化
 let s:bHadInited = 0
@@ -506,6 +545,90 @@ function! videm#wsp#IsStarted() "{{{2
     return g:VLWorkspaceHasStarted
 endfunction
 "}}}
+let s:OnceInit = 0
+" 这个函数只初始化一次，无论调用多少次
+function! s:OnceInit() "{{{2
+    if s:OnceInit
+        return 1
+    endif
+
+    " 初始化 vimdialog
+    call vimdialog#Init()
+
+    " 初始化所有 python 接口
+    call s:InitPythonInterfaces()
+
+    " 先清空用到的自动组
+    augroup VLWorkspace
+        autocmd!
+    augroup END
+
+    " 初始化用户的选项
+    call s:InitUserSettings()
+    " 需要反转使用的选项
+    call s:InitInverseCompatSettings()
+    " 初始化配置
+    call s:InitSettings()
+
+    if videm#settings#Get('.videm.wsp.EnableMenuBar')
+        " 添加菜单栏菜单
+        call s:InstallMenuBarMenu()
+    endif
+
+    if videm#settings#Get('.videm.wsp.EnableToolBar')
+        " 添加工具栏菜单
+        call s:InstallToolBarMenu()
+    endif
+
+    if videm#settings#Get('.videm.wsp.EnablePopUpMenu')
+        " 添加右键弹出菜单
+        call s:InstallPopUpMenu()
+    endif
+
+    " 安装命令
+    call s:InstallCommands()
+
+    " 安装自动命令
+    augroup VLWorkspace
+        autocmd Syntax dbgvar nnoremap <buffer> 
+                    \<CR> :exec "Cfoldvar " . line(".")<CR>
+        autocmd Syntax dbgvar nnoremap <buffer> 
+                    \<2-LeftMouse> :exec "Cfoldvar " . line(".")<CR>
+        autocmd Syntax dbgvar nnoremap <buffer> 
+                    \dd :exec "Cdelvar" matchstr(getline('.'),
+                    \   '^[^a-zA-Z_]\{3} \zsvar\d\+')<CR>
+                    "\   '^\(\[[-+]\]\| \* \)\s*\zsvar\d\+')<CR> " FIXME: BUG
+
+        autocmd Syntax dbgvar nnoremap <silent> <buffer> 
+                    \p :call search('^'.repeat(' ',
+                    \   len(matchstr(getline('.'), '^.\{-1,}[-+*]'))-2-2)
+                    \.'.[-+*]', 'bcW')<CR>
+
+        autocmd BufReadPost         * call <SID>Autocmd_WorkspaceEditorOptions()
+        autocmd BufEnter            * call <SID>Autocmd_LocateCurrentFile()
+        autocmd SessionLoadPost     * call videm#wsp#InitWorkspace('')
+        " NOTE: 现在vim退出的时候，不会先把工作空间关掉，所以需要这个自动命令
+        autocmd VimLeavePre         * call s:AutoSaveSession()
+    augroup END
+
+    " 设置标题栏
+    if videm#settings#Get('.videm.wsp.ShowWspName')
+        set titlestring=%(<%{GetWspName()}>\ %)%t%(\ %M%)
+                \%(\ (%{expand(\"%:~:h\")})%)%(\ %a%)%(\ -\ %{v:servername}%)
+    endif
+
+    " 这几个全局变量是常驻的，因为插件会引用到
+    py ws = VimLiteWorkspace()
+    " 以后统一使用 videm
+    py videm.wsp = ws
+    py videm.org.cpp = ws
+
+    " 载入插件，应该在初始化所有公共设施后、初始化任何工作区实例前执行
+    call s:LoadPlugin()
+
+    let s:OnceInit = 1
+endfunction
+"}}}
 function! s:InitVLWorkspace(file) " 初始化 {{{2
     let sFile = a:file
 
@@ -549,11 +672,8 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     " 开始
     let g:VLWorkspaceHasStarted = 1
 
-    " 初始化 vimdialog
-    call vimdialog#Init()
-
-    " 初始化所有 python 接口
-    call s:InitPythonInterfaces()
+    " 设施初始化
+    call s:OnceInit()
 
     if bNeedConvertWspFileFormat
         " 老格式的 workspace, 提示转换格式
@@ -578,66 +698,10 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
         endif
     endif
 
-    " 先清空用到的自动组
-    augroup VLWorkspace
-        autocmd!
-    augroup END
-
-    if videm#settings#Get('.videm.wsp.EnableMenuBar')
-        " 添加菜单栏菜单
-        call s:InstallMenuBarMenu()
-    endif
-
-    if videm#settings#Get('.videm.wsp.EnableToolBar')
-        " 添加工具栏菜单
-        call s:InstallToolBarMenu()
-    endif
-
-    if videm#settings#Get('.videm.wsp.EnablePopUpMenu')
-        " 添加右键弹出菜单
-        call s:InstallPopUpMenu()
-    endif
-
-    " 载入插件，应该在初始化所有公共设施后、初始化任何工作区实例前执行
-    call s:LoadPlugin()
-
     " 备份全局配置，这个动作要在载入所有插件之后
     call videm#wsp#WspConfSave(s:WspConfBakp)
 
-    " 安装命令
-    call s:InstallCommands()
-
-    " 安装自动命令
-    augroup VLWorkspace
-        autocmd Syntax dbgvar nnoremap <buffer> 
-                    \<CR> :exec "Cfoldvar " . line(".")<CR>
-        autocmd Syntax dbgvar nnoremap <buffer> 
-                    \<2-LeftMouse> :exec "Cfoldvar " . line(".")<CR>
-        autocmd Syntax dbgvar nnoremap <buffer> 
-                    \dd :exec "Cdelvar" matchstr(getline('.'),
-                    \   '^[^a-zA-Z_]\{3} \zsvar\d\+')<CR>
-                    "\   '^\(\[[-+]\]\| \* \)\s*\zsvar\d\+')<CR> " FIXME: BUG
-
-        autocmd Syntax dbgvar nnoremap <silent> <buffer> 
-                    \p :call search('^'.repeat(' ',
-                    \   len(matchstr(getline('.'), '^.\{-1,}[-+*]'))-2-2)
-                    \.'.[-+*]', 'bcW')<CR>
-
-        autocmd BufReadPost         * call <SID>Autocmd_WorkspaceEditorOptions()
-        autocmd BufEnter            * call <SID>Autocmd_LocateCurrentFile()
-        autocmd SessionLoadPost     * call videm#wsp#InitWorkspace('')
-        " NOTE: 现在vim退出的时候，不会先把工作空间关掉，所以需要这个自动命令
-        autocmd VimLeavePre         * call s:AutoSaveSession()
-    augroup END
-
-    " 设置标题栏
-    if videm#settings#Get('.videm.wsp.ShowWspName')
-        set titlestring=%(<%{GetWspName()}>\ %)%t%(\ %M%)
-                \%(\ (%{expand(\"%:~:h\")})%)%(\ %a%)%(\ -\ %{v:servername}%)
-    endif
-
     " 打开工作区文件，初始化全局变量
-    "py ws = VimLiteWorkspace(vim.eval('sFile'))
     py ws = VimLiteWorkspace()
     " 以后统一使用 videm
     py videm.wsp = ws

@@ -341,16 +341,15 @@ function! videm#plugin#cscope#Init() "{{{2
     call videm#settings#RegisterHook('videm#plugin#cscope#SettingsHook', 0, 0)
     call videm#wsp#WspOptRegister('.videm.symdb.cscope.Enable',
             \                  videm#settings#Get('.videm.symdb.cscope.Enable'))
-    if !videm#settings#Get('.videm.symdb.cscope.Enable', 0)
-        return
+    let s:enable = 0
+    if videm#settings#Get('.videm.symdb.cscope.Enable')
+        return videm#plugin#cscope#Enable()
     endif
-    call s:ThisInit()
-    let s:enable = 1
 endfunction
 "}}}
 function! videm#plugin#cscope#Enable() "{{{2
     if s:enable
-        return
+        return 0
     endif
     call s:ThisInit()
     

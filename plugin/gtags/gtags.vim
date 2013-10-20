@@ -223,14 +223,10 @@ function! videm#plugin#gtags#Init() "{{{2
     call videm#settings#RegisterHook('videm#plugin#gtags#SettingsHook', 0, 0)
     call videm#wsp#WspOptRegister('.videm.symdb.gtags.Enable',
             \                   videm#settings#Get('.videm.symdb.gtags.Enable'))
-    if !videm#settings#Get('.videm.symdb.gtags.Enable', 0)
-        return
+    let s:enable = 0
+    if videm#settings#Get('.videm.symdb.gtags.Enable')
+        return videm#plugin#gtags#Enable()
     endif
-    let ret = s:ThisInit()
-    if ret
-        return ret
-    endif
-    let s:enable = 1
 endfunction
 "}}}
 function! videm#plugin#gtags#InitDatabase(...) "{{{2
@@ -269,7 +265,7 @@ endfunction
 "}}}
 function! videm#plugin#gtags#Enable() "{{{2
     if s:enable
-        return
+        return 0
     endif
     let ret = s:ThisInit()
     if ret
