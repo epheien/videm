@@ -175,11 +175,17 @@ class VLWorkspaceSettings:
     def GetLocalConfigScript(self):
         '''把 localConfig 字典转为可读的形式'''
         li = []
+
+        minlen = 10
+        for k in self.localConfig.iterkeys():
+            if len(k) > minlen:
+                minlen = len(k)
+
         for k, v in self.localConfig.iteritems():
             if isinstance(v, (str, unicode)):
-                li.append("%s = '%s'" % (k, v.replace("'", "''")))
+                li.append("%-*s = '%s'" % (minlen, k, v.replace("'", "''")))
             else:
-                li.append("%s = %d" % (k, v))
+                li.append("%-*s = %d" % (minlen, k, v))
         li.sort()
         return '\n'.join(li)
 
