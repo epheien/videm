@@ -3840,15 +3840,21 @@ Supported configuration variables:
     li = conf.keys()
     li.sort()
     restart_conf = vim.eval("s:WspConfTmplRestart")
+
+    minlen = 1
+    for k in li:
+        if len(k) > minlen:
+            minlen = len(k)
+
     for k in li:
         v = conf[k]
         # 处理数字
         if vim.eval('type(s:WspConfTmpl[%s]) == type(0)' % ToVimEval(k)) == '1':
             v = int(v)
         if restart_conf.has_key(k):
-            s += '* %s = %s' % (k, ToVimEval(v))
+            s += '* %-*s = %s' % (minlen, k, ToVimEval(v))
         else:
-            s += '  %s = %s' % (k, ToVimEval(v))
+            s += '  %-*s = %s' % (minlen, k, ToVimEval(v))
         s += '\n'
 
     s += '''
@@ -5144,6 +5150,7 @@ function! s:SymdbInited() "{{{2
             continue
         endif
         let s = substitute(line, '^\s*\d\+\s\+\d\+\s\+', '', '')
+        let s = split(s)[0]
         " 只取basename检查
         let bname = fnamemodify(s, ':t')
         " 工作空间名字就是特征
