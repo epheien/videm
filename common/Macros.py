@@ -9,7 +9,7 @@ import os
 ##-----------------------------------------------------
 
 # 版本号 1001 -> 1.001
-VIDEM_VER = 1010
+VIDEM_VER = 1011
 
 # videm 起始目录
 VIDEM_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
