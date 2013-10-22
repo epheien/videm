@@ -61,13 +61,14 @@ class VLWorkspaceSettings:
         # 2013-01-23: 工作区配置信息，每个工作区可有自己的配置，覆盖全局配置
         self.enableLocalConfig = False  # 是否使用工作区自己的配置
         # 工作区配置信息
-        # 配置样例
-        self.localConfig = {
-            '.videm.cc.omnicpp.Enable'      : 0,
-            '.videm.cc.vimccc.Enable'       : 1,
-            '.videm.symdb.cscope.Enable'    : 0,
-            '.videm.symdb.gtags.Enable'     : 1,
-        }
+        # 废弃的选项，仅用于后向兼容
+        #self.localConfig = {}
+        # 裸配置样，例的文本
+        self.localConfigText = '''\
+.videm.cc.omnicpp.Enable   = 0
+.videm.cc.vimccc.Enable    = 1
+.videm.symdb.cscope.Enable = 0
+.videm.symdb.gtags.Enable  = 1'''
 
         # 统一的配置视图 on 2013-05-19
         # 路径示例:
@@ -85,7 +86,10 @@ class VLWorkspaceSettings:
         return Obj2Dict(self, set(['conf', 'fileName']))
 
     def FromDict(self, d):
-        Dict2Obj(self, d, set(['conf', 'fileName']))
+        Dict2Obj(self, d, set(['conf', 'fileName', 'localConfig']))
+        # 处理后向兼容的选项
+        if d.has_key('localConfig'):
+            self._UpdateLocalConfigTextFromDict(d['localConfig'])
 
     def SetFileName(self, fileName):
         self.fileName = fileName
@@ -172,22 +176,29 @@ class VLWorkspaceSettings:
     def GetCurIncPathFlagWord(self):
         return self.INC_PATH_FLAG_WORDS[self.incPathFlag]
 
-    def GetLocalConfigScript(self):
-        '''把 localConfig 字典转为可读的形式'''
+    def GetLocalConfigText(self):
+        return self.localConfigText
+
+    def SetLocalConfigText(self, text):
+        self.localConfigText = text
+
+    def _UpdateLocalConfigTextFromDict(self, di):
+        '''把字典转为可读的文本形式，并覆盖更新 self.localConfigText'''
         li = []
 
-        minlen = 10
-        for k in self.localConfig.iterkeys():
+        minlen = 1
+        for k in di.iterkeys():
             if len(k) > minlen:
                 minlen = len(k)
 
-        for k, v in self.localConfig.iteritems():
+        for k, v in di.iteritems():
             if isinstance(v, (str, unicode)):
                 li.append("%-*s = '%s'" % (minlen, k, v.replace("'", "''")))
             else:
                 li.append("%-*s = %d" % (minlen, k, v))
+
         li.sort()
-        return '\n'.join(li)
+        self.localConfigText = '\n'.join(li)
 
     def SetIncPathFlag(self, flag):
         if isinstance(flag, str):
@@ -235,7 +246,8 @@ class VLWorkspaceSettings:
                 self.enableLocalConfig = obj.enableLocalConfig
                 if obj.localConfig and \
                    obj.localConfig.keys()[0].startswith('.videm'):
-                    self.localConfig = obj.localConfig
+                    #self.localConfig = obj.localConfig
+                    self._UpdateLocalConfigTextFromDict(obj.localConfig)
                 self.conf = obj.conf
             except:
                 pass

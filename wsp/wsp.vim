@@ -277,6 +277,38 @@ function! videm#wsp#SettingsHook(event, data, priv) "{{{2
     endif
 endfunction
 "}}}
+" 从配置文本读取配置
+function! videm#wsp#WspConfSetCurrFromText(conftext, ...) "{{{2
+    let conftext = a:conftext
+    let refresh = get(a:000, 0, 1)
+
+    let conf = {}
+    let texts = split(conftext, "\n")
+    for sLine in texts
+        " 支持行注释
+        if sLine =~# '^\s*#'
+            continue
+        endif
+
+        " 行末注释只支持 '\s#.*$'
+        let sOrigLine = sLine
+        let sLine = substitute(sLine, '\s#.*$', '', 'g')
+
+        let li = split(sLine, '\s*=\s*')
+        if len(li) == 2
+            try
+                exec 'let conf[li[0]] =' li[1]
+            catch /.*/
+                call s:echow(printf('Syntax Error: %s', sOrigLine))
+            endtry
+        else
+            call s:echow(printf('Syntax Error: %s', sOrigLine))
+        endif
+    endfor
+
+    return videm#wsp#WspConfSetCurr(conf, refresh)
+endfunction
+"}}}
 function! videm#wsp#WspConfSetCurr(conf, ...) "{{{2
     let refresh = get(a:000, 0, 1)
     let conf = a:conf
@@ -3782,24 +3814,8 @@ function! s:SaveWspSettingsCbk(dlg, data) "{{{2
         elseif ctl.GetId() == s:ID_WspSettingsEnableLocalConfig
             py ws.VLWSettings.enableLocalConfig = int(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsLocalConfig
-            let conf = {}
-            for sLine in ctl.values
-                let li = split(sLine, '\s*=\s*')
-                if len(li) == 2
-                    exec 'let conf[li[0]] =' li[1]
-                endif
-            endfor
-            py ws.VLWSettings.localConfig.clear()
-            " vim.eval() 无法无损传递整数类型变量，需要处理
-            for item in items(conf)
-                if type(item[1]) == type(0)
-                    py ws.VLWSettings.localConfig[vim.eval('item[0]')] =
-                            \ int(vim.eval('item[1]'))
-                else
-                    py ws.VLWSettings.localConfig[vim.eval('item[0]')] =
-                            \ vim.eval('item[1]')
-                endif
-            endfor
+            let text = join(ctl.values, "\n")
+            py ws.VLWSettings.SetLocalConfigText(vim.eval("text"))
         endif
     endfor
     " 回调
@@ -3931,9 +3947,9 @@ function! s:CreateWspSettingsDialog() "{{{2
     call ctl.SetId(s:ID_WspSettingsLocalConfig)
     call ctl.SetIndent(4)
     py vim.command("let localConfig = %s"
-            \       % ToVimEval(ws.VLWSettings.GetLocalConfigScript()))
+            \       % ToVimEval(ws.VLWSettings.GetLocalConfigText()))
     call ctl.SetValue(localConfig)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "")
+    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "conf")
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
 
