@@ -132,15 +132,22 @@ function! s:Autocmd_UpdateGtagsDatabase(sFile) "{{{2
         let sGlbFilesFile = GetWspName() . g:VLWorkspaceGtagsFilesFile
         py vim.command("let sWspDir = %s" % ToVimEval(ws.VLWIns.dirName))
         let sGlbFilesFile = g:vlutils#os.path.join(sWspDir, sGlbFilesFile)
-        let sCmd = printf("cd %s && %s -f %s --single-update %s &", 
+        let sCmd = printf("cd %s && %s -f %s --single-update %s",
                     \     shellescape(sWspDir),
                     \     shellescape(g:VLWorkspaceGtagsProgram),
                     \     shellescape(sGlbFilesFile),
                     \     shellescape(a:sFile))
-        "echo sCmd
-        "exec sCmd
+
+        if !vlutils#IsWindowsOS()
+            " Windows 下面没有这个语法，只在 Linux 下用
+            let sCmd .= ' &'
+        endif
+
         call system(sCmd)
-        "echom 'enter s:Autocmd_UpdateGtagsDatabase()'
+        if v:shell_error != 0
+            call vlutils#EchoWarnMsg(printf("return %d with command: %s",
+                    \                        v:shell_error, sCmd))
+        endif
     endif
 endfunction
 "}}}

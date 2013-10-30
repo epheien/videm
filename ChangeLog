@@ -1,3 +1,7 @@
+2013-10-30 fanhe <fanhed@163.com>
+ * wsp: 添加项目时，忽略非法的项目文件
+ * gtags: 修正Windows下自动更新的命令的语法问题
+
 2013-10-22 fanhe <fanhed@163.com>
  * wsp: 修复一个符号数据库初始化判断的bug
  * wsp: 完善工作空间配置
