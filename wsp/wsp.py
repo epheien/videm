@@ -34,7 +34,8 @@ import Utils
 from Misc import SplitSmclStr, JoinToSmclStr, EscStr4DQ, IsWindowsOS, CmpIC
 from Misc import DirSaver, PosixPath, ToVimEval, Touch
 from Utils import VPrint, \
-                  IsVDirNameIllegal
+                  IsVDirNameIllegal, \
+                  IsFileNameIllegal
 from Utils import IsCCppSourceFile, \
                   IsCppHeaderFile, \
                   ExpandAllVariables, \
@@ -1684,34 +1685,41 @@ class VimLiteWorkspace(object):
             name = vim.eval('browse("", "Add a New File...", "%s", "")' 
                 % project.dirName)
             # 若返回相对路径, 是相对于当前工作目录的相对路径
+            if IsFileNameIllegal(name):
+                VPrint("'%s' is not a valid name" % name)
+                return
             if name:
                 name = os.path.abspath(name)
         else:
             name = vim.eval(
                 'inputdialog("\nEnter the File Name to be created:\n'
-                '(CWD is: %s)\n")' % ToVimEval(project.dirName))
-        if name:
-            ds = DirSaver()
-            try:
-                # 若文件不存在, 创建之
-                if project.dirName:
-                    os.chdir(project.dirName)
-                if not os.path.exists(name):
-                    fdir = os.path.dirname(name)
-                    if fdir and not os.path.isdir(fdir):
-                        try:
-                            os.makedirs(os.path.dirname(name))
-                        except OSError:
-                            VPrint('os.makedirs: cannot create directory %s' % fdir)
-                            return
-                    #os.mknod(name, 0644)
-                    Touch(name)
-            except:
-                # 创建文件失败
-                VPrint("Can not create the new file: '%s'" % name)
-                return
-            del ds
-            self.AddFileNode(row, name)
+                '(CWD is: ".%s.")\n")' % ToVimEval(project.dirName))
+
+        if IsFileNameIllegal(name):
+            VPrint("'%s' is not a valid name" % name)
+            return
+
+        ds = DirSaver()
+        try:
+            # 若文件不存在, 创建之
+            if project.dirName:
+                os.chdir(project.dirName)
+            if not os.path.exists(name):
+                fdir = os.path.dirname(name)
+                if fdir and not os.path.isdir(fdir):
+                    try:
+                        os.makedirs(os.path.dirname(name))
+                    except OSError:
+                        VPrint('os.makedirs: cannot create directory %s' % fdir)
+                        return
+                #os.mknod(name, 0644)
+                Touch(name)
+        except:
+            # 创建文件失败
+            VPrint("Can not create the new file: '%s'" % name)
+            return
+        del ds
+        self.AddFileNode(row, name)
 
     def __MenuOper_AddExistingFiles(self, row, useGui = True):
         project = self.VLWIns.GetDatumByLineNum(row)['project']
@@ -1816,7 +1824,7 @@ class VimLiteWorkspace(object):
                 # NOTE: gnome3中的browse()函数无法输入文件名，换inputdialog()
                 name = vim.eval(
                     'inputdialog("\nEnter the session file name to be created:\n'
-                    '(CWD is: %s)\n")' % ToVimEval(self.VLWIns.dirName))
+                    '(CWD is: ".%s.")\n")' % ToVimEval(self.VLWIns.dirName))
                 if name:
                     vim.command("call s:SaveSession(%s)" % ToVimEval(
                                     os.path.join(self.VLWIns.dirName, name)))

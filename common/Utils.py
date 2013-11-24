@@ -47,6 +47,15 @@ def IsVDirNameIllegal(name):
 
     return False
 
+def IsFileNameIllegal(name):
+    '''文件名可以带路经，但是不能以'/'结尾'''
+    if not name:
+        return True
+    if name.endswith('/'):
+        return True
+
+    return False
+
 def CSrcExtReset():
     global C_SOURCE_EXT
     C_SOURCE_EXT.clear()
