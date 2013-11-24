@@ -1,3 +1,7 @@
+2013-11-24 fanhe <fanhed@163.com>
+ * wsp: 修正Windows系统下不能新建文件的问题
+ * wsp: 添加非法虚拟目录的检查
+
 2013-10-30 fanhe <fanhed@163.com>
  * wsp: 添加项目时，忽略非法的项目文件
  * gtags: 修正Windows下自动更新的命令的语法问题

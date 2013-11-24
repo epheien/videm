@@ -32,7 +32,9 @@ from GetTemplateDict import GetTemplateDict
 
 import Utils
 from Misc import SplitSmclStr, JoinToSmclStr, EscStr4DQ, IsWindowsOS, CmpIC
-from Misc import DirSaver, PosixPath, ToVimEval
+from Misc import DirSaver, PosixPath, ToVimEval, Touch
+from Utils import VPrint, \
+                  IsVDirNameIllegal
 from Utils import IsCCppSourceFile, \
                   IsCppHeaderFile, \
                   ExpandAllVariables, \
@@ -1695,14 +1697,18 @@ class VimLiteWorkspace(object):
                 if project.dirName:
                     os.chdir(project.dirName)
                 if not os.path.exists(name):
-                    try:
-                        os.makedirs(os.path.dirname(name))
-                    except OSError:
-                        pass
-                    os.mknod(name, 0644)
+                    fdir = os.path.dirname(name)
+                    if fdir and not os.path.isdir(fdir):
+                        try:
+                            os.makedirs(os.path.dirname(name))
+                        except OSError:
+                            VPrint('os.makedirs: cannot create directory %s' % fdir)
+                            return
+                    #os.mknod(name, 0644)
+                    Touch(name)
             except:
                 # 创建文件失败
-                print "Can not create the new file: '%s'" % name
+                VPrint("Can not create the new file: '%s'" % name)
                 return
             del ds
             self.AddFileNode(row, name)
@@ -1855,6 +1861,9 @@ class VimLiteWorkspace(object):
             elif choice == 'New Virtual Folder...':
                 name = vim.eval(
                     'inputdialog("\nEnter the Virtual Directory Name:\n")')
+                if IsVDirNameIllegal(name):
+                    VPrint("'%s' is not a valid name" % name)
+                    return
                 if name:
                     self.AddVirtualDirNode(row, name)
             elif choice == 'Import Files From Directory...':
@@ -1920,6 +1929,9 @@ class VimLiteWorkspace(object):
             elif choice == 'New Virtual Folder...':
                 name = vim.eval(
                     'inputdialog("\nEnter the Virtual Directory Name:\n")')
+                if IsVDirNameIllegal(name):
+                    VPrint("'%s' is not a valid name" % name)
+                    return
                 if name:
                     self.AddVirtualDirNode(row, name)
             elif choice == 'Import Files From Directory...':

@@ -17,6 +17,36 @@ from Macros import *
 不能替换 C_XXX_EXT 系列变量的实例，只能原地更新，因为有不同的地方引用着它们
 '''
 
+def VPrint(*args, **kargs):
+    '''
+    #define KERN_EMERG      "<0>"   /* system is unusable                   */
+    #define KERN_ALERT      "<1>"   /* action must be taken immediately     */
+    #define KERN_CRIT       "<2>"   /* critical conditions                  */
+    #define KERN_ERR        "<3>"   /* error conditions                     */
+    #define KERN_WARNING    "<4>"   /* warning conditions                   */
+    #define KERN_NOTICE     "<5>"   /* normal but significant condition     */
+    #define KERN_INFO       "<6>"   /* informational                        */
+    #define KERN_DEBUG      "<7>"   /* debug-level messages                 */
+    '''
+    #from __future__ import print_function
+    lv = kargs.get('lv', 6)
+    sep = kargs.get('sep', ' ')
+    end = kargs.get('end', '\n')
+    file = kargs.get('file', sys.stdout)
+    for arg in args:
+        print arg
+    #print(value, *args, sep=sep, end=end, file=file)
+
+def IsVDirNameIllegal(name):
+    if not name:
+        return True
+    if '/' in name:
+        return True
+    if name == '.' or name == '..':
+        return True
+
+    return False
+
 def CSrcExtReset():
     global C_SOURCE_EXT
     C_SOURCE_EXT.clear()
