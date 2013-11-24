@@ -38,9 +38,10 @@ def VPrint(*args, **kargs):
     #print(value, *args, sep=sep, end=end, file=file)
 
 def IsVDirNameIllegal(name):
+    '''虚拟目录不带任何路径'''
     if not name:
         return True
-    if '/' in name:
+    if '/' in name or '\\' in name:
         return True
     if name == '.' or name == '..':
         return True
@@ -51,7 +52,12 @@ def IsFileNameIllegal(name):
     '''文件名可以带路经，但是不能以'/'结尾'''
     if not name:
         return True
-    if name.endswith('/'):
+    if name.endswith('/') or name.endswith('\\'):
+        return True
+    basename = os.path.basename(name)
+    if '/' in basename or '\\' in basename:
+        return True
+    if basename == '.' or basename == '..':
         return True
 
     return False
