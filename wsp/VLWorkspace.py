@@ -336,7 +336,7 @@ class VLWorkspace(object):
     <BuildMatrix>
         <WorkspaceConfiguration Name="Debug" Selected="yes"/>
     </BuildMatrix>
-</CodeLite_Workspace>\
+</CodeLite_Workspace>
 ''')
             self.rootNode = XmlUtils.GetRoot(self.doc)
             self.name = XmlUtils.GetRoot(self.doc).getAttribute('Name').encode('utf-8')

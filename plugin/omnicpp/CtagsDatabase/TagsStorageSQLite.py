@@ -5,6 +5,7 @@
 from ITagsStorage import ITagsStorage
 from TagEntry import TagEntry
 from FileEntry import FileEntry
+from Misc import ToU
 
 import os, os.path
 import tempfile
@@ -153,7 +154,7 @@ class TagsStorageSQLite(ITagsStorage):
             if not self.fileName:
                 # First time we open the db
                 # 没有打开着的数据库
-                self.db = sqlite3.connect(absFileName)
+                self.db = sqlite3.connect(ToU(absFileName))
                 self.db.text_factory = str # 以字符串方式保存而不是 unicode
                 self.CreateSchema()
                 self.fileName = absFileName
@@ -162,7 +163,7 @@ class TagsStorageSQLite(ITagsStorage):
                 # are different, close previous db
                 # 已经打开了某个数据库, 请求打开另外的, 需要先关闭旧的
                 self.db.close()
-                self.db = sqlite3.connect(absFileName)
+                self.db = sqlite3.connect(ToU(absFileName))
                 self.db.text_factory = str # 以字符串方式保存而不是 unicode
                 self.CreateSchema()
                 self.fileName = absFileName

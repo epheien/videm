@@ -573,7 +573,8 @@ def VidemWspOmniCppHook(event, wsp, ins):
     #print 'enter VidemWspOmniCppHook():', event, wsp, ins
     if   event == 'open_post':
         dbfile = os.path.splitext(wsp.VLWIns.fileName)[0] + '.vltags'
-        ins.tagmgr.OpenDatabase(dbfile)
+        if not ins.tagmgr.OpenDatabase(dbfile):
+            print 'Failed to open database:', dbfile
         # 更新OmniCpp类型替换
         OmniCppUpdateTypesVar(wsp)
         # 更新额外的搜索域

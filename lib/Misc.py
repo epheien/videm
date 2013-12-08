@@ -33,9 +33,23 @@ def ToVimEval(o):
 def ToUtf8(o):
     '''处理utf-8转码问题'''
     if isinstance(o, str):
-        return o
+        if IsWindowsOS():
+            return o.decode('gb18030').encode('utf-8')
+        else:
+            return o
     elif isinstance(o, unicode):
         return o.encode('utf-8')
+    return o
+
+def ToU(o):
+    '''把字符串转为unicode'''
+    if isinstance(v, unicode):
+        return o
+    elif isinstance(o, str):
+        if IsWindowsOS():
+            return o.decode('gb18030')
+        else:
+            return o.decode('utf-8')
     return o
 
 def CmpIC(s1, s2):

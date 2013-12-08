@@ -135,7 +135,7 @@ class VimTagsManager:
         self.parseThread.start()
 
     def OpenDatabase(self, dbFile):
-        self.storage.OpenDatabase(dbFile)
+        return self.storage.OpenDatabase(dbFile)
 
     def CloseDatabase(self):
         self.storage = TagsStorage.TagsStorageSQLite()
