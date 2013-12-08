@@ -1535,7 +1535,7 @@ def GetCurUnsavedFile(nFlags = UF_None):
     '''
     nFlags:     控制一些特殊补全场合，例如在头文件补全'''
     sFileName = vim.eval("expand('%:p')")
-    sClangFileName = vim.eval("s:ToClangFileName('%s')" % sFileName)
+    sClangFileName = vim.eval("s:ToClangFileName(%s)" % ToVimEval(sFileName))
 
     if nFlags == UF_None:
         return (sClangFileName, '\n'.join(vim.current.buffer[:]))

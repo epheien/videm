@@ -32,7 +32,7 @@ from GetTemplateDict import GetTemplateDict
 
 import Utils
 from Misc import SplitSmclStr, JoinToSmclStr, EscStr4DQ, IsWindowsOS, CmpIC
-from Misc import DirSaver, PosixPath, ToVimEval, Touch
+from Misc import DirSaver, PosixPath, ToVimEval, Touch, ToUtf8
 from Utils import VPrint, \
                   IsVDirNameIllegal, \
                   IsFileNameIllegal
@@ -505,8 +505,7 @@ class VimLiteWorkspace(object):
         se = StartEdit()
 
         texts = self.VLWIns.GetAllDisplayTexts()
-        self.buffer[self.VLWIns.GetRootLineNum()-1:] = \
-                [ i.encode('utf-8') for i in texts ]
+        self.buffer[self.VLWIns.GetRootLineNum()-1:] = texts
 
     def SetupStatusLine(self):
         vim.command('setlocal statusline=%!VLWStatusLine()')
@@ -629,7 +628,7 @@ class VimLiteWorkspace(object):
         se = StartEdit()
         lnum = self.window.cursor[0]
         ret = self.VLWIns.Fold(lnum)
-        self.buffer[lnum-1] = self.VLWIns.GetLineText(lnum).encode('utf-8')
+        self.buffer[lnum-1] = self.VLWIns.GetLineText(lnum)
         if ret > 0:
             del self.buffer[lnum:lnum+ret]
 
@@ -641,8 +640,8 @@ class VimLiteWorkspace(object):
             ret = self.VLWIns.Expand(lnum)
             texts = []
             for i in range(lnum+1, lnum+1+ret):
-                texts.append(self.VLWIns.GetLineText(i).encode('utf-8'))
-            self.buffer[lnum-1] = self.VLWIns.GetLineText(lnum).encode('utf-8')
+                texts.append(self.VLWIns.GetLineText(i))
+            self.buffer[lnum-1] = self.VLWIns.GetLineText(lnum)
             if texts != []:
                 self.buffer.append(texts, lnum)
         #vim.command("call vlutils#TimerEndEcho()")
@@ -769,8 +768,7 @@ class VimLiteWorkspace(object):
             if i.name == selConfName:
                 pad = '*'
                 curChoice = x
-            choices.append('%s %d. %s' 
-                % (pad.encode('utf-8'), x, i.name.encode('utf-8')))
+            choices.append("%s %d. %s" % (pad, x, ToUtf8(i.name)))
             names.append(i.name)
             x += 1
 
@@ -851,7 +849,7 @@ class VimLiteWorkspace(object):
 
             texts = []
             for i in range(ln, ret + 1):
-                texts.append(self.VLWIns.GetLineText(i).encode('utf-8'))
+                texts.append(self.VLWIns.GetLineText(i))
             if texts:
                 self.buffer[ln - 1 : ret - 1] = texts
 
@@ -879,7 +877,7 @@ class VimLiteWorkspace(object):
         # 获取 n+1 行文本，替换原来的 n 行文本，也就是新增了 1 行文本
         texts = []
         for i in range(ln, ret + 1):
-            texts.append(self.VLWIns.GetLineText(i).encode('utf-8'))
+            texts.append(self.VLWIns.GetLineText(i))
         if texts:
             self.buffer[ln - 1 : ret - 1] = texts
 
@@ -918,7 +916,7 @@ class VimLiteWorkspace(object):
         # 获取 n+1 行文本，替换原来的 n 行文本，也就是新增了 1 行文本
         texts = []
         for i in range(ln, ret + 1):
-            texts.append(self.VLWIns.GetLineText(i).encode('utf-8'))
+            texts.append(self.VLWIns.GetLineText(i))
         if texts:
             self.buffer[ln - 1 : ret - 1] = texts
 
@@ -946,7 +944,7 @@ class VimLiteWorkspace(object):
                 ln = row
             texts = []
             for i in range(ln, ret + 1):
-                texts.append(self.VLWIns.GetLineText(i).encode('utf-8'))
+                texts.append(self.VLWIns.GetLineText(i))
             if texts:
                 self.buffer[ln - 1 : ret - 1] = texts
 
@@ -981,7 +979,7 @@ class VimLiteWorkspace(object):
             self.RefreshLines(prevLn, row)
             #texts = []
             #for i in range(prevLn, row):
-            #    texts.append(self.VLWIns.GetLineText(i).encode('utf-8'))
+            #    texts.append(self.VLWIns.GetLineText(i))
             #self.buffer[prevLn-1:row-1] = texts
 
         del self.buffer[row-1:row-1+ret]
@@ -1012,7 +1010,7 @@ class VimLiteWorkspace(object):
         end = int(end)
         texts = []
         for i in range(start, end):
-            texts.append(self.VLWIns.GetLineText(i).encode('utf-8'))
+            texts.append(self.VLWIns.GetLineText(i))
         if texts:
             self.buffer[start-1:end-1] = texts
 

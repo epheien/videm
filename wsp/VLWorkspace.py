@@ -13,7 +13,7 @@ from BuildMatrix import BuildMatrix
 from BuildMatrix import ConfigMappingEntry
 from Macros import WSP_PATH_SEP, WORKSPACE_FILE_SUFFIX, PROJECT_FILE_SUFFIX
 from Misc import CmpIC, SplitSmclStr, GetMTime, DirSaver, IsWindowsOS, PosixPath
-from Misc import Touch
+from Misc import Touch, ToUtf8
 
 TYPE_WORKSPACE = 0
 TYPE_PROJECT = 1
@@ -37,7 +37,7 @@ class WspCpbdData(object):
         if not isinstance(v, list):
             v = [v]
         for elem in v:
-            print elem, elem.getAttribute('Name')
+            print elem, elem.getAttribute('Name').encode('utf-8')
 
 class WorkspaceClipboard(object):
     '''工作空间的剪切板，暂时只支持工作空间的虚拟目录节点和文件节点'''
@@ -72,7 +72,7 @@ def GetWspPathByNode(node):
     '''从 xml 节点获取工作区路径'''
     wspPathList = []
     while node:
-        name = node.getAttribute('Name')
+        name = node.getAttribute('Name').encode('utf-8')
         if not name:
             return ''
 
@@ -339,7 +339,7 @@ class VLWorkspace(object):
 </CodeLite_Workspace>\
 ''')
             self.rootNode = XmlUtils.GetRoot(self.doc)
-            self.name = XmlUtils.GetRoot(self.doc).getAttribute('Name')
+            self.name = XmlUtils.GetRoot(self.doc).getAttribute('Name').encode('utf-8')
             self.dirName = os.getcwd()
             # 载入 Build Matrix
             self.buildMatrix = BuildMatrix(
@@ -361,7 +361,7 @@ class VLWorkspace(object):
         #fileWspPath = GetWspPathByNode(datum['node'])
         #igfile = fileWspPath.partition(WSP_PATH_SEP)[2]\
                 #.partition(WSP_PATH_SEP)[2]
-        igfile = datum['node'].getAttribute('Name')
+        igfile = datum['node'].getAttribute('Name').encode('utf-8')
 
         if igfile in bldConf.ignoredFiles:
             return True
@@ -380,7 +380,7 @@ class VLWorkspace(object):
                 #.partition(WSP_PATH_SEP)[2]
 
         # 使用xml节点保存的名字
-        igfile = datum['node'].getAttribute('Name')
+        igfile = datum['node'].getAttribute('Name').encode('utf-8')
 
         result = 0
 
@@ -408,7 +408,7 @@ class VLWorkspace(object):
         #fileWspPath = GetWspPathByNode(datum['node'])
         #igfile = fileWspPath.partition(WSP_PATH_SEP)[2]\
                 #.partition(WSP_PATH_SEP)[2]
-        igfile = datum['node'].getAttribute('Name')
+        igfile = datum['node'].getAttribute('Name').encode('utf-8')
 
         result = 0
 
@@ -490,7 +490,7 @@ class VLWorkspace(object):
 
         text = MakeLevelPreStrDependList(datum['deepFlag']) + \
             expandText + \
-            os.path.basename(datum['node'].getAttribute('Name'))
+            os.path.basename(datum['node'].getAttribute('Name').encode('utf-8'))
 
         return text
 
@@ -537,7 +537,7 @@ class VLWorkspace(object):
         if not self.IsNodeExpand(lineNum):
             self.Expand(lineNum)
 
-        s1 = os.path.basename(datum['node'].getAttribute('Name'))
+        s1 = os.path.basename(datum['node'].getAttribute('Name').encode('utf-8'))
         newType = self.DoGetTypeOfNode(datum['node'])
         newDeep = parentDeep + 1
 
@@ -556,7 +556,7 @@ class VLWorkspace(object):
                     continue
 
                 s2 = os.path.basename(
-                    self.vimLineData[i]['node'].getAttribute('Name'))
+                    self.vimLineData[i]['node'].getAttribute('Name').encode('utf-8'))
                 if cmp(s1.lower(), s2.lower()) > 0:
                     # 如果 datum 为 VirtualDirectory 当前位置为 File，插入之
                     if newType == TYPE_VIRTUALDIRECTORY \
@@ -626,7 +626,7 @@ class VLWorkspace(object):
         parentDeep = 0
         parent = {'deepFlag' : []}
 
-        s1 = os.path.basename(datum['node'].getAttribute('Name'))
+        s1 = os.path.basename(datum['node'].getAttribute('Name').encode('utf-8'))
         newType = self.DoGetTypeOfNode(datum['node'])
         newDeep = parentDeep + 1
 
@@ -645,7 +645,7 @@ class VLWorkspace(object):
                     continue
 
                 s2 = os.path.basename(
-                    self.vimLineData[i]['node'].getAttribute('Name'))
+                    self.vimLineData[i]['node'].getAttribute('Name').encode('utf-8'))
                 if cmp(s1.lower(), s2.lower()) > 0:
                     continue
                 elif cmp(s1.lower(), s2.lower()) < 0:
@@ -765,7 +765,7 @@ class VLWorkspace(object):
             if node.nodeType != node.ELEMENT_NODE:
                 continue
 
-            name = node.getAttribute('Name')
+            name = node.getAttribute('Name').encode('utf-8')
             if not name:
                 continue
 
@@ -836,8 +836,9 @@ class VLWorkspace(object):
                         datum['deepFlag'] = deepFlag[:]
                         datum['expand'] = 0
                         datum['project'] = rootDatum['project']
-                        vdList.append(i.getAttribute('Name'))
-                        vdDict[i.getAttribute('Name')] = datum
+                        name = i.getAttribute('Name').encode('utf-8')
+                        vdList.append(name)
+                        vdDict[name] = datum
                     elif i.nodeName == 'File':
                         deepFlag = rootDatum['deepFlag'][:]
                         deepFlag.append(1)
@@ -846,10 +847,9 @@ class VLWorkspace(object):
                         datum['deepFlag'] = deepFlag[:]
                         datum['expand'] = 0
                         datum['project'] = rootDatum['project']
-                        fileList.append(
-                            os.path.basename(i.getAttribute('Name')))
-                        fileDict[
-                            os.path.basename(i.getAttribute('Name'))] = datum
+                        name = i.getAttribute('Name').encode('utf-8')
+                        fileList.append(os.path.basename(name))
+                        fileDict[os.path.basename(name)] = datum
                 li = []
                 if vdList:
                     vdList.sort(CmpIC)
@@ -1028,7 +1028,7 @@ class VLWorkspace(object):
 
     def GetAllDisplayTexts(self):#
         texts = []
-        texts.append(self.name)
+        texts.append(ToUtf8(self.name))
         for i in range(len(self.vimLineData)):
             texts.append(self.DoGetDispTextByIndex(i))
         return texts
@@ -1196,8 +1196,8 @@ class VLWorkspace(object):
 
         if type == TYPE_FILE:
             # 删除此 filesIndex
-            key = os.path.abspath(
-                os.path.join(project.dirName, delNode.getAttribute('Name')))
+            key = os.path.abspath(os.path.join(project.dirName,
+                                               delNode.getAttribute('Name').encode('utf-8')))
             if self.filesIndex.has_key(key):
                 del self.filesIndex[key]
             # 删除此 fname2file
@@ -1400,7 +1400,7 @@ class VLWorkspace(object):
     def GetProjectNameByNode(self, node):
         while node:
             if node.nodeName == 'CodeLite_Project':
-                return node.getAttribute('Name')
+                return node.getAttribute('Name').encode('utf-8')
             node = node.parentNode
         return ''
 
@@ -1609,7 +1609,7 @@ class VLWorkspace(object):
             print 'No workspace open'
             return ''
 
-        return self.rootNode.getAttribute(propName)
+        return self.rootNode.getAttribute(propName).encode('utf-8')
 
     def FindProjectByName(self, projName):
         '''返回 VLProject 实例'''
@@ -1685,7 +1685,7 @@ class VLWorkspace(object):
 
         # update the xml file
         for i in self.rootNode.childNodes:
-            if i.nodeName == 'Project' and i.getAttribute('Name') == name:
+            if i.nodeName == 'Project' and i.getAttribute('Name').encode('utf-8') == name:
                 if i.getAttribute('Active').lower() == 'Yes'.lower():
                     # the removed project was active
                     # select new project to be active
@@ -1904,7 +1904,7 @@ class VLWorkspace(object):
         # 要检查名字冲突...
         for node in v:
             # 每个节点分别检查名字冲突
-            name = node.getAttribute('Name')
+            name = node.getAttribute('Name').encode('utf-8')
             if self.DoCheckNameConflict(parentNode, name):
                 return -1
 
@@ -1920,7 +1920,7 @@ class VLWorkspace(object):
                 save = False
                 if idx == vlen - 1:
                     save = True
-                name = node.getAttribute('Name')
+                name = node.getAttribute('Name').encode('utf-8')
                 result += self.DoAddVdirOrFileNode(lineNum, nodeType, name,
                                                    save, insertingNode = node)
         elif nodeType == TYPE_VIRTUALDIRECTORY:
@@ -1929,7 +1929,7 @@ class VLWorkspace(object):
                 save = False
                 if idx == vlen - 1:
                     save = True
-                name = node.getAttribute('Name')
+                name = node.getAttribute('Name').encode('utf-8')
                 result += self.DoAddVdirOrFileNode(lineNum, nodeType, name,
                                                    save, insertingNode = node)
         else:

@@ -30,6 +30,14 @@ def ToVimEval(o):
     else:
         return repr(o)
 
+def ToUtf8(o):
+    '''处理utf-8转码问题'''
+    if isinstance(o, str):
+        return o
+    elif isinstance(o, unicode):
+        return o.encode('utf-8')
+    return o
+
 def CmpIC(s1, s2):
     '''忽略大小写比较两个字符串'''
     return cmp(s1.lower(), s2.lower())
