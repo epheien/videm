@@ -26,6 +26,7 @@ BUILDER_NAME = 'GNU makefile for g++/gcc'
 
 import Misc
 from Misc import EscStr, EscStr4MkSh, PosixPath, SplitSmclStr, TempFile
+from Misc import ToU
 
 def SmclStr2MkStr(string):
     '''分号分割的字符串安全转为 Makefile 的字符串
@@ -89,7 +90,8 @@ class BuilderGnuMake(Builder):
         # 工作区的 Makefile
         wspMakefile = VLWorkspaceST.Get().GetName() + '_wsp.mk'
         # 转为绝对路径
-        wspMakefile = os.path.join(VLWorkspaceST.Get().dirName, wspMakefile)
+        wspMakefile = os.path.join(ToU(VLWorkspaceST.Get().dirName),
+                                   ToU(wspMakefile))
 
         text = ''
         text += 'PHONY := all clean\n\n'
@@ -204,7 +206,8 @@ class BuilderGnuMake(Builder):
         ds = Misc.DirSaver()
         os.chdir(projInst.dirName)
 
-        absProjMakefile = os.path.join(projInst.dirName, projName + '.mk')
+        absProjMakefile = os.path.join(ToU(projInst.dirName),
+                                       ToU(projName) + '.mk')
         # 如果已存在 makefile，且非强制，且项目文件没有修改，跳过
         if not force and not projInst.IsModified() \
            and os.path.exists(absProjMakefile):
