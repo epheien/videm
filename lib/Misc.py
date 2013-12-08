@@ -43,7 +43,7 @@ def ToUtf8(o):
 
 def ToU(o):
     '''把字符串转为unicode'''
-    if isinstance(v, unicode):
+    if isinstance(o, unicode):
         return o
     elif isinstance(o, str):
         if IsWindowsOS():
