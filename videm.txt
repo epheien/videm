@@ -829,11 +829,11 @@ If you wish use gvim and mouse, the following configuration will be helpful >
         \ '.videm.cc.omnicpp.UseLibCxxParser'       : 1,
         \ '.videm.cc.omnicpp.InclAllCondCmplBrch'   : 1,
     \ }
-    let g:videm_user_options['.videm.cc.omnicpp.SymbolDatabase'] = "gtags"
+    let g:videm_user_options['.videm.wsp.SymbolDatabase'] = "gtags"
 
 If you wish to use VIMCCC >
-    let g:videm_user_options['.videm.cc.omnicpp.CodeCompleteEngine'] = "vimccc"
-    let g:videm_user_options['.videm.cc.omnicpp.CompleteMacros'] = 1
+    let g:videm_user_options['.videm.wsp.CodeCompleteEngine'] = "vimccc"
+    let g:videm_user_options['.videm.cc.vimccc.CompleteMacros'] = 1
 
 Suggested symbol searching key bindings >
     nnoremap <C-\>g :VSearchSymbolDefinition <C-R>=expand("<cword>")<CR><CR>

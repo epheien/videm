@@ -7,6 +7,7 @@ import vim
 import IncludeParser
 from TagsSettings import TagsSettingsST
 from Misc import DirSaver
+from Misc import ToU
 from Utils import IsCppSourceFile, IsCppHeaderFile
 
 def IndicateProgress(n, m):
@@ -68,7 +69,8 @@ class OmniCpp:
         for i in range(len(extraMacros)):
             extraMacros[i] = '#define %s' % extraMacros[i]
 
-        parseFiles = list(set(parseFiles))
+        #parseFiles = list(set(parseFiles))
+        parseFiles = [ToU(i) for i in set(parseFiles)]
         parseFiles.sort()
         if async:
             vim.command("redraw | echo 'Start asynchronous parsing...'")

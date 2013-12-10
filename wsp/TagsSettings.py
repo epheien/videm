@@ -335,6 +335,9 @@ def GenerateDefaultTagsSettings():
 #define SYSCALL_DEFINE4(name, ...) SYSCALL_DEFINEx(4, _##name, __VA_ARGS__)
 #define SYSCALL_DEFINE5(name, ...) SYSCALL_DEFINEx(5, _##name, __VA_ARGS__)
 #define SYSCALL_DEFINE6(name, ...) SYSCALL_DEFINEx(6, _##name, __VA_ARGS__)
+// glibc 4.7
+#define _GLIBCXX_NOEXCEPT
+#define noexcept
 '''
     defaultTagsTokens = tags_tokens.splitlines()
 
