@@ -66,6 +66,7 @@ function! s:InitVLWCscopeDatabase(...) "{{{2
     " 如果 cscope.files 比工作空间和包含的所有项目都要新，无须刷新 cscope.files
 
     " 如果传进来的第一个参数非零，强制全部初始化并刷新全部
+    let force = get(a:000, 0, 0)
 
     if !g:VLWorkspaceHasStarted || 
             \ !videm#settings#Get('.videm.symdb.cscope.Enable', 0)
@@ -79,11 +80,6 @@ function! s:InitVLWCscopeDatabase(...) "{{{2
     let sWspName = GetWspName()
     let sCsFilesFile = sWspName . videm#settings#Get('.videm.symdb.cscope.FilesFile')
     let sCsOutFile = sWspName . videm#settings#Get('.videm.symdb.cscope.OutFile')
-
-    let l:force = 0
-    if exists('a:1') && a:1 != 0
-        let l:force = 1
-    endif
 
 python << PYTHON_EOF
 def InitVLWCscopeDatabase():
@@ -99,7 +95,7 @@ def InitVLWCscopeDatabase():
             if project.GetProjFileLastModifiedTime() > csFilesMt:
                 needUpdateCsNameFile = True
                 break
-    if needUpdateCsNameFile or vim.eval('l:force') == '1':
+    if needUpdateCsNameFile or vim.eval('force') == '1':
         #vim.command('let lFiles = %s' 
             #% [i.encode('utf-8') for i in ws.VLWIns.GetAllFiles(True)])
         # 直接 GetAllFiles 可能会出现重复的情况，直接用 filesIndex 字典键值即可
@@ -137,12 +133,12 @@ PYTHON_EOF
     " Windows 下必须先断开链接，否则无法更新
     exec 'silent! cs kill' fnameescape(sCsOutFile)
 
-    let retval = 0
+    let rets = [0, '', '']
     let prog = videm#settings#Get('.videm.symdb.cscope.Program')
     if filereadable(sCsOutFile)
         " 已存在，但不更新，应该由用户调用 s:UpdateVLWCscopeDatabase 来更新
         " 除非为强制初始化全部
-        if l:force
+        if force
             if videm#settings#Get('.videm.symdb.cscope.GenInvIdx')
                 let sFirstOpts = '-bqkU'
             else
@@ -154,7 +150,7 @@ PYTHON_EOF
                     \         shellescape(sCsFilesFile),
                     \         shellescape(sCsOutFile))
             "call system(sCmd)
-            py vim.command('let retval = %d' % System(vim.eval('sCmd'))[0])
+            py vim.command("let rets = %s" % ToVimEval(System(vim.eval('sCmd'))))
         endif
     else
         if videm#settings#Get('.videm.symdb.cscope.GenInvIdx')
@@ -166,13 +162,15 @@ PYTHON_EOF
                 \         shellescape(prog), 
                 \         sFirstOpts, sIncludeOpts, 
                 \         shellescape(sCsFilesFile), shellescape(sCsOutFile))
-        "call system(sCmd)
-        py vim.command('let retval = %d' % System(vim.eval('sCmd'))[0])
+        " System() 返回 (returncode, stdout, stderr)
+        py vim.command("let rets = %s" % ToVimEval(System(vim.eval('sCmd'))))
     endif
 
-    if retval
-        echomsg printf("cscope occur error: %d", retval)
+    if rets[0]
         echomsg sCmd
+        echomsg printf("cscope occurs errors, return %d", rets[0])
+        " 错误信息可能是多行，echomsg 显示多行是不知如何解决...
+        echo rets[2]
         py del l_ds
         return
     endif
@@ -249,11 +247,12 @@ function! s:UpdateVLWCscopeDatabase(...) "{{{2
     exec 'silent! cs kill' fnameescape(sCsOutFile)
 
     "call system(sCmd)
-    py vim.command('let retval = %d' % System(vim.eval('sCmd'))[0])
+    py vim.command("let rets = %s" % ToVimEval(System(vim.eval('sCmd'))))
 
-    if retval
-        echomsg printf("cscope occur error: %d", retval)
+    if rets[0]
         echomsg sCmd
+        echomsg printf("cscope occurs errors, return %d", rets[0])
+        echo rets[2]
         "py del l_ds
         "return
     endif

@@ -93,13 +93,13 @@ def ToVimStr(s):
 
 def System(cmd):
     '''更完备的 system，不会调用 shell，会比较快
-    返回元组，(returncode, stdout, stderr)'''
+    返回列表，[returncode, stdout, stderr]'''
     if isinstance(cmd, str):
         cmd = shlex.split(cmd)
     p = subprocess.Popen(cmd, shell=False,
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
-    return p.returncode, out, err
+    return [p.returncode, out, err]
 
 class StartEdit:
     '''用于切换缓冲区可修改状态
