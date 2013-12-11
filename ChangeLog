@@ -1,3 +1,12 @@
+2013-12-11 fanhe <fanhed@163.com>
+ * wsp: 修正linux终端下的vim运行程序时的问题
+ * wsp: 修正一个环境变量设置问题
+
+2013-12-10 fanhe <fanhed@163.com>
+ * omnicpp: 修复一个转码问题
+ * symdb: 完善错误处理
+ * wsp: 修正帮助文件的笔误
+
 2013-11-24 fanhe <fanhed@163.com>
  * wsp: 修正Windows系统下不能新建文件的问题
  * wsp: 添加非法虚拟目录的检查

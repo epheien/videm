@@ -1218,27 +1218,31 @@ class VimLiteWorkspace(object):
                 vlterm = os.path.join(VidemDir, 'vlexec.py')
                 if not prog.endswith('.exe'): prog += '.exe'
                 prog = os.path.realpath(prog)
-                #p = subprocess.Popen('C:\\WINDOWS\\system32\\cmd.exe /c '
-                    #'"%s %s && pause || pause"' % (prog, args), env=d)
                 if Executable('python'):
                     py = 'python'
                 else:
                     py = os.path.join(sys.prefix, 'python.exe')
                     if not Executable(py):
                         print 'Can not find valid python interpreter'
-                        print 'Please set python interpreter to "PATH"'
+                        print 'Please add python interpreter to "PATH"'
                         return
                 p = subprocess.Popen([py, vlterm, prog] + shlex.split(args),
                                      env=d)
                 p.wait()
             else:
-                vlterm = os.path.join(VidemDir, 'vlterm')
-                #os.system('~/.vimlite/vimlite_run "%s" '\
-                    #'~/.vimlite/vimlite_exec %s %s %s &' % (prog, envs, prog,
-                                                            #args))
-                # 理论上这种方式是最好的了，就是需要两个脚本 vlterm vlexec
-                p = subprocess.Popen([vlterm, prog] + shlex.split(args), env=d)
-                p.wait()
+                if vim.eval("has('gui_running')") == '1':
+                    vlterm = os.path.join(VidemDir, 'vlterm')
+                    # 理论上这种方式是最好的了，就是需要两个脚本 vlterm vlexec
+                    p = subprocess.Popen([vlterm, prog] + shlex.split(args),
+                                         env=d)
+                    p.wait()
+                else:
+                    # 终端的vim下运行，相当难处理
+                    argv = [prog] + shlex.split(args)
+                    # NOTE: vim下面运行的话，只需要处理新增的环境变量就好了
+                    #       这样的话，会受vim的环境变量影响
+                    vim.command("call vlutils#RunCmd(%s, %s)"
+                                    % (ToVimEval(argv), ToVimEval(envsDict)))
 
     def BuildActiveProject(self):
         actProjName = self.VLWIns.GetActiveProjectName()

@@ -2284,7 +2284,7 @@ function! s:SaveEnvVarSettingsCbk(dlg, data) "{{{2
     endfor
     " 保存
     py ins.Save()
-    py ins.ExpandSelf()
+    py ins._ExpandSelf()
     py del ins
     py ws.VLWIns.TouchAllProjectFiles()
 endfunction

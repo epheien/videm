@@ -37,6 +37,30 @@ function! vlutils#Exec(sCmd) "{{{2
     exec 'noautocmd' a:sCmd
 endfunction
 "}}}
+" argv 为列表，类似于c的main函数的argv，如['ls', '-lh', '/home']
+" envd 为字典，作为环境变量
+" 这个命令一般只在Linux下面用
+function! vlutils#RunCmd(argv, envd) "{{{2
+    let sCmd = ''
+
+    " 环境变量字符串，只在Linux下才处理
+    if vlutils#IsWindowsOS()
+        let sCmd .= '!'
+    else
+        let sEnv = ''
+        for [k, v] in items(a:envd)
+            let sEnv .= printf("export %s=%s; ", k, shellescape(v, 1))
+        endfor
+        let sCmd .= '!' . sEnv
+    endif
+
+    for arg in a:argv
+        let sCmd .= shellescape(arg, 1) . ' '
+    endfor
+
+    exec sCmd
+endfunction
+"}}}
 " 与 exec 命令类似，但是运行时 set eventignore=all
 " 主要用于“安全”地运行某些命令，例如窗口跳转
 function! vlutils#ExecNoau(sCmd) "{{{2
