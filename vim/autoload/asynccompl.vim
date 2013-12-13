@@ -20,7 +20,7 @@
 " @substring_pattern - 在光标前的字符串中提取 base 用, 一般需要 '$' 结尾
 " @trigger_char_count - 触发异步补全时, 光标前的最小要求的单词字符数
 " @SearchStartColumnHook() - 搜索补全起始列号, 返回起始列号
-" @LaunchComplThreadHook(row, col, base, icase) - 无返回值
+" @LaunchComplThreadHook(row, col, base, icase, join = 0) - 无返回值
 " @FetchComplResultHook(base) - 返回补全结果, 形如 [0|1, result]
 "                               0表示未完成, 1表示完成, result可能为[]或{}
 "
@@ -404,7 +404,28 @@ function! asynccompl#Driver(findstart, base) "{{{2
         return ret
     endif
 
-    return s:async_compl_result
+    " 处理同步请求
+    if empty(s:async_compl_result)
+        " 进入这里肯定是同步请求, 因为异步请求的时候, s:async_compl_result非空
+        let row = line('.')
+        let col = col('.')
+        let base = a:base
+        let icase = b:config.ignorecase
+        call b:config.LaunchComplThreadHook(row, col, base, icase, 1)
+        " 这里直接获取结果, 不用检查done了
+        let [done, result] = b:config.FetchComplResultHook(base)
+        return result
+    endif
+
+    " 清空 s:async_compl_result 是为了辨别同步请求补全还是异步请求补全
+    let result = s:async_compl_result
+    if type(s:async_compl_result) == type([])
+        let s:async_compl_result = []
+    else
+        let s:async_compl_result = {}
+    endif
+
+    return result
 endfunction
 "}}}
 " 临时启用选项函数
@@ -518,13 +539,14 @@ endfunction
 
 let s:test_result = []
 " 通用启动线程函数, 使用内置实现
-function! CommonLaunchComplThread(row, col, base, icase) "{{{2
+function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
     "let s:test_result = ['abc', 'def', 'ghi', 'jkl', 'mno', 'abc']
 
     let row = a:row
     let col = a:col
     let base = a:base
     let icase = a:icase
+    let join = get(a:000, 0, 0)
 
     let custom_args = 0
     py if g_AsyncComplBVars.b.get('CommonCompleteArgsHook'):
@@ -551,8 +573,10 @@ function! CommonLaunchComplThread(row, col, base, icase) "{{{2
                 \                  g_AsyncComplBVars.b.get('CommonCompleteHookData')))
     endif
 
-    " 有下列语句的话, 就是同步方式了
-    "py g_asynccompl.LatestThread().join()
+    if join
+        " 有下列语句的话, 就是同步方式了
+        py g_asynccompl.LatestThread().join()
+    endif
 endfunction
 "}}}
 " 通用获取补全结果函数, 使用内置实现
