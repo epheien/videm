@@ -85,13 +85,13 @@ let s:status.buffers = {}
 let s:async_compl_result = {}
 
 " Just For Debug
-let s:nAsyncCompleteCount = 0
+let s:compl_count = 0
 
-function! asynccompl#Init() "{{{2
-    return
+" Just For Debug
+function! asynccompl#ComplCount() "{{{2
+    return s:compl_count
 endfunction
 "}}}
-
 " 搜索补全起始列
 " 以下7种情形
 "   xxx yyy|
@@ -295,7 +295,7 @@ function! CommonAsyncComplete() "{{{2
 " ============================================================================
     " ok，启动
     call s:config.LaunchComplThreadHook(nRow, nCol, sBase, icase)
-    let s:nAsyncCompleteCount += 1
+    let s:compl_count += 1
 
     " 更新状态
     call s:UpdateAucmPrevStat(nRow, nCol, sBase, pumvisible())
@@ -310,7 +310,7 @@ function! CommonAsyncComplete() "{{{2
 endfunction
 "}}}
 " 这个初始化是每个缓冲区都要调用一次的
-function! AsyncComplInit() "{{{2
+function! asynccompl#Init() "{{{2
     call s:InitPyIf()
 
     let s:status.buffers[bufnr('%')] = 1
@@ -319,11 +319,11 @@ function! AsyncComplInit() "{{{2
         autocmd! InsertEnter    <buffer> call <SID>InitAucmPrevStat()
         autocmd! InsertLeave    <buffer> call <SID>ResetAucmPrevStat()
     augroup END
-    setlocal completefunc=AsyncComplDriver
+    setlocal completefunc=asynccompl#Driver
 endfunction
 "}}}
 " 清理函数
-function! AsyncComplExit() "{{{2
+function! asynccompl#Exit() "{{{2
     setlocal completefunc=
     augroup AsyncCompl
         for i in keys(s:status.buffers)
@@ -342,7 +342,7 @@ function! s:Funcref(Func) "{{{2
     return a:Func
 endfunction
 "}}}
-function! AsyncComplRegister(ignorecase, complete_pattern,
+function! asynccompl#Register(ignorecase, complete_pattern,
         \                    valid_char_pattern, substring_pattern,
         \                    trigger_char_count,
         \                    SearchStartColumnHook, LaunchComplThreadHook,
@@ -357,7 +357,7 @@ function! AsyncComplRegister(ignorecase, complete_pattern,
     let s:config.FetchComplResultHook = s:Funcref(a:FetchComplResultHook)
 endfunction
 "}}}
-function! AsyncComplDriver(findstart, base) "{{{2
+function! asynccompl#Driver(findstart, base) "{{{2
     if a:findstart
         let ret = s:config.SearchStartColumnHook()
         if ret != -1
@@ -514,11 +514,7 @@ endfunction
 "let g:acstatus = s:status
 "let g:actest_result = s:test_result
 "let g:acasync_compl_result = s:async_compl_result
-" 导出这个变量
-function! CommonAsyncComplCount() "{{{2
-    return s:nAsyncCompleteCount
-endfunction
-"}}}
+
 let s:pyif_init = 0
 function! s:InitPyIf() "{{{2
     if s:pyif_init
@@ -670,9 +666,9 @@ function! s:ThisInit() "{{{2
     call s:InitPyIf()
 endfunction
 "}}}
-
-function! InitKeywordsComplete() "{{{2
-    call AsyncComplRegister(1, '', '[A-Za-z_0-9]', '[A-Za-z_]\w*$', 2,
+" 这个只用于实例，一般忽略之即可
+function! s:InitKeywordsComplete() "{{{2
+    call asynccompl#Register(1, '', '[A-Za-z_0-9]', '[A-Za-z_]\w*$', 2,
             \               'CxxSearchStartColumn', 'CommonLaunchComplThread',
             \               'CommonFetchComplResult')
 python << PYTHON_EOF
