@@ -891,25 +891,25 @@ function! vimccc#core#InitEarly() "{{{2
 
     " 特性检查
     " FIXME 在新版本，v:servername 的初始化在这个函数之后...
-    if g:VIMCCC_AutoPopupMenu && (empty(v:servername) || !has('clientserver'))
-        echohl WarningMsg
-        echom '-------------------- VIMCCC --------------------'
-        if empty(v:servername)
-            echom "Please start vim as server, eg. vim --servername {name}"
-            echom "Auto popup menu feature will be disabled this time"
-        else
-            echom 'Auto popup menu feature required vim compiled vim with '
-                    \ . '+clientserver'
-            echom 'The feature will be disabled this time'
-        endif
-        echom "You can run ':let g:VIMCCC_AutoPopupMenu = 0' to diable this "
-                \ . "message"
-        echohl None
-        " gvim 时，如果启动时即进入此流程，会让 gvim 无法启动，BUG？！
-        if !has('gui_running')
-            call getchar()
-        endif
-    endif
+    "if g:VIMCCC_AutoPopupMenu && (empty(v:servername) || !has('clientserver'))
+    "    echohl WarningMsg
+    "    echom '-------------------- VIMCCC --------------------'
+    "    if empty(v:servername)
+    "        echom "Please start vim as server, eg. vim --servername {name}"
+    "        echom "Auto popup menu feature will be disabled this time"
+    "    else
+    "        echom 'Auto popup menu feature required vim compiled vim with '
+    "                \ . '+clientserver'
+    "        echom 'The feature will be disabled this time'
+    "    endif
+    "    echom "You can run ':let g:VIMCCC_AutoPopupMenu = 0' to diable this "
+    "            \ . "message"
+    "    echohl None
+    "    " gvim 时，如果启动时即进入此流程，会让 gvim 无法启动，BUG？！
+    "    if !has('gui_running')
+    "        call getchar()
+    "    endif
+    "endif
 
     " 全局命令
     command! -nargs=0 -bar VIMCCCQuickFix
@@ -951,6 +951,9 @@ function! VIMCCCInit(...) "{{{2
     if (&ft !=# 'c' && &ft !=# 'cpp') || empty(expand('%'))
         return
     endif
+
+    " 使用异步补全框架, 整个代码都简单了...
+    call VIMCCCAsyncComplInit() | return
 
     let bAsync = g:VIMCCC_AutoPopupMenu
     if bAsync && (empty(v:servername) || !has('clientserver'))
@@ -1076,7 +1079,7 @@ function! VIMCCCLaunchCCThread(nRow, nCol, sBase) "{{{2
     let sAppend = a:0 > 0 ? a:1 : ''
 
     let sFileName = expand('%:p')
-    let sFileName = s:ToClangFileName(sFileName)
+    let sFileName = g:ToClangFileName(sFileName)
     let nRow = a:nRow
     let nCol = a:nCol
     let sBase = a:sBase
@@ -1215,7 +1218,7 @@ function! s:RequestCalltips(...) "{{{2
         if sFuncName !=# ''
             let calltips = []
             " 找到了函数名，开始全能补全
-            let sFileName = s:ToClangFileName(sFileName)
+            let sFileName = g:ToClangFileName(sFileName)
             py VIMCCCIndex.GetTUCodeCompleteResults(
                         \vim.eval("sFileName"), 
                         \int(vim.eval("nRow")),
@@ -1257,7 +1260,7 @@ function! VIMCCCSetArgs(lArgs) "{{{2
     endif
 
     let sFileName = expand('%:p')
-    let sFileName = s:ToClangFileName(sFileName)
+    let sFileName = g:ToClangFileName(sFileName)
     py VIMCCCIndex.SetParseArgs(vim.eval("lArgs"))
     py VIMCCCIndex.AsyncUpdateTranslationUnit(vim.eval("sFileName"), 
                 \[GetCurUnsavedFile()], True, True)
@@ -1293,7 +1296,7 @@ function! s:VIMCCCPrintArgsCmd() "{{{2
 endfunction
 "}}}
 " 统一处理，主要处理 .h -> .hpp 的问题
-function! s:ToClangFileName(sFileName) "{{{2
+function! g:ToClangFileName(sFileName) "{{{2
     let sFileName = a:sFileName
     let sResult = sFileName
     if fnamemodify(sFileName, ':e') ==? 'h'
@@ -1335,7 +1338,7 @@ function! VIMClangCodeCompletion(findstart, base) "{{{2
     let sBase = a:base
 
     let sFileName = expand('%:p')
-    let sFileName = s:ToClangFileName(sFileName)
+    let sFileName = g:ToClangFileName(sFileName)
     let nRow = line('.')
     let nCol = col('.') "列
 
@@ -1403,7 +1406,7 @@ function! s:VIMCCCGotoDeclaration() "{{{2
     let nRow = line('.')
     let nRow += nLineOffset
     let nCol = col('.')
-    let sFileName = s:ToClangFileName(sFileName)
+    let sFileName = g:ToClangFileName(sFileName)
     py vim.command("let dLocation = %s" 
                 \% VIMCCCIndex.GetSymbolDeclarationLocation(
                 \       vim.eval("sFileName"), 
@@ -1444,7 +1447,7 @@ function! s:VIMCCCGotoImplementation() "{{{2
     let nRow = line('.')
     let nRow += nLineOffset
     let nCol = col('.')
-    let sFileName = s:ToClangFileName(sFileName)
+    let sFileName = g:ToClangFileName(sFileName)
     py vim.command("let dLocation = %s" 
                 \% VIMCCCIndex.GetSymbolDefinitionLocation(vim.eval("sFileName"), 
                 \       int(vim.eval("nRow")), int(vim.eval("nCol")), 
@@ -1510,6 +1513,16 @@ function! s:GotoLocation(dLocation) "{{{2
     endif
 endfunction
 "}}}
+function! VIMCCCAsyncComplInit() "{{{2
+    call asynccompl#Register(g:VIMCCC_IgnoreCase, '\.\|>\|:',
+            \                '[A-Za-z_0-9]', '[A-Za-z_]\w*$', 2,
+            \                'CxxSearchStartColumn', 'CommonLaunchComplThread',
+            \                'CommonFetchComplResult')
+    py CommonCompleteHookRegister(VIMCCCCompleteHook, None)
+    py CommonCompleteArgsHookRegister(VIMCCCArgsHook, None)
+    call asynccompl#Init()
+endfunction
+"}}}
 " NOTE: 调用此函数后，生成全局变量 VIMCCCIndex
 function! s:InitPythonInterfaces() "{{{2
     if !s:bFirstInit
@@ -1535,7 +1548,7 @@ def GetCurUnsavedFile(nFlags = UF_None):
     '''
     nFlags:     控制一些特殊补全场合，例如在头文件补全'''
     sFileName = vim.eval("expand('%:p')")
-    sClangFileName = vim.eval("s:ToClangFileName(%s)" % ToVimEval(sFileName))
+    sClangFileName = vim.eval("g:ToClangFileName(%s)" % ToVimEval(sFileName))
 
     if nFlags == UF_None:
         return (sClangFileName, '\n'.join(vim.current.buffer[:]))
@@ -1570,6 +1583,41 @@ def GetCurCol():
     #       这个返回结果为进入补全函数前的位置
     #return vim.current.window.cursor[1]
     return int(vim.eval("col('.')"))
+
+def VIMCCCArgsHook(row, col, base, icase, data):
+    args = {'file': vim.eval('g:ToClangFileName(expand("%:p"))'),
+            'row': row,
+            'col': col,
+            'us_files': [GetCurUnsavedFile()],
+            'base': base,
+            'icase': vim.eval("g:VIMCCC_IgnoreCase") != '0',
+            'flags': int(vim.eval("g:VIMCCC_CodeCompleteFlags")),
+            'servername': vim.eval('v:servername')}
+    #print args
+    return args
+
+def VIMCCCCompleteHook(acthread, args, data):
+    '''这个函数在后台线程里面运行'''
+    fil = args.get('file')
+    row = args.get('row')
+    col = args.get('col')
+    base = args.get('base')
+    icase = args.get('icase')
+    us_files = args.get('us_files')
+    flags = args.get('flags')
+
+    result = None
+
+    acthread.Lock()
+    try:
+        result = VIMCCCIndex.GetVimCodeCompleteResults(fil, row, col, us_files,
+                                                       base, icase, flags)
+    except:
+        acthread.Unlock()
+        raise
+    acthread.Unlock()
+
+    return result
 
 # 本插件只操作这个实例，其他事都不管
 VIMCCCIndex = VIMClangCCIndex()
