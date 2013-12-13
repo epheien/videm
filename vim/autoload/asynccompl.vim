@@ -87,6 +87,11 @@ let s:async_compl_result = {}
 " Just For Debug
 let s:nAsyncCompleteCount = 0
 
+function! asynccompl#Init() "{{{2
+    return
+endfunction
+"}}}
+
 " 搜索补全起始列
 " 以下7种情形
 "   xxx yyy|
