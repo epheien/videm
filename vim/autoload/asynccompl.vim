@@ -40,11 +40,13 @@
 "   @LaunchComplThreadHook 使用 CommonLaunchComplThread
 "   @FetchComplResultHook 使用 CommonFetchComplResult
 " @SearchStartColumnHook 根据需要修改, 一般可直接用 CxxSearchStartColumn
-" 最后只需要定义类似下列的python hook, 并赋值给指定全局变量即可
-"   CommomCompleteHookRegister(CommomCompleteHook, data)
+" 最后只需要定义类似下列的python hook, 并注册即可
+"   CommonCompleteHookRegister(CommonCompleteHook, data)
+"   CommonCompleteArgsHookRegister(CommonCompleteArgsHook, data)
 " NOTE: 这个函数是在后台线程运行, 绝不能在此函数内对vim进行操作
 " ============================================================================
-" def CommomCompleteHook(acthread, args, data)
+" 这个函数接受三个参数, 并最终返回补全结果
+" def CommonCompleteHook(acthread, args, data)
 " @acthread - AsyncComplThread 实例
 " @args     - 参数, 是一个字典, 自动生成, CommonLaunchComplThread 定义的键值包括
 "               'text':     '\n'.join(vim.current.buffer),
@@ -55,6 +57,16 @@
 "               'icase':    int(vim.eval('icase'))}
 " @data     - 注册的时候指定的参数
 " @return   - 补全列表, 直接用于补全结果, 参考 complete-items
+"
+" 这个函数用于动态生成 CommonCompleteHook 的 args 字典参数, 若不使用的话, args
+" 字典参数自动生成, 参考上面的说明
+" def CommonCompleteArgsHook(data)
+" @row      - 行
+" @col      - 列
+" @base     - 光标前关键词
+" @icase    - 忽略大小写
+" @data     - 注册的时候指定的参数
+" @return   - args 字典, 参考上面的说明, 最终给予 CommonCompleteHook 使用
 
 " 初始化每个缓冲区的变量
 function! s:InitBuffVars() "{{{2
@@ -498,15 +510,32 @@ function! CommonLaunchComplThread(row, col, base, icase) "{{{2
     let col = a:col
     let base = a:base
     let icase = a:icase
-    py g_asynccompl.PushThreadAndStart(
-            \ AsyncComplThread(g_AsyncComplBVars.b.get('CommomCompleteHook'),
-            \                  {'text': '\n'.join(vim.current.buffer),
-            \                   'file': vim.eval('expand("%:p")'),
-            \                   'row': int(vim.eval('row')),
-            \                   'col': int(vim.eval('col')),
-            \                   'base': vim.eval('base'),
-            \                   'icase': int(vim.eval('icase'))},
-            \                  g_AsyncComplBVars.b.get('CommomCompleteHookData')))
+
+    let custom_args = 0
+    py if g_AsyncComplBVars.b.get('CommonCompleteArgsHook'):
+            \ vim.command("let custom_args = 1")
+    if custom_args
+        py g_asynccompl.PushThreadAndStart(
+            \ AsyncComplThread(
+            \   g_AsyncComplBVars.b.get('CommonCompleteHook'),
+            \   g_AsyncComplBVars.b.get('CommonCompleteArgsHook')(
+            \       int(vim.eval('row')), int(vim.eval('col')),
+            \       vim.eval('base'), int(vim.eval('icase')),
+            \       g_AsyncComplBVars.b.get('CommonCompleteArgsHookData')),
+            \   g_AsyncComplBVars.b.get('CommonCompleteHookData')))
+    else
+        " 默认情况下
+        py g_asynccompl.PushThreadAndStart(
+                \ AsyncComplThread(g_AsyncComplBVars.b.get('CommonCompleteHook'),
+                \                  {'text': '\n'.join(vim.current.buffer),
+                \                   'file': vim.eval('expand("%:p")'),
+                \                   'row': int(vim.eval('row')),
+                \                   'col': int(vim.eval('col')),
+                \                   'base': vim.eval('base'),
+                \                   'icase': int(vim.eval('icase'))},
+                \                  g_AsyncComplBVars.b.get('CommonCompleteHookData')))
+    endif
+
     " 有下列语句的话, 就是同步方式了
     "py g_asynccompl.LatestThread().join()
 endfunction
@@ -700,10 +729,16 @@ class BufferVariables(object):
 g_AsyncComplBVars = BufferVariables()
 
 # 通用补全hook注册, 外知的接口
-def CommomCompleteHookRegister(hook, data):
+def CommonCompleteHookRegister(hook, data):
     global g_AsyncComplBVars
-    g_AsyncComplBVars.b['CommomCompleteHook'] = hook
-    g_AsyncComplBVars.b['CommomCompleteHookData'] = data
+    g_AsyncComplBVars.b['CommonCompleteHook'] = hook
+    g_AsyncComplBVars.b['CommonCompleteHookData'] = data
+
+# 通用补全hook注册, 外知的接口
+def CommonCompleteArgsHookRegister(hook, data):
+    global g_AsyncComplBVars
+    g_AsyncComplBVars.b['CommonCompleteArgsHook'] = hook
+    g_AsyncComplBVars.b['CommonCompleteArgsHookData'] = data
 
 # 本模块持有的全局变量, 保存最新的补全线程的信息
 g_asynccompl = AsyncComplData()
