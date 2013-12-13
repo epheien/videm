@@ -101,9 +101,32 @@ function! holdtimer#AddTimerI(Hook, data, delay) "{{{2
     endif
 endfunction
 "}}}
+" 销毁定时器
+function! holdtimer#DelTimerI(Hook) "{{{2
+    if type(a:Hook) == type('')
+        let Hook = function(a:Hook)
+    else
+        let Hook = a:Hook
+    endif
+
+    " 只在匹配的时候才继续
+    if Hook isnot s:HookI
+        return
+    endif
+
+    " 恢复选项
+    if !s:option_stackI.Empty()
+        let &updatetime = s:option_stackI.Pop()
+    endif
+    " 删除自动命令
+    autocmd! CursorHoldTimer CursorHoldI
+endfunction
+"}}}
 function! holdtimer#TimerHandlerI() "{{{2
     " 恢复选项
-    let &updatetime = s:option_stackI.Pop()
+    if !s:option_stackI.Empty()
+        let &updatetime = s:option_stackI.Pop()
+    endif
     " 删除自动命令
     autocmd! CursorHoldTimer CursorHoldI
 

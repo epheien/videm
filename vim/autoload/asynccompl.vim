@@ -483,6 +483,9 @@ function! AsyncComplTimer(...) "{{{2
     let keys .= "\<C-x>\<C-u>"
     let keys .= "\<C-r>=Acpost()\<Cr>"
     call feedkeys(keys, 'n')
+
+    " 以防万一, 这里需要销毁定时器
+    call holdtimer#DelTimerI('AsyncComplTimer')
 endfunction
 "}}}
 
