@@ -952,24 +952,28 @@ function! VIMCCCInit(...) "{{{2
         return
     endif
 
-    " 使用异步补全框架, 整个代码都简单了...
-    call VIMCCCAsyncComplInit() | return
-
     let bAsync = g:VIMCCC_AutoPopupMenu
     if bAsync && (empty(v:servername) || !has('clientserver'))
         let bAsync = 0
     endif
 
-    setlocal omnifunc=VIMClangCodeCompletion
-
-    if g:VIMCCC_PeriodicQuickFix
-        augroup VIMCCC_AUGROUP
-            autocmd! CursorHold,CursorHoldI <buffer> VIMCCCQuickFix
-        augroup END
-    endif
-
     " 函数参数提示键绑定
     call vlcalltips#InitBuffKeymap()
+
+    if g:VIMCCC_MapReturnToDispCalltips
+        inoremap <silent> <expr> <buffer> <CR> pumvisible() ? 
+                \"\<C-y><C-r>=<SID>StartQucikCalltips()\<Cr>" : 
+                \"\<CR>"
+    endif
+
+    exec 'nnoremap <silent> <buffer> ' . g:VIMCCC_GotoDeclarationKey 
+            \. ' :call <SID>VIMCCCGotoDeclaration()<CR>'
+
+    exec 'nnoremap <silent> <buffer> ' . g:VIMCCC_GotoImplementationKey 
+            \. ' :call <SID>VIMCCCSmartJump()<CR>'
+
+    " NOTE: 使用异步补全框架, 整个代码都简单了...
+    call VIMCCCAsyncComplInit() | return
 
     if g:VIMCCC_MayCompleteDot
         if bAsync
@@ -1019,17 +1023,13 @@ function! VIMCCCInit(...) "{{{2
                 "\<C-r>=<SID>RestoreOpts()<CR>
     endif
 
-    if g:VIMCCC_MapReturnToDispCalltips
-        inoremap <silent> <expr> <buffer> <CR> pumvisible() ? 
-                \"\<C-y><C-r>=<SID>StartQucikCalltips()\<Cr>" : 
-                \"\<CR>"
+    setlocal omnifunc=VIMClangCodeCompletion
+
+    if g:VIMCCC_PeriodicQuickFix
+        augroup VIMCCC_AUGROUP
+            autocmd! CursorHold,CursorHoldI <buffer> VIMCCCQuickFix
+        augroup END
     endif
-
-    exec 'nnoremap <silent> <buffer> ' . g:VIMCCC_GotoDeclarationKey 
-            \. ' :call <SID>VIMCCCGotoDeclaration()<CR>'
-
-    exec 'nnoremap <silent> <buffer> ' . g:VIMCCC_GotoImplementationKey 
-            \. ' :call <SID>VIMCCCSmartJump()<CR>'
 
     if bAsync
         " 真正的异步补全实现
