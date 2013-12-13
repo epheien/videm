@@ -41,7 +41,7 @@
 "   @FetchComplResultHook 使用 CommonFetchComplResult
 " @SearchStartColumnHook 根据需要修改, 一般可直接用 CxxSearchStartColumn
 " 最后只需要定义类似下列的python hook, 并赋值给指定全局变量即可
-"   CommomCompleteHook = CurrFileKeywordsComplete
+"   CommomCompleteHookRegister(CommomCompleteHook, data)
 " NOTE: 这个函数是在后台线程运行, 绝不能在此函数内对vim进行操作
 " ============================================================================
 " def CommomCompleteHook(acthread, args, data)
