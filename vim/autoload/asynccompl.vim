@@ -17,7 +17,7 @@
 " @ignorecase - 是否忽略大小写
 " @complete_pattern - 匹配时直接启动补全
 " @valid_char_pattern - 不匹配这个模式的时候, 直接忽略
-" @substring_pattern - 提取 base 用
+" @substring_pattern - 在光标前的字符串中提取 base 用, 一般需要 '$' 结尾
 " @trigger_char_count - 触发异步补全时, 光标前的最小要求的单词字符数
 " @SearchStartColumnHook() - 搜索补全起始列号, 返回起始列号
 " @LaunchComplThreadHook(row, col, base, icase) - 无返回值
@@ -44,36 +44,45 @@
 "   CommomCompleteHook = CurrFileKeywordsComplete
 " NOTE: 这个函数是在后台线程运行, 绝不能在此函数内对vim进行操作
 " ============================================================================
-" def CurrFileKeywordsComplete(acthread, args)
+" def CommomCompleteHook(acthread, args, data)
 " @acthread - AsyncComplThread 实例
-" @args     - 参数, 是一个字典, CommonLaunchComplThread 定义的键值包括
+" @args     - 参数, 是一个字典, 自动生成, CommonLaunchComplThread 定义的键值包括
 "               'text':     '\n'.join(vim.current.buffer),
 "               'file':     vim.eval('expand("%:p")'),
 "               'row':      int(vim.eval('row')),
 "               'col':      int(vim.eval('col')),
 "               'base':     vim.eval('base'),
 "               'icase':    int(vim.eval('icase'))}
+" @data     - 注册的时候指定的参数
 " @return   - 补全列表, 直接用于补全结果, 参考 complete-items
 
-let s:config = {}
-let s:config.ignorecase = 0
-" 匹配这个模式的时候, 直接启动补全搜索线程
-let s:config.complete_pattern = '\.\|>\|:'
-" 非指定完成的字符串模式, 即如果输入字符不匹配这个字符串的时候, 忽略处理
-let s:config.valid_char_pattern = '[A-Za-z_0-9]'
-" 补全支持的子串模式
-let s:config.substring_pattern = '[A-Za-z_]\w*$'
-" 最小支持2, 为1的话可能有各种问题
-let s:config.trigger_char_count = 2
-let s:config.SearchStartColumnHook = function('empty')
-" 启动搜索线程, None (row, col, base, icase)
-let s:config.LaunchComplThreadHook = function('empty')
-" 获取结果的回调, [] (base)
-let s:config.FetchComplResultHook = function('empty')
-" 定时器机制使用, 超时时间, 单位毫秒
-let s:config.timer_timeout = 100
-" 补全菜单选择模式, 同vimccc的定义
-let s:config.item_select_mode = 2
+" 初始化每个缓冲区的变量
+function! s:InitBuffVars() "{{{2
+    if exists('b:config')
+        return
+    endif
+
+    let b:config = {}
+    let b:config.ignorecase = 0
+    " 匹配这个模式的时候, 直接启动补全搜索线程
+    let b:config.complete_pattern = '\.\|>\|:'
+    " 非指定完成的字符串模式, 即如果输入字符不匹配这个字符串的时候, 忽略处理
+    let b:config.valid_char_pattern = '[A-Za-z_0-9]'
+    " 补全支持的子串模式
+    let b:config.substring_pattern = '[A-Za-z_]\w*$'
+    " 最小支持2, 为1的话可能有各种问题
+    let b:config.trigger_char_count = 2
+    let b:config.SearchStartColumnHook = function('empty')
+    " 启动搜索线程, None (row, col, base, icase)
+    let b:config.LaunchComplThreadHook = function('empty')
+    " 获取结果的回调, [] (base)
+    let b:config.FetchComplResultHook = function('empty')
+    " 定时器机制使用, 超时时间, 单位毫秒
+    let b:config.timer_timeout = 100
+    " 补全菜单选择模式, 同vimccc的定义
+    let b:config.item_select_mode = 2
+endfunction
+"}}}
 
 " 保存状态信息, 如有键位映射的缓冲区等等
 let s:status = {}
@@ -221,32 +230,32 @@ function! CommonAsyncComplete() "{{{2
     endif
 
     let sChar = v:char
-    let icase = s:config.ignorecase
+    let icase = b:config.ignorecase
 
     " 处理无条件指定触发补全的输入, 如C++中的::, ->, .
-    if !empty(s:config.complete_pattern) && sChar =~# s:config.complete_pattern
+    if !empty(b:config.complete_pattern) && sChar =~# b:config.complete_pattern
         let nRow = line('.')
         let nCol = col('.')
         let sBase = ''
         " 更新状态
         call s:UpdateAucmPrevStat(nRow, nCol, sBase, pumvisible())
         " 启动线程
-        call s:config.LaunchComplThreadHook(nRow, nCol, sBase, icase)
+        call b:config.LaunchComplThreadHook(nRow, nCol, sBase, icase)
         " 启动定时器
         call AsyncComplTimer()
         return ''
     endif
 
     " 输入的字符不是有效的补全字符, 直接返回
-    if sChar !~# s:config.valid_char_pattern
-        " 需要清补全状态吧? 不需要, 只要 s:config.trigger_char_count > 1
+    if sChar !~# b:config.valid_char_pattern
+        " 需要清补全状态吧? 不需要, 只要 b:config.trigger_char_count > 1
         "call s:ResetAucmPrevStat()
         return ''
     endif
 
     "call vlutils#TimerStart()
 
-    let nTriggerCharCount = s:config.trigger_char_count
+    let nTriggerCharCount = b:config.trigger_char_count
     let nCol = col('.')
     let sLine = getline('.')
 " ============================================================================
@@ -254,7 +263,7 @@ function! CommonAsyncComplete() "{{{2
     " 前状态
     let dPrevStat = s:GetCSDict()
 
-    let sPrevWord = matchstr(sLine[: nCol-2], s:config.substring_pattern) . sChar
+    let sPrevWord = matchstr(sLine[: nCol-2], b:config.substring_pattern) . sChar
     if len(sPrevWord) < nTriggerCharCount
         " 如果之前补全过就重置状态
         if get(dPrevStat, 'cccol', 0) > 0
@@ -267,7 +276,7 @@ function! CommonAsyncComplete() "{{{2
 
     " 获取当前状态
     let nRow = line('.')
-    let nCol = s:config.SearchStartColumnHook()
+    let nCol = b:config.SearchStartColumnHook()
     let sBase = getline('.')[nCol-1 : col('.')-2] . sChar
 
     " 补全起始位置一样就不需要再次启动了
@@ -294,7 +303,7 @@ function! CommonAsyncComplete() "{{{2
     let &ignorecase = save_ic
 " ============================================================================
     " ok，启动
-    call s:config.LaunchComplThreadHook(nRow, nCol, sBase, icase)
+    call b:config.LaunchComplThreadHook(nRow, nCol, sBase, icase)
     let s:compl_count += 1
 
     " 更新状态
@@ -312,12 +321,14 @@ endfunction
 " 这个初始化是每个缓冲区都要调用一次的
 function! asynccompl#Init() "{{{2
     call s:InitPyIf()
+    call s:InitBuffVars()
 
     let s:status.buffers[bufnr('%')] = 1
     augroup AsyncCompl
         autocmd! InsertCharPre  <buffer> call CommonAsyncComplete()
         autocmd! InsertEnter    <buffer> call <SID>InitAucmPrevStat()
         autocmd! InsertLeave    <buffer> call <SID>ResetAucmPrevStat()
+        " TODO 添加销毁python的每缓冲区变量的时机
     augroup END
     setlocal completefunc=asynccompl#Driver
 endfunction
@@ -343,23 +354,24 @@ function! s:Funcref(Func) "{{{2
 endfunction
 "}}}
 function! asynccompl#Register(ignorecase, complete_pattern,
-        \                    valid_char_pattern, substring_pattern,
-        \                    trigger_char_count,
-        \                    SearchStartColumnHook, LaunchComplThreadHook,
-        \                    FetchComplResultHook) "{{{2
-    let s:config.ignorecase = a:ignorecase
-    let s:config.complete_pattern = a:complete_pattern
-    let s:config.valid_char_pattern = a:valid_char_pattern
-    let s:config.substring_pattern = a:substring_pattern
-    let s:config.trigger_char_count = a:trigger_char_count
-    let s:config.SearchStartColumnHook = s:Funcref(a:SearchStartColumnHook)
-    let s:config.LaunchComplThreadHook = s:Funcref(a:LaunchComplThreadHook)
-    let s:config.FetchComplResultHook = s:Funcref(a:FetchComplResultHook)
+        \                     valid_char_pattern, substring_pattern,
+        \                     trigger_char_count,
+        \                     SearchStartColumnHook, LaunchComplThreadHook,
+        \                     FetchComplResultHook) "{{{2
+    call s:InitBuffVars()
+    let b:config.ignorecase = a:ignorecase
+    let b:config.complete_pattern = a:complete_pattern
+    let b:config.valid_char_pattern = a:valid_char_pattern
+    let b:config.substring_pattern = a:substring_pattern
+    let b:config.trigger_char_count = a:trigger_char_count
+    let b:config.SearchStartColumnHook = s:Funcref(a:SearchStartColumnHook)
+    let b:config.LaunchComplThreadHook = s:Funcref(a:LaunchComplThreadHook)
+    let b:config.FetchComplResultHook = s:Funcref(a:FetchComplResultHook)
 endfunction
 "}}}
 function! asynccompl#Driver(findstart, base) "{{{2
     if a:findstart
-        let ret = s:config.SearchStartColumnHook()
+        let ret = b:config.SearchStartColumnHook()
         if ret != -1
             " NOTE: 需要-1才正确, 这个是一个BUG
             return ret - 1
@@ -379,13 +391,13 @@ function! s:SetOpts() "{{{2
 
     let s:has_noexpand = 0
 
-    if     s:config.item_select_mode == 0 " 不选择
+    if     b:config.item_select_mode == 0 " 不选择
         set completeopt-=menu,longest
         set completeopt+=menuone
-    elseif s:config.item_select_mode == 1 " 选择并插入文本
+    elseif b:config.item_select_mode == 1 " 选择并插入文本
         set completeopt-=menuone,longest
         set completeopt+=menu
-    elseif s:config.item_select_mode == 2 " 选择但不插入文本
+    elseif b:config.item_select_mode == 2 " 选择但不插入文本
         if s:has_noexpand
             " 支持 noexpand 就最好了
             set completeopt+=noexpand
@@ -416,11 +428,11 @@ function s:RestoreOpts() "{{{2
     let sRet = ""
 
     if pumvisible()
-        if     s:config.item_select_mode == 0 " 不选择
+        if     b:config.item_select_mode == 0 " 不选择
             let sRet = "\<C-p>"
-        elseif s:config.item_select_mode == 1 " 选择并插入文本
+        elseif b:config.item_select_mode == 1 " 选择并插入文本
             let sRet = ""
-        elseif s:config.item_select_mode == 2 " 选择但不插入文本
+        elseif b:config.item_select_mode == 2 " 选择但不插入文本
             if !s:has_noexpand
                 let sRet = "\<C-p>\<Down>"
             endif
@@ -447,13 +459,18 @@ function! AsyncComplTimer(...) "{{{2
     " ret: [0, {}|[]]
     " ret[0]: 0 - 还未得到结果, 1 - 已经得到结果
     " ret[1]: {}|[] 补全结果, 可能为空
-    let ret = s:config.FetchComplResultHook(get(s:GetCSDict(), 'base', ''))
+    let ret = b:config.FetchComplResultHook(get(s:GetCSDict(), 'base', ''))
     let done = ret[0]
     let result = ret[1]
 
     if !done
         " 轮询结果, 需要重试次数?
-        call holdtimer#AddTimerI('AsyncComplTimer', 0, s:config.timer_timeout)
+        call holdtimer#AddTimerI('AsyncComplTimer', 0, b:config.timer_timeout)
+        return
+    endif
+
+    " 结果为空的话, 就无须继续了
+    if empty(result)
         return
     endif
 
@@ -479,13 +496,14 @@ function! CommonLaunchComplThread(row, col, base, icase) "{{{2
     let base = a:base
     let icase = a:icase
     py g_asynccompl.PushThreadAndStart(
-            \ AsyncComplThread(CommomCompleteHook,
+            \ AsyncComplThread(g_AsyncComplBVars.b.get('CommomCompleteHook'),
             \                  {'text': '\n'.join(vim.current.buffer),
             \                   'file': vim.eval('expand("%:p")'),
             \                   'row': int(vim.eval('row')),
             \                   'col': int(vim.eval('col')),
             \                   'base': vim.eval('base'),
-            \                   'icase': int(vim.eval('icase'))}))
+            \                   'icase': int(vim.eval('icase'))},
+            \                  g_AsyncComplBVars.b.get('CommomCompleteHookData')))
     " 有下列语句的话, 就是同步方式了
     "py g_asynccompl.LatestThread().join()
 endfunction
@@ -510,7 +528,7 @@ endfunction
 "}}}
 
 " Just For Debug
-"let g:acconfig = s:config
+"let g:acconfig = b:config
 "let g:acstatus = s:status
 "let g:actest_result = s:test_result
 "let g:acasync_compl_result = s:async_compl_result
@@ -545,15 +563,15 @@ def ToVimEval(o):
     else:
         return repr(o)
 
-def GetAllKeywords(s):
-    global keyword_re
-    return keyword_re.findall(s)
+def GetAllKeywords(s, kw_re = keyword_re):
+    return kw_re.findall(s)
 
-def GetCurBufKws(base = '', ignorecase = False, buffer = vim.current.buffer):
+def GetCurBufKws(base = '', ignorecase = False, buffer = vim.current.buffer,
+                 kw_re = keyword_re):
     if isinstance(buffer, str):
-        li = GetAllKeywords(buffer)
+        li = GetAllKeywords(buffer, kw_re)
     else:
-        li = GetAllKeywords('\n'.join(buffer))
+        li = GetAllKeywords('\n'.join(buffer), kw_re)
     if base:
         if ignorecase:
             # NOTE: base 不能含有特殊字符
@@ -602,10 +620,11 @@ class AsyncComplThread(threading.Thread):
     # 自身锁, 不一定需要
     _lock = threading.Lock()
 
-    def __init__(self, hook, args, parent = None):
+    def __init__(self, hook, args, data = None, parent = None):
         threading.Thread.__init__(self)
         self.hook = hook
-        self.args = args
+        self.args = args # 这个参数是自动生成的
+        self.data = data # 这个是注册时指定的
         self.result = None
         self.name = 'AsyncComplThread-' + self.name
         # 这个一般指向 AsyncComplData 实例, 用于和自身检查
@@ -623,8 +642,9 @@ class AsyncComplThread(threading.Thread):
         try:
             if not self.hook:
                 return
-            
-            result = self.hook(self, self.args)
+
+            # FIXME 这里出错的话, 很容易崩溃
+            result = self.hook(self, self.args, self.data)
             if result is None:
                 return
 
@@ -655,8 +675,33 @@ class AsyncComplThread(threading.Thread):
             sio.close()
             print errmsg
 
-# 通用补全hook
-CommomCompleteHook = None
+class BufferVariables(object):
+    '''python模拟vim的 b: 变量'''
+    def __init__(self):
+        # {bufnr: {varname: varvalue, ...}, ...}
+        self.buffvars = {}
+
+    @property
+    def b(self):
+        bufnr = int(vim.eval('bufnr("%")'))
+        if not self.buffvars.has_key(bufnr):
+            self.buffvars[bufnr] = {}
+        return self.buffvars.get(bufnr)
+
+    def _Destroy(self, bufnr = int(vim.eval('bufnr("%")'))):
+        '''删除指定缓冲区的所有变量'''
+        if self.buffvars.has_key(bufnr):
+            del self.buffvars[bufnr]
+
+# 全局变量
+g_AsyncComplBVars = BufferVariables()
+
+# 通用补全hook注册, 外知的接口
+def CommomCompleteHookRegister(hook, data):
+    global g_AsyncComplBVars
+    g_AsyncComplBVars.b['CommomCompleteHook'] = hook
+    g_AsyncComplBVars.b['CommomCompleteHookData'] = data
+
 # 本模块持有的全局变量, 保存最新的补全线程的信息
 g_asynccompl = AsyncComplData()
 PYTHON_EOF
@@ -664,25 +709,6 @@ endfunction
 "}}}
 function! s:ThisInit() "{{{2
     call s:InitPyIf()
-endfunction
-"}}}
-" 这个只用于实例，一般忽略之即可
-function! s:InitKeywordsComplete() "{{{2
-    call asynccompl#Register(1, '', '[A-Za-z_0-9]', '[A-Za-z_]\w*$', 2,
-            \               'CxxSearchStartColumn', 'CommonLaunchComplThread',
-            \               'CommonFetchComplResult')
-python << PYTHON_EOF
-def CurrFileKeywordsComplete(acthread, args):
-    '''补全当前文件的关键词, 类似于 <C-x><C-n>'''
-    base = args.get('base', '')
-    text = args.get('text', '')
-    icase = args.get('icase', False)
-    raw_result = GetCurBufKws(base, icase, text)
-    # 转为字典, 否则不支持icase
-    return [{'word': i, 'icase': icase} for i in raw_result]
-
-CommomCompleteHook = CurrFileKeywordsComplete
-PYTHON_EOF
 endfunction
 "}}}
 
