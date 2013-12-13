@@ -210,6 +210,20 @@ function! s:UpdateAucmPrevStat(nRow, nCol, sBase, pumv) "{{{2
     return aucm_prev_stat
 endfunction
 "}}}
+" 这个函数名字要尽量短, 因为是用于 <C-r>= 的
+function! CCByChar() "{{{2
+    let aucm_prev_stat = s:GetCSDict()
+    let row = aucm_prev_stat['ccrow']
+    let col = aucm_prev_stat['cccol']
+    let base = aucm_prev_stat['base']
+    let icase = b:config.ignorecase
+    " 启动线程
+    call b:config.LaunchComplThreadHook(row, col, base, icase)
+    " 启动定时器
+    call AsyncComplTimer()
+    return ''
+endfunction
+"}}}
 " 触发条件
 "
 " 触发的情形:
@@ -247,14 +261,13 @@ function! CommonAsyncComplete() "{{{2
     " 处理无条件指定触发补全的输入, 如C++中的::, ->, .
     if !empty(b:config.complete_pattern) && sChar =~# b:config.complete_pattern
         let nRow = line('.')
-        let nCol = col('.')
+        " +1的原因是, 要把即将输入的字符也算进去
+        let nCol = col('.') + 1
         let sBase = ''
         " 更新状态
         call s:UpdateAucmPrevStat(nRow, nCol, sBase, pumvisible())
-        " 启动线程
-        call b:config.LaunchComplThreadHook(nRow, nCol, sBase, icase)
-        " 启动定时器
-        call AsyncComplTimer()
+        " 因为现时的补全环境不完整(v:char还没有被插入), 所以如此实现
+        call feedkeys("\<C-r>=CCByChar()\<CR>", 'n')
         return ''
     endif
 
@@ -491,10 +504,12 @@ function! AsyncComplTimer(...) "{{{2
     endif
     let s:async_compl_result = result
     " 有结果的时候, 弹出补全菜单
-    let keys  = "\<C-r>=Acpre()\<Cr>"
+    let keys  = "\<C-r>=Acpre()\<CR>"
     let keys .= "\<C-x>\<C-u>"
-    let keys .= "\<C-r>=Acpost()\<Cr>"
+    let keys .= "\<C-r>=Acpost()\<CR>"
     call feedkeys(keys, 'n')
+
+    " NOTE: 这里可以更新状态以表示这一轮的补全已经完成, 不是太必要
 
     " 以防万一, 这里需要销毁定时器
     call holdtimer#DelTimerI('AsyncComplTimer')
