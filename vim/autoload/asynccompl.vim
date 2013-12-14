@@ -644,9 +644,9 @@ def GetCurBufKws(base = '', ignorecase = False, buffer = vim.current.buffer,
     else:
         li = GetAllKeywords('\n'.join(buffer), kw_re)
     if base:
-        if ignorecase:
-            # NOTE: base 不能含有特殊字符
-            w = re.compile(r'\b'+base, re.I)
+        if ignorecase and base:
+            pat = ''.join(["\\x%2x" % ord(c) for c in base])
+            w = re.compile(pat, re.I)
             li = [i for i in li if w.match(i)]
         else:
             li = [i for i in li if i.startswith(base)]
