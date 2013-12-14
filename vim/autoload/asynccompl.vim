@@ -351,11 +351,22 @@ function! asynccompl#Init() "{{{2
     let s:status.buffers[bufnr('%')] = 1
     augroup AsyncCompl
         autocmd! InsertCharPre  <buffer> call CommonAsyncComplete()
-        autocmd! InsertEnter    <buffer> call <SID>InitAucmPrevStat()
-        autocmd! InsertLeave    <buffer> call <SID>ResetAucmPrevStat()
-        " TODO 添加销毁python的每缓冲区变量的时机
+        autocmd! InsertEnter    <buffer> call s:AutocmdInsertEnter()
+        autocmd! InsertLeave    <buffer> call s:AutocmdInsertLeave()
+        " NOTE: 添加销毁python的每缓冲区变量的时机
+        "       暂时不需要, 只要每缓冲区的变量都是先初始化再使用的话, 无须清理
     augroup END
     setlocal completefunc=asynccompl#Driver
+endfunction
+"}}}
+function! s:AutocmdInsertEnter() "{{{2
+    call s:InitAucmPrevStat()
+    call holdtimer#DelTimerI('AsyncComplTimer')
+endfunction
+"}}}
+function! s:AutocmdInsertLeave() "{{{2
+    call s:ResetAucmPrevStat()
+    call holdtimer#DelTimerI('AsyncComplTimer')
 endfunction
 "}}}
 " 清理函数
@@ -714,8 +725,12 @@ class AsyncComplThread(threading.Thread):
             if not self.hook:
                 return
 
-            # FIXME 这里出错的话, 很容易崩溃
-            result = self.hook(self, self.args, self.data)
+            try:
+                result = self.hook(self, self.args, self.data)
+            except:
+                # TODO 打印出错信息
+                return
+
             if result is None:
                 return
 
@@ -744,7 +759,7 @@ class AsyncComplThread(threading.Thread):
             print >> sio, '-' * 60
             errmsg = sio.getvalue()
             sio.close()
-            print errmsg
+            #print errmsg
 
 class BufferVariables(object):
     '''python模拟vim的 b: 变量'''
