@@ -63,7 +63,6 @@ import os.path
 sys.path.append(os.path.dirname(vim.eval("s:sfile")))
 
 import iskconv
-import inspect
 
 def CurrFileKeywordsComplete(acthread, args, data):
     '''补全当前文件的关键词, 类似于 <C-x><C-n>'''
