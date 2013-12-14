@@ -739,12 +739,7 @@ class AsyncComplThread(threading.Thread):
             if not self.hook:
                 return
 
-            try:
-                result = self.hook(self, self.args, self.data)
-            except:
-                # TODO 打印出错信息
-                return
-
+            result = self.hook(self, self.args, self.data)
             if result is None:
                 return
 
