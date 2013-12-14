@@ -376,6 +376,11 @@ function! vlutils#EchoWarnMsg(msg) "{{{2
     echohl None
 endfunction
 "}}}
+" 供clientserver调用, 只是添加一行提示信息而已
+function! vlutils#EchoMsgx(msg) "{{{2
+    let extramsg = "\nThere are some warning messages! Please run ':messages' for details."
+    return vlutils#EchoWarnMsg(a:msg . extramsg)
+endfunction
 function! vlutils#EchoErrMsg(msg) "{{{2
     if empty(a:msg)
         return
