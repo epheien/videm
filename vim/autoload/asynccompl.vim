@@ -348,6 +348,20 @@ function! asynccompl#Init() "{{{2
     call s:InitPyIf()
     call s:InitBuffVars()
 
+    let output = vlutils#GetCmdOutput('autocmd CursorHoldI')
+    let lines = split(output, '\n')
+    if !empty(lines) && lines[-1] !=# '--- Auto-Commands ---'
+        echohl WarningMsg
+        echomsg "=== Warning by asynccompl ==="
+        echomsg "There are other CursorHoldI autocmds in your Vim."
+        echomsg "Asynccompl works with CursorHoldI autocmd,"
+        echomsg "and will cause other CursorHoldI autocmds run frequently."
+        echomsg "Please confirm by running ':autocmd CursorHoldI' or disable asynccompl."
+        echomsg "Press any key to continue..."
+        call getchar()
+        echohl None
+    endif
+
     let s:status.buffers[bufnr('%')] = 1
     augroup AsyncCompl
         autocmd! InsertCharPre  <buffer> call CommonAsyncComplete()
@@ -628,7 +642,7 @@ import threading
 import StringIO
 import traceback
 
-keyword_re = re.compile(r'\b\w\w+\b')
+keyword_re = re.compile(r'\b\w{2,}\b')
 
 import json
 
