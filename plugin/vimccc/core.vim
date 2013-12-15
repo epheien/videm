@@ -361,7 +361,7 @@ function! VIMCCCInit(...) "{{{2
         echomsg 'Vim does not support InsertCharPre autocmd, so vimccc can not work'
         echomsg 'Please update your Vim to version 7.3.196 or later'
         echohl None
-        return
+        return -1
     endif
 
     " TODO 表示缓冲区已经初始化 vimccc
@@ -408,7 +408,13 @@ function! VIMCCCInit(...) "{{{2
     endif
 
     " NOTE: 使用异步补全框架, 整个代码都简单了...
-    call VIMCCCAsyncComplInit(join(pats, '\|'))
+    let ret = VIMCCCAsyncComplInit(join(pats, '\|'))
+    if ret != 0
+        echohl ErrorMsg
+        echomsg "Failed to init asynccompl framework, abort"
+        echohl None
+        return ret
+    endif
 
     if g:VIMCCC_ItemSelectionMode > 4
         " 若是成员补全, 如 ., ->, :: 之后, 添加 longest 到 completeopt
@@ -790,7 +796,7 @@ function! VIMCCCAsyncComplInit(...) "{{{2
             \                1, g:VIMCCC_ItemSelectionMode)
     py CommonCompleteHookRegister(VIMCCCCompleteHook, None)
     py CommonCompleteArgsHookRegister(VIMCCCArgsHook, None)
-    call asynccompl#Init()
+    return asynccompl#Init()
 endfunction
 "}}}
 " NOTE: 调用此函数后，生成全局变量 VIMCCCIndex

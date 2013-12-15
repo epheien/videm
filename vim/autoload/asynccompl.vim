@@ -420,6 +420,14 @@ endfunction
 "}}}
 " 这个初始化是每个缓冲区都要调用一次的
 function! asynccompl#Init() "{{{2
+    if !exists('##InsertCharPre')
+        echohl ErrorMsg
+        echomsg 'Vim does not support InsertCharPre autocmd, so asynccompl can not work'
+        echomsg 'Please update your Vim to version 7.3.196 or later'
+        echohl None
+        return -1
+    endif
+
     call s:InitPyIf()
     call s:InitBuffVars()
 
@@ -429,9 +437,10 @@ function! asynccompl#Init() "{{{2
     endif
 
     if s:timer_mode
-        let output = vlutils#GetCmdOutput('autocmd CursorHoldI')
-        let lines = split(output, '\n')
-        if !empty(lines) && lines[-1] !=# '--- Auto-Commands ---'
+        "let output = vlutils#GetCmdOutput('autocmd CursorHoldI')
+        "let lines = split(output, '\n')
+        "if !empty(lines) && lines[-1] !=# '--- Auto-Commands ---'
+        if exists('#CursorHoldI')
             echohl WarningMsg
             echomsg "=== Warning by asynccompl ==="
             echomsg "There are other CursorHoldI autocmds in your Vim."
