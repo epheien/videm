@@ -106,6 +106,16 @@ def vimcs_eval_expr(servername, expr, prog='vim'):
     else:
         return out
 
+def vimcs_send_keys(servername, keys, prog='vim'):
+    '''发送按键到vim服务器'''
+    if not servername:
+        return -1
+    cmd = [prog, '--servername', servername, '--remote-send', keys]
+    p = subprocess.Popen(cmd, shell=False,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    return p.returncode
+
 def TestHook(*args, **kwargs):
     #VimExcHdr.Init()
     #VimExcHdr.Print('hello world')

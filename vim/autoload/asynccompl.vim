@@ -14,7 +14,7 @@
 "         \                     trigger_char_count,
 "         \                     SearchStartColumnHook, LaunchComplThreadHook,
 "         \                     FetchComplResultHook,
-"         \                     omnifunc = 0)
+"         \                     omnifunc = 0, item_select_mode = 2)
 " @ignorecase - 是否忽略大小写
 " @complete_pattern - 匹配时直接启动补全
 " @valid_char_pattern - 不匹配这个模式的时候, 直接忽略
@@ -25,6 +25,7 @@
 " @FetchComplResultHook(base) - 返回补全结果, 形如 [0|1, result]
 "                               0表示未完成, 1表示完成, result可能为[]或{}
 " @omnifunc - 0 - 使用 completefunc, 1 - 使用 omnifunc
+" @item_select_mode - 参考相关说明
 "
 " @LaunchComplThreadHook 可使用通用的 CommonLaunchComplThread
 " @FetchComplResultHook 可使用通用的 CommonFetchComplResult
@@ -117,6 +118,12 @@ let s:timer_mode = 1
 
 " 异步请求ID
 let s:async_compl_ident = -1
+
+" 载入自身
+function! asynccompl#Load() "{{{2
+    return 0
+endfunction
+"}}}
 
 " Just For Debug
 function! asynccompl#ComplCount() "{{{2
@@ -304,15 +311,16 @@ endfunction
 "     The event is not triggered when 'paste' is
 "     set.
 function! CommonAsyncComplete() "{{{2
-    if pumvisible() " 不重复触发
-        return ''
-    endif
-
     let sChar = v:char
     let icase = b:config.ignorecase
 
     " 处理无条件指定触发补全的输入, 如C++中的::, ->, .
     if !empty(b:config.complete_pattern) && sChar =~# b:config.complete_pattern
+        " 补全完毕后, 菜单没有消失, 这是来一个无条件补全, 需要把补全菜单干掉
+        if pumvisible()
+            call feedkeys("\<Space>\<BS>", "n")
+        endif
+
         let nRow = line('.')
         " +1的原因是, 要把即将输入的字符也算进去
         let nCol = col('.') + 1
@@ -321,6 +329,11 @@ function! CommonAsyncComplete() "{{{2
         call s:UpdateAucmPrevStat(nRow, nCol, sBase, pumvisible())
         " 因为现时的补全环境不完整(v:char还没有被插入), 所以如此实现
         call feedkeys("\<C-r>=CCByChar()\<CR>", 'n')
+        return ''
+    endif
+
+    " 不重复触发
+    if pumvisible()
         return ''
     endif
 
@@ -512,6 +525,7 @@ function! asynccompl#Register(ignorecase, complete_pattern,
     let b:config.LaunchComplThreadHook = s:Funcref(a:LaunchComplThreadHook)
     let b:config.FetchComplResultHook = s:Funcref(a:FetchComplResultHook)
     let b:config.omnifunc = get(a:000, 0, 0)
+    let b:config.item_select_mode = get(a:000, 1, 2)
 endfunction
 "}}}
 function! asynccompl#Driver(findstart, base) "{{{2
@@ -644,6 +658,9 @@ function! Acpre() "{{{2
 endfunction
 "}}}
 function! Acpost() "{{{2
+    " NOTE: 不用使用 feedkeys()，因为 "\<C-r>=Acpost()\<Cr>"
+    "       后有个时间窗口，可能有了其他的输入，所以这里必须直接返回输入，
+    "       唯一存在的问题是返回的字符可能被重映射了
     return s:RestoreOpts()
 endfunction
 "}}}
