@@ -53,6 +53,8 @@ endfunction
 " ident为字符串, 即线程的ident
 function! asyncpy#Callback(ident) "{{{2
     py AsyncpyCallback(vim.eval("a:ident"))
+    " Windows 下面会在前端显示返回结果, 所以需要返回空字符串
+    return ''
 endfunction
 "}}}
 let s:pyif_init = 0

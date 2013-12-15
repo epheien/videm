@@ -10,6 +10,7 @@ rm -rf "$TGT_DIR"
 make --no-print-directory install
 
 cd "$SCRIPT_DIR/videm_files/videm"
+find "$PWD" -name '*.pyc' -exec rm -v {} \;
 makevba && mv videm.v* ..
 cd - >/dev/null
 
