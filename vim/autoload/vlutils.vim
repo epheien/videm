@@ -366,7 +366,7 @@ endfunction
 "}}}
 function! vlutils#EchoWarnMsg(msg) "{{{2
     if empty(a:msg)
-        return
+        return ''
     endif
     echohl WarningMsg
     for sLine in split(a:msg, '\n')
@@ -374,6 +374,7 @@ function! vlutils#EchoWarnMsg(msg) "{{{2
     endfor
     "echomsg '!!!Catch an exception!!!'
     echohl None
+    return ''
 endfunction
 "}}}
 " 供clientserver调用, 只是添加一行提示信息而已
@@ -383,7 +384,7 @@ function! vlutils#EchoMsgx(msg) "{{{2
 endfunction
 function! vlutils#EchoErrMsg(msg) "{{{2
     if empty(a:msg)
-        return
+        return ''
     endif
     echohl ErrorMsg
     for sLine in split(a:msg, '\n')
@@ -391,6 +392,7 @@ function! vlutils#EchoErrMsg(msg) "{{{2
     endfor
     "echomsg '!!!Catch an exception!!!'
     echohl None
+    return ''
 endfunction
 "}}}
 " 支持重复input的接口
