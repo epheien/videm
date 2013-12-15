@@ -4,6 +4,8 @@
 " Create:   2013-12-13
 " Change:   2013-12-14
 
+" 这个插件暂时只支持 ASCII 码的补全, 其他的都不支持
+
 let s:sfile = expand('<sfile>')
 function! CommonSearchStartColumn() "{{{2
     let row = line('.')
@@ -37,7 +39,7 @@ function! InitKeywordsComplete() "{{{2
             \               'CommonFetchComplResult')
     " NOTE: 暂时只能做到这种程度了, 因为python无法模拟vim的'\<'正则,
     "       用'\b'会有副作用, 正确的搜索模式应该是 '\<\k\k\+'
-    py __kw_pat = ''.join(iskconv.Conv2PattList(vim.eval('&iskeyword'))[0])
+    py __kw_pat = ''.join(iskconv.Conv2PattList(vim.eval('&iskeyword'), 1)[0])
     py __kw_pat = '(?<![%s])[%s]{2,}' % (__kw_pat, __kw_pat)
     "py print __kw_pat
     py CommonCompleteHookRegister(CurrFileKeywordsComplete,

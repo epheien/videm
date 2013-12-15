@@ -26,9 +26,9 @@ testcases = \
      " -~,^,,9",
 ]
 
-def Conv2PattList(opt):
+def Conv2PattList(opt, ascii_only = False):
     li = SplitOptions(opt)
-    return Conv2PyrePat(li)
+    return Conv2PyrePat(li, ascii_only)
 
 class TokensReader:
     def __init__(self, tokens, null = None):
@@ -174,7 +174,12 @@ def ToPatHex(s):
         return "\\x%02x" % int(s)
     return "\\x%2x" % ord(s)
 
-def Conv2PyrePat(optlst):
+def ToOrd(s):
+    if s.isdigit():
+        return int(s)
+    return ord(s)
+
+def Conv2PyrePat(optlst, ascii_only = False):
     result = ''
 
     codelist = []
@@ -192,20 +197,34 @@ def Conv2PyrePat(optlst):
         elif item.startswith('^'):
             tmp = item[1:]
             if len(tmp) == 1:
+                if ascii_only and ToOrd(item) > 127:
+                    continue
                 excllist.append(ToPatHex(tmp))
             else:
                 # 一定是范围
                 li = tmp.split('-', 1)
                 c0 = ToPatHex(li[0])
                 c1 = ToPatHex(li[1])
+                if ascii_only:
+                    if ToOrd(li[0]) > 127:
+                        continue
+                    if ToOrd(li[1]) > 127:
+                        c1 = ToPatHex('127')
                 excllist.append(c0 + '-' + c1)
         else:
             if len(item) == 1:
+                if ascii_only and ToOrd(item) > 127:
+                    continue
                 codelist.append(ToPatHex(item))
             else:
                 li = item.split('-', 1)
                 c0 = ToPatHex(li[0])
                 c1 = ToPatHex(li[1])
+                if ascii_only:
+                    if ToOrd(li[0]) > 127:
+                        continue
+                    if ToOrd(li[1]) > 127:
+                        c1 = ToPatHex('127')
                 codelist.append(c0 + '-' + c1)
 
     return [codelist, excllist]
