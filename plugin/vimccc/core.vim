@@ -1517,7 +1517,7 @@ function! VIMCCCAsyncComplInit() "{{{2
     call asynccompl#Register(g:VIMCCC_IgnoreCase, '\.\|>\|:',
             \                '[A-Za-z_0-9]', '[A-Za-z_]\w*$', 2,
             \                'CxxSearchStartColumn', 'CommonLaunchComplThread',
-            \                'CommonFetchComplResult')
+            \                'CommonFetchComplResult', 1)
     py CommonCompleteHookRegister(VIMCCCCompleteHook, None)
     py CommonCompleteArgsHookRegister(VIMCCCArgsHook, None)
     call asynccompl#Init()

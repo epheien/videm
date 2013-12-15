@@ -26,6 +26,9 @@ endif
 " 这是外部用唯一接口
 " AsyncPython(async_hook, async_args, callback, callback_args)
 "
+" 返回:
+"   异步线程实例
+"
 " 其中:
 "   async_hook(异步线程实例, async_args)
 "       在后台运行, 不能操作vim
@@ -138,6 +141,7 @@ def AsyncPython(async_hook, async_args, callback, callback_args):
     # 必须先启动才有ident的值
     td.start()
     g__asyncmd_data[td.ident] = td
+    return td
 
 def AsyncpyCallback(ident):
     '''回调触发函数'''

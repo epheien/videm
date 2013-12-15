@@ -9,11 +9,12 @@
 " ============================================================================
 " 这是最原始的接口, 理论上只要此接口即可用
 " ============================================================================
-" function! AsyncComplRegister(ignorecase, complete_pattern,
-"         \                    valid_char_pattern, substring_pattern,
-"         \                    trigger_char_count,
-"         \                    SearchStartColumnHook, LaunchComplThreadHook,
-"         \                    FetchComplResultHook)
+" function! asynccompl#Register(ignorecase, complete_pattern,
+"         \                     valid_char_pattern, substring_pattern,
+"         \                     trigger_char_count,
+"         \                     SearchStartColumnHook, LaunchComplThreadHook,
+"         \                     FetchComplResultHook,
+"         \                     omnifunc = 0)
 " @ignorecase - 是否忽略大小写
 " @complete_pattern - 匹配时直接启动补全
 " @valid_char_pattern - 不匹配这个模式的时候, 直接忽略
@@ -23,6 +24,7 @@
 " @LaunchComplThreadHook(row, col, base, icase, join = 0) - 无返回值
 " @FetchComplResultHook(base) - 返回补全结果, 形如 [0|1, result]
 "                               0表示未完成, 1表示完成, result可能为[]或{}
+" @omnifunc - 0 - 使用 completefunc, 1 - 使用 omnifunc
 "
 " @LaunchComplThreadHook 可使用通用的 CommonLaunchComplThread
 " @FetchComplResultHook 可使用通用的 CommonFetchComplResult
@@ -93,6 +95,8 @@ function! s:InitBuffVars() "{{{2
     let b:config.timer_timeout = 100
     " 补全菜单选择模式, 同vimccc的定义
     let b:config.item_select_mode = 2
+    " 0 - 使用 completefunc, 1 - 使用 omnifunc
+    let b:config.omnifunc = 0
 endfunction
 "}}}
 
@@ -441,9 +445,17 @@ function! asynccompl#Init() "{{{2
         "       暂时不需要, 只要每缓冲区的变量都是先初始化再使用的话, 无须清理
     augroup END
     if s:timer_mode
-        setlocal completefunc=asynccompl#Driver
+        if b:config.omnifunc
+            setlocal omnifunc=asynccompl#Driver
+        else
+            setlocal completefunc=asynccompl#Driver
+        endif
     else
-        setlocal completefunc=asynccompl#CSDriver
+        if b:config.omnifunc
+            setlocal omnifunc=asynccompl#CSDriver
+        else
+            setlocal completefunc=asynccompl#CSDriver
+        endif
     endif
 endfunction
 "}}}
@@ -463,7 +475,11 @@ endfunction
 "}}}
 " 清理函数
 function! asynccompl#Exit() "{{{2
-    setlocal completefunc=
+    if b:config.omnifunc
+        setlocal omnifunc=
+    else
+        setlocal completefunc=
+    endif
     augroup AsyncCompl
         for i in keys(s:status.buffers)
             exec printf('autocmd! InsertCharPre    <buffer=%d>', i)
@@ -485,7 +501,7 @@ function! asynccompl#Register(ignorecase, complete_pattern,
         \                     valid_char_pattern, substring_pattern,
         \                     trigger_char_count,
         \                     SearchStartColumnHook, LaunchComplThreadHook,
-        \                     FetchComplResultHook) "{{{2
+        \                     FetchComplResultHook, ...) "{{{2
     call s:InitBuffVars()
     let b:config.ignorecase = a:ignorecase
     let b:config.complete_pattern = a:complete_pattern
@@ -495,6 +511,7 @@ function! asynccompl#Register(ignorecase, complete_pattern,
     let b:config.SearchStartColumnHook = s:Funcref(a:SearchStartColumnHook)
     let b:config.LaunchComplThreadHook = s:Funcref(a:LaunchComplThreadHook)
     let b:config.FetchComplResultHook = s:Funcref(a:FetchComplResultHook)
+    let b:config.omnifunc = get(a:000, 0, 0)
 endfunction
 "}}}
 function! asynccompl#Driver(findstart, base) "{{{2
@@ -520,6 +537,7 @@ function! asynccompl#Driver(findstart, base) "{{{2
         call b:config.LaunchComplThreadHook(row, col, base, icase, 1)
 
         unlet result " result 在下面的返回值可能会不通, [] 或 {}
+        " 没有定时器帮忙取结果, 所以只能自己取结果
         " 这里直接获取结果, 不用检查done了
         let [done, result] = b:config.FetchComplResultHook(base)
     endif
@@ -537,14 +555,22 @@ function! asynccompl#CSDriver(findstart, base) "{{{2
         return ret
     endif
 
-    " 处理同步请求
-    if empty(s:async_compl_result)
-        " TODO 暂时无法支持
-        return []
-    endif
-
     " 清空 s:async_compl_result 是为了辨别同步请求补全还是异步请求补全
     let result = asynccompl#PopResult()
+
+    " 处理同步请求
+    if empty(result)
+        " 进入这里肯定是同步请求, 因为异步请求的时候, result非空
+        let row = line('.')
+        let col = col('.')
+        let base = a:base
+        let icase = b:config.ignorecase
+        call b:config.LaunchComplThreadHook(row, col, base, icase, 1)
+
+        " 再取一次结果
+        unlet result
+        let result = asynccompl#PopResult()
+    endif
 
     return result
 endfunction
@@ -649,7 +675,11 @@ function! AsyncComplTimer(...) "{{{2
     call asynccompl#FillResult(result)
     " 有结果的时候, 弹出补全菜单
     let keys  = "\<C-r>=Acpre()\<CR>"
-    let keys .= "\<C-x>\<C-u>"
+    if b:config.omnifunc
+        let keys .= "\<C-x>\<C-o>"
+    else
+        let keys .= "\<C-x>\<C-u>"
+    endif
     let keys .= "\<C-r>=Acpost()\<CR>"
     call feedkeys(keys, 'n')
 
@@ -699,14 +729,13 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
         endif
 
         if join
-            " 有下列语句的话, 就是同步方式了, 这里安全起见应该加锁
-            py g_asynccompl.LatestThread().join()
+            py g_asynccompl.Join()
         endif
     else
     " clientserver模式下的处理
         " 启动异步补全线程
         if custom_args
-            py AsyncPython(AsyncCompl_AsyncHook,
+            py g_asynccompl.PushThread(AsyncPython(AsyncCompl_AsyncHook,
                     \      {'hook': g_AsyncComplBVars.b.get('CommonCompleteHook'),
                     \       'args': g_AsyncComplBVars.b.get('CommonCompleteArgsHook')(
                     \                   int(vim.eval('row')), int(vim.eval('col')),
@@ -716,9 +745,10 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
                     \      AsyncCompl_Callback, {'ident': {'mode': vim.eval("mode()"),
                     \                                      'buff': int(vim.eval("bufnr('%')")),
                     \                                      'acid': int(vim.eval("s:GetAsyncComplIdent()"))},
-                    \                           })
+                    \                            'join': int(vim.eval('join')),
+                    \                           }))
         else
-            py AsyncPython(AsyncCompl_AsyncHook,
+            py g_asynccompl.PushThread(AsyncPython(AsyncCompl_AsyncHook,
                     \      {'hook': g_AsyncComplBVars.b.get('CommonCompleteHook'),
                     \       'args': {'text': '\n'.join(vim.current.buffer),
                     \                'file': vim.eval('expand("%:p")'),
@@ -730,7 +760,12 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
                     \      AsyncCompl_Callback, {'ident': {'mode': vim.eval("mode()"),
                     \                                      'buff': int(vim.eval("bufnr('%')")),
                     \                                      'acid': int(vim.eval("s:GetAsyncComplIdent()"))},
-                    \                           })
+                    \                            'join': int(vim.eval('join')),
+                    \                           }))
+        endif
+
+        if join
+            call asynccompl#JoinLatestThread()
         endif
     endif
 endfunction
@@ -842,6 +877,20 @@ class AsyncComplData(object):
         self.PushThread(thread)
         self.Unlock()
         thread.start()
+
+    def Join(self, timeout = None):
+        '''如果有线程的话, 等待它完成'''
+        if self.__thread:
+            return self.__thread.join(timeout)
+
+    def JoinS(self):
+        '''循环忙等, 这是为了在clientserver模式下不死锁'''
+        if not self.__thread:
+            return
+        while True:
+            self.__thread.join(0.1)
+            if not self.__thread.is_alive():
+                return
 
 class AsyncComplThread(threading.Thread):
     # 自身锁, 公用, 不一定需要
@@ -981,16 +1030,39 @@ def AsyncCompl_Callback(td, priv):
             ident['acid'] == int(curid['acid'])):
         return
 
+    join = priv.get('join')
+
     # 3.取出结果, 如果有结果继续
     result = td.async_return
     if not result:
         return
     vim.command("call asynccompl#FillResult(%s)" % ToVimEval(result))
-    # 弹出补全菜单
-    vim.command(r'call feedkeys("\<C-r>=Acpre()\<CR>'
-                               r'\<C-x>\<C-u>'
-                               r'\<C-r>=Acpost()\<CR>", "n")')
+
+    if not join:
+        # 弹出补全菜单
+        if int(vim.eval("b:config.omnifunc")):
+            trigger_key = r'\<C-x>\<C-o>'
+        else:
+            trigger_key = r'\<C-x>\<C-u>'
+        vim.command(r'call feedkeys("\<C-r>=Acpre()\<CR>'
+                                   + trigger_key +
+                                   r'\<C-r>=Acpost()\<CR>", "n")')
 PYTHON_EOF
+endfunction
+"}}}
+
+function! asynccompl#JoinLatestThread() "{{{2
+    while 1
+        let is_alive = 1
+        " 这里等待10ms
+        py g_asynccompl.Join(0.01)
+        py if not g_asynccompl.IsThreadAlive(): vim.command("let is_alive = 0")
+        if !is_alive
+            return
+        endif
+        " 这里就睡眠100ms
+        sleep 100m
+    endwhile
 endfunction
 "}}}
 
