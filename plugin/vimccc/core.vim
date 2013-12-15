@@ -1608,14 +1608,14 @@ def VIMCCCCompleteHook(acthread, args, data):
 
     result = None
 
-    acthread.Lock()
+    acthread.CommonLock()
     try:
         result = VIMCCCIndex.GetVimCodeCompleteResults(fil, row, col, us_files,
                                                        base, icase, flags)
     except:
-        acthread.Unlock()
+        acthread.CommonUnlock()
         raise
-    acthread.Unlock()
+    acthread.CommonUnlock()
 
     return result
 

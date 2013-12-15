@@ -6,6 +6,7 @@ import traceback
 import StringIO
 import os.path
 import subprocess
+import threading
 import vim
 
 # 方便使用, 外部程序使用这个接口即可
@@ -26,6 +27,7 @@ class VimExcHdr:
     vim_has_gui_running = True
     vim_servername = ''
     vim_progname = 'vim'
+    _main_thread = threading.current_thread()
 
     @staticmethod
     def Init(force = False):
@@ -37,6 +39,8 @@ class VimExcHdr:
         VimExcHdr.vim_has_gui_running = vim.eval("has('gui_running')") == '1'
         VimExcHdr.vim_servername = vim.eval("v:servername")
         VimExcHdr.vim_progname = vim.eval("v:progname")
+        # 判断线程是否主线程用, 暂时未想到其他好办法
+        VimExcHdr._main_thread = threading.current_thread()
         if vim.eval("vlutils#IsWindowsOS()") == '1':
             VimExcHdr.vim_progname = os.path.join(vim.eval("$VIMRUNTIME"),
                                                   VimExcHdr.vim_progname)
@@ -53,12 +57,15 @@ class VimExcHdr:
             print msg
             print "There are some warning messages! Please run ':messages' for details."
         elif VimExcHdr.vim_servername:
-            # 通过 clientserver 打印出错信息
-            prog = VimExcHdr.vim_progname
-            servername = VimExcHdr.vim_servername
-            vimcs_eval_expr(servername,
-                            "vlutils#EchoMsgx('%s')" % msg.replace("'", "''"),
-                            prog)
+            if threading.current_thread() is VimExcHdr._main_thread:
+                vim.command("call vlutils#EchoMsgx('%s')" % msg.replace("'", "''"))
+            else:
+                # 通过 clientserver 打印出错信息
+                prog = VimExcHdr.vim_progname
+                servername = VimExcHdr.vim_servername
+                vimcs_eval_expr(servername,
+                                "vlutils#EchoMsgx('%s')" % msg.replace("'", "''"),
+                                prog)
         else:
             # TODO
             # 不能打印的情况的话，只能写出错文件了？

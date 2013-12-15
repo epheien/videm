@@ -2,7 +2,7 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-12-13
-" Change:   2013-12-13
+" Change:   2013-12-15
 
 " 基本使用说明:
 "
@@ -108,9 +108,37 @@ let s:async_compl_result = {}
 " Just For Debug
 let s:compl_count = 0
 
+" 实现方式: 1.定时器; 2.clientserver. 默认使用定时器实现方式
+let s:timer_mode = 1
+
+" 异步请求ID
+let s:async_compl_ident = -1
+
 " Just For Debug
 function! asynccompl#ComplCount() "{{{2
     return s:compl_count
+endfunction
+"}}}
+function! asynccompl#IsTimerMode() "{{{2
+    return s:timer_mode
+endfunction
+"}}}
+" 这个是返回当前环境的标识结构, 字典
+function! asynccompl#CurrentIdent() "{{{2
+    let d = {}
+    let d['mode'] = mode()
+    let d['buff'] = bufnr('%')
+    let d['acid'] = s:async_compl_ident
+    return d
+endfunction
+"}}}
+" 返回Ident标识, 数字
+function! s:GetAsyncComplIdent() "{{{2
+    let s:async_compl_ident += 1
+    if s:async_compl_ident >= 10000
+        let s:async_compl_ident = 0
+    endif
+    return s:async_compl_ident
 endfunction
 "}}}
 " 搜索补全起始列
@@ -224,6 +252,27 @@ function! CCByChar() "{{{2
     return ''
 endfunction
 "}}}
+" 填充补全结果
+function asynccompl#FillResult(result) "{{{2
+    let result = a:result
+    if type(result) != type(s:async_compl_result)
+        unlet s:async_compl_result
+    endif
+    let s:async_compl_result = result
+endfunction
+"}}}
+" 弹出补全结果
+function asynccompl#PopResult() "{{{2
+    " 清空 s:async_compl_result 是为了辨别同步请求补全还是异步请求补全
+    let result = s:async_compl_result
+    if type(s:async_compl_result) == type([])
+        let s:async_compl_result = []
+    else
+        let s:async_compl_result = {}
+    endif
+    return result
+endfunction
+"}}}
 " 触发条件
 "
 " 触发的情形:
@@ -281,6 +330,7 @@ function! CommonAsyncComplete() "{{{2
     "call vlutils#TimerStart()
 
     let nTriggerCharCount = b:config.trigger_char_count
+    let nRow = line('.')
     let nCol = col('.')
     let sLine = getline('.')
 " ============================================================================
@@ -288,7 +338,12 @@ function! CommonAsyncComplete() "{{{2
     " 前状态
     let dPrevStat = s:GetCSDict()
 
-    let sPrevWord = matchstr(sLine[: nCol-2], b:config.substring_pattern) . sChar
+    if nCol < 2
+        " 光标在第一列打了一个字符
+        let sPrevWord = sChar
+    else
+        let sPrevWord = matchstr(sLine[: nCol-2], b:config.substring_pattern).sChar
+    endif
     if len(sPrevWord) < nTriggerCharCount
         " 如果之前补全过就重置状态
         if get(dPrevStat, 'cccol', 0) > 0
@@ -299,10 +354,11 @@ function! CommonAsyncComplete() "{{{2
         return ''
     endif
 
-    " 获取当前状态
-    let nRow = line('.')
-    let nCol = b:config.SearchStartColumnHook()
-    let sBase = getline('.')[nCol-1 : col('.')-2] . sChar
+    " complete start column
+    let scol = b:config.SearchStartColumnHook()
+
+    " 现在的需求都是 sBase = sPrevWord
+    let sBase = sPrevWord
 
     " 补全起始位置一样就不需要再次启动了
     " 貌似是有条件的，要判断 sPrevWord 的长度
@@ -316,10 +372,10 @@ function! CommonAsyncComplete() "{{{2
     let save_ic = &ignorecase
     let &ignorecase = icase
     if get(dPrevStat, 'ccrow', 0) == nRow
-            \ && get(dPrevStat, 'cccol', 0) == nCol
+            \ && get(dPrevStat, 'cccol', 0) == scol
             \ && len(sPrevWord) >= nTriggerCharCount
             \ && sBase =~ '^'.get(dPrevStat, 'base', '')
-        call s:UpdateAucmPrevStat(nRow, nCol, sBase, pumvisible())
+        call s:UpdateAucmPrevStat(nRow, scol, sBase, pumvisible())
         let &ignorecase = save_ic
         "call vlutils#TimerEnd()
         "call vlutils#TimerEndEcho()
@@ -328,19 +384,21 @@ function! CommonAsyncComplete() "{{{2
     let &ignorecase = save_ic
 " ============================================================================
     " ok，启动
-    call b:config.LaunchComplThreadHook(nRow, nCol, sBase, icase)
+    call b:config.LaunchComplThreadHook(nRow, scol, sBase, icase)
     let s:compl_count += 1
 
     " 更新状态
-    call s:UpdateAucmPrevStat(nRow, nCol, sBase, pumvisible())
+    call s:UpdateAucmPrevStat(nRow, scol, sBase, pumvisible())
     "call vlutils#TimerEnd()
     "call vlutils#TimerEndEcho()
 
 " ============================================================================
-" 定时器机制
-    " NOTE: 如果使用定时器机制的话, 这里也需要检查补全结果, 
-    "       不然在一直打字的情况下, 补全菜单无法弹出
-    call AsyncComplTimer()
+    if s:timer_mode
+    " 定时器机制
+        " NOTE: 如果使用定时器机制的话, 这里也需要检查补全结果, 
+        "       不然在一直打字的情况下, 补全菜单无法弹出
+        call AsyncComplTimer()
+    endif
 endfunction
 "}}}
 " 这个初始化是每个缓冲区都要调用一次的
@@ -348,18 +406,30 @@ function! asynccompl#Init() "{{{2
     call s:InitPyIf()
     call s:InitBuffVars()
 
-    let output = vlutils#GetCmdOutput('autocmd CursorHoldI')
-    let lines = split(output, '\n')
-    if !empty(lines) && lines[-1] !=# '--- Auto-Commands ---'
-        echohl WarningMsg
-        echomsg "=== Warning by asynccompl ==="
-        echomsg "There are other CursorHoldI autocmds in your Vim."
-        echomsg "Asynccompl works with CursorHoldI autocmd,"
-        echomsg "and will cause other CursorHoldI autocmds run frequently."
-        echomsg "Please confirm by running ':autocmd CursorHoldI' or disable asynccompl."
-        echomsg "Press any key to continue..."
-        call getchar()
-        echohl None
+    if !empty(v:servername)
+        " 有clientserver支持的话就不用定时器模式了
+        let s:timer_mode = 0
+    endif
+
+    if s:timer_mode
+        let output = vlutils#GetCmdOutput('autocmd CursorHoldI')
+        let lines = split(output, '\n')
+        if !empty(lines) && lines[-1] !=# '--- Auto-Commands ---'
+            echohl WarningMsg
+            echomsg "=== Warning by asynccompl ==="
+            echomsg "There are other CursorHoldI autocmds in your Vim."
+            echomsg "Asynccompl works with CursorHoldI autocmd,"
+            echomsg "and will cause other CursorHoldI autocmds run frequently."
+            echomsg "Please confirm by running ':autocmd CursorHoldI' ".
+                    \   "or disable asynccompl."
+            echomsg "Press any key to continue..."
+            call getchar()
+            echohl None
+        endif
+    else
+        " 初始化CS模式的基础设施
+        call asyncpy#Init()
+        call s:InitCsPyif()
     endif
 
     let s:status.buffers[bufnr('%')] = 1
@@ -370,17 +440,25 @@ function! asynccompl#Init() "{{{2
         " NOTE: 添加销毁python的每缓冲区变量的时机
         "       暂时不需要, 只要每缓冲区的变量都是先初始化再使用的话, 无须清理
     augroup END
-    setlocal completefunc=asynccompl#Driver
+    if s:timer_mode
+        setlocal completefunc=asynccompl#Driver
+    else
+        setlocal completefunc=asynccompl#CSDriver
+    endif
 endfunction
 "}}}
 function! s:AutocmdInsertEnter() "{{{2
     call s:InitAucmPrevStat()
-    call holdtimer#DelTimerI('AsyncComplTimer')
+    if s:timer_mode
+        call holdtimer#DelTimerI('AsyncComplTimer')
+    endif
 endfunction
 "}}}
 function! s:AutocmdInsertLeave() "{{{2
     call s:ResetAucmPrevStat()
-    call holdtimer#DelTimerI('AsyncComplTimer')
+    if s:timer_mode
+        call holdtimer#DelTimerI('AsyncComplTimer')
+    endif
 endfunction
 "}}}
 " 清理函数
@@ -429,26 +507,44 @@ function! asynccompl#Driver(findstart, base) "{{{2
         return ret
     endif
 
+    " 清空 s:async_compl_result 是为了辨别同步请求补全还是异步请求补全
+    let result = asynccompl#PopResult()
+
     " 处理同步请求
-    if empty(s:async_compl_result)
-        " 进入这里肯定是同步请求, 因为异步请求的时候, s:async_compl_result非空
+    if empty(result)
+        " 进入这里肯定是同步请求, 因为异步请求的时候, result非空
         let row = line('.')
         let col = col('.')
         let base = a:base
         let icase = b:config.ignorecase
         call b:config.LaunchComplThreadHook(row, col, base, icase, 1)
+
+        unlet result " result 在下面的返回值可能会不通, [] 或 {}
         " 这里直接获取结果, 不用检查done了
         let [done, result] = b:config.FetchComplResultHook(base)
-        return result
+    endif
+
+    return result
+endfunction
+"}}}
+function! asynccompl#CSDriver(findstart, base) "{{{2
+    if a:findstart
+        let ret = b:config.SearchStartColumnHook()
+        if ret != -1
+            " NOTE: 需要-1才正确, 这个是一个BUG
+            return ret - 1
+        endif
+        return ret
+    endif
+
+    " 处理同步请求
+    if empty(s:async_compl_result)
+        " TODO 暂时无法支持
+        return []
     endif
 
     " 清空 s:async_compl_result 是为了辨别同步请求补全还是异步请求补全
-    let result = s:async_compl_result
-    if type(s:async_compl_result) == type([])
-        let s:async_compl_result = []
-    else
-        let s:async_compl_result = {}
-    endif
+    let result = asynccompl#PopResult()
 
     return result
 endfunction
@@ -527,6 +623,11 @@ endfunction
 "}}}
 " 定时器检查补全结果
 function! AsyncComplTimer(...) "{{{2
+    " 防止调用错误
+    if !s:timer_mode
+        return
+    endif
+
     " ret: [0, {}|[]]
     " ret[0]: 0 - 还未得到结果, 1 - 已经得到结果
     " ret[1]: {}|[] 补全结果, 可能为空
@@ -545,10 +646,7 @@ function! AsyncComplTimer(...) "{{{2
         return
     endif
 
-    if type(result) != type(s:async_compl_result)
-        unlet s:async_compl_result
-    endif
-    let s:async_compl_result = result
+    call asynccompl#FillResult(result)
     " 有结果的时候, 弹出补全菜单
     let keys  = "\<C-r>=Acpre()\<CR>"
     let keys .= "\<C-x>\<C-u>"
@@ -576,18 +674,20 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
     let custom_args = 0
     py if g_AsyncComplBVars.b.get('CommonCompleteArgsHook'):
             \ vim.command("let custom_args = 1")
-    if custom_args
-        py g_asynccompl.PushThreadAndStart(
-            \ AsyncComplThread(
-            \   g_AsyncComplBVars.b.get('CommonCompleteHook'),
-            \   g_AsyncComplBVars.b.get('CommonCompleteArgsHook')(
-            \       int(vim.eval('row')), int(vim.eval('col')),
-            \       vim.eval('base'), int(vim.eval('icase')),
-            \       g_AsyncComplBVars.b.get('CommonCompleteArgsHookData')),
-            \   g_AsyncComplBVars.b.get('CommonCompleteHookData')))
-    else
-        " 默认情况下
-        py g_asynccompl.PushThreadAndStart(
+
+    if s:timer_mode
+        if custom_args
+            py g_asynccompl.PushThreadAndStart(
+                \ AsyncComplThread(
+                \   g_AsyncComplBVars.b.get('CommonCompleteHook'),
+                \   g_AsyncComplBVars.b.get('CommonCompleteArgsHook')(
+                \       int(vim.eval('row')), int(vim.eval('col')),
+                \       vim.eval('base'), int(vim.eval('icase')),
+                \       g_AsyncComplBVars.b.get('CommonCompleteArgsHookData')),
+                \   g_AsyncComplBVars.b.get('CommonCompleteHookData')))
+        else
+            " 默认情况下
+            py g_asynccompl.PushThreadAndStart(
                 \ AsyncComplThread(g_AsyncComplBVars.b.get('CommonCompleteHook'),
                 \                  {'text': '\n'.join(vim.current.buffer),
                 \                   'file': vim.eval('expand("%:p")'),
@@ -596,11 +696,42 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
                 \                   'base': vim.eval('base'),
                 \                   'icase': int(vim.eval('icase'))},
                 \                  g_AsyncComplBVars.b.get('CommonCompleteHookData')))
-    endif
+        endif
 
-    if join
-        " 有下列语句的话, 就是同步方式了
-        py g_asynccompl.LatestThread().join()
+        if join
+            " 有下列语句的话, 就是同步方式了, 这里安全起见应该加锁
+            py g_asynccompl.LatestThread().join()
+        endif
+    else
+    " clientserver模式下的处理
+        " 启动异步补全线程
+        if custom_args
+            py AsyncPython(AsyncCompl_AsyncHook,
+                    \      {'hook': g_AsyncComplBVars.b.get('CommonCompleteHook'),
+                    \       'args': g_AsyncComplBVars.b.get('CommonCompleteArgsHook')(
+                    \                   int(vim.eval('row')), int(vim.eval('col')),
+                    \                   vim.eval('base'), int(vim.eval('icase')),
+                    \                   g_AsyncComplBVars.b.get('CommonCompleteArgsHookData')),
+                    \       'data': g_AsyncComplBVars.b.get('CommonCompleteHookData')},
+                    \      AsyncCompl_Callback, {'ident': {'mode': vim.eval("mode()"),
+                    \                                      'buff': int(vim.eval("bufnr('%')")),
+                    \                                      'acid': int(vim.eval("s:GetAsyncComplIdent()"))},
+                    \                           })
+        else
+            py AsyncPython(AsyncCompl_AsyncHook,
+                    \      {'hook': g_AsyncComplBVars.b.get('CommonCompleteHook'),
+                    \       'args': {'text': '\n'.join(vim.current.buffer),
+                    \                'file': vim.eval('expand("%:p")'),
+                    \                'row': int(vim.eval('row')),
+                    \                'col': int(vim.eval('col')),
+                    \                'base': vim.eval('base'),
+                    \                'icase': int(vim.eval('icase'))},
+                    \       'data': g_AsyncComplBVars.b.get('CommonCompleteHookData')},
+                    \      AsyncCompl_Callback, {'ident': {'mode': vim.eval("mode()"),
+                    \                                      'buff': int(vim.eval("bufnr('%')")),
+                    \                                      'acid': int(vim.eval("s:GetAsyncComplIdent()"))},
+                    \                           })
+        endif
     endif
 endfunction
 "}}}
@@ -713,7 +844,7 @@ class AsyncComplData(object):
         thread.start()
 
 class AsyncComplThread(threading.Thread):
-    # 自身锁, 不一定需要
+    # 自身锁, 公用, 不一定需要
     _lock = threading.Lock()
 
     def __init__(self, hook, args, data = None, parent = None):
@@ -726,11 +857,11 @@ class AsyncComplThread(threading.Thread):
         # 这个一般指向 AsyncComplData 实例, 用于和自身检查
         self.parent = parent
 
-    def Lock(self):
+    def CommonLock(self):
         '''公共互斥锁'''
         AsyncComplThread._lock.acquire()
 
-    def Unlock(self):
+    def CommonUnlock(self):
         '''公共互斥锁'''
         AsyncComplThread._lock.release()
 
@@ -810,6 +941,56 @@ endfunction
 "}}}
 function! s:ThisInit() "{{{2
     call s:InitPyIf()
+endfunction
+"}}}
+
+let s:cspyif_init = 0
+" clientserver模式使用到的一些基础设施
+function! s:InitCsPyif() "{{{2
+    if s:cspyif_init
+        return
+    endif
+    let s:cspyif_init = 1
+python << PYTHON_EOF
+def AsyncCompl_AsyncHook(td, priv):
+    '''这个函数会在作为后台线程运行, _不_要操作vim'''
+    # 1.根据输入参数进行补全搜索
+    # 2.搜索完毕后, 返回结果
+    hook = priv.get('hook')
+    args = priv.get('args')
+    data = priv.get('data')
+    result = hook(td, args, data)
+    #print result
+    return result
+
+def AsyncCompl_Callback(td, priv):
+    #print td, priv
+
+    # 1.检查最新请求是否为当前线程, 如果是才继续
+    # NOTE: 不需要检查线程了, 直接执行步骤2检查ident结构即可
+
+    # 2. 识别请求标识, 如果一致才继续
+    #   * 模式(插入)    - mode
+    #   * 缓冲区ID      - buff
+    #   * 请求ID        - acid
+    ident = priv.get('ident')
+    curid = vim.eval('asynccompl#CurrentIdent()')
+    #print ident, curid
+    if not (ident['mode'] == curid['mode'] and \
+            ident['buff'] == int(curid['buff']) and \
+            ident['acid'] == int(curid['acid'])):
+        return
+
+    # 3.取出结果, 如果有结果继续
+    result = td.async_return
+    if not result:
+        return
+    vim.command("call asynccompl#FillResult(%s)" % ToVimEval(result))
+    # 弹出补全菜单
+    vim.command(r'call feedkeys("\<C-r>=Acpre()\<CR>'
+                               r'\<C-x>\<C-u>'
+                               r'\<C-r>=Acpost()\<CR>", "n")')
+PYTHON_EOF
 endfunction
 "}}}
 

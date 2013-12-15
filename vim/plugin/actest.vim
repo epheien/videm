@@ -89,6 +89,6 @@ PYTHON_EOF
 endfunction
 "}}}
 
-autocmd! BufNewFile,BufReadPost * call InitKeywordsComplete()
+"autocmd! BufNewFile,BufReadPost * call InitKeywordsComplete()
 
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1

@@ -52,12 +52,12 @@ function! asyncpy#Callback(ident) "{{{2
     py AsyncpyCallback(vim.eval("a:ident"))
 endfunction
 "}}}
-let s:init = 0
+let s:pyif_init = 0
 function! s:InitPyIf() "{{{2
-    if s:init
+    if s:pyif_init
         return
     endif
-    let s:init = 1
+    let s:pyif_init = 1
 python << PYTHON_EOF
 import sys
 import vim
@@ -84,7 +84,8 @@ def vimcs_eval_expr(servername, expr, vimprog='vim'):
 
 class AsyncpyThread(threading.Thread):
     # 公共锁, 用于所有异步线程互斥, 一般不用
-    _common_lock = None
+    # 具体业务的例程使用自己的全局锁即可
+    _common_lock = threading.Lock()
 
     def __init__(self, async_hook, async_args, callback, callback_args,
                  servername = '', vimprog = ''):
@@ -97,6 +98,14 @@ class AsyncpyThread(threading.Thread):
 
         self.servername = servername
         self.vimprog = vimprog
+
+    def CommonLock(self):
+        '''公共互斥锁'''
+        AsyncpyThread._common_lock.acquire()
+
+    def CommonUnlock(self):
+        '''公共互斥锁'''
+        AsyncpyThread._common_lock.release()
 
     def run(self):
         try:
@@ -136,7 +145,10 @@ def AsyncpyCallback(ident):
     if g__asyncmd_data.has_key(ident):
         td = g__asyncmd_data[ident]
         if td.callback:
-            td.callback(td, td.callback_args)
+            try:
+                td.callback(td, td.callback_args)
+            except:
+                PrintExcept()
         # 清理掉
         # NOTE: 这个函数是通过线程调用进来的, 这个时候线程的run函数还没有返回
         del g__asyncmd_data[ident]
@@ -148,15 +160,15 @@ endfunction
 
 function! asyncpy#Test() "{{{2
 python << PYTHON_EOF
-def hello_callback(*args):
-    td = args[0]
-    print args
-    print td.async_return
-
 def async_hook(*args):
     import time
     time.sleep(3)
     return 'hello world'
+
+def hello_callback(*args):
+    td = args[0]
+    print args
+    print td.async_return
 PYTHON_EOF
     py AsyncPython(async_hook, 'hello', hello_callback, 'world')
 endfunction
