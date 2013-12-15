@@ -89,6 +89,7 @@ PYTHON_EOF
 endfunction
 "}}}
 
-"autocmd! BufNewFile,BufReadPost * call InitKeywordsComplete()
+call vpymod#driver#Init()
+autocmd! BufNewFile,BufReadPost * call InitKeywordsComplete()
 
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1

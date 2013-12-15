@@ -68,8 +68,6 @@ import vim
 import threading
 import subprocess
 
-# FIXME 暂时硬编码用于测试
-sys.path.append('/home/eph/.videm/core')
 from VimUtils import PrintS, PrintExcept
 
 def vimcs_eval_expr(servername, expr, vimprog='vim'):
