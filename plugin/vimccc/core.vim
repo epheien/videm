@@ -334,9 +334,10 @@ function! vimccc#core#InitEarly() "{{{2
     command! -nargs=0 -bar VIMCCCQuickFix
             \ call <SID>VIMCCCUpdateClangQuickFix(expand('%:p'))
 
-    command! -nargs=+ VIMCCCSetArgs call <SID>VIMCCCSetArgsCmd(<f-args>)
-    command! -nargs=+ VIMCCCAppendArgs call <SID>VIMCCCAppendArgsCmd(<f-args>)
-    command! -nargs=0 VIMCCCPrintArgs call <SID>VIMCCCPrintArgsCmd(<f-args>)
+    command! -nargs=+ VIMCCCSetArgs     call <SID>VIMCCCSetArgsCmd(<f-args>)
+    command! -nargs=+ VIMCCCAppendArgs  call <SID>VIMCCCAppendArgsCmd(<f-args>)
+    command! -nargs=0 VIMCCCPrintArgs   call <SID>VIMCCCPrintArgsCmd(<f-args>)
+    command! -nargs=0 VIMCCCResetArgs   call <SID>VIMCCCSetArgsCmd()
 
     " 自动命令
     augroup VidemCCVIMCCC
@@ -605,7 +606,7 @@ function! VIMCCCAppendArgs(lArgs) "{{{2
         let lArgs = a:lArgs
     endif
 
-    let lArgs += VIMCCCGetArgs()
+    let lArgs = VIMCCCGetArgs() + lArgs
     call VIMCCCSetArgs(lArgs)
 endfunction
 "}}}

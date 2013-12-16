@@ -119,6 +119,8 @@ let s:timer_mode = 1
 " 异步请求ID
 let s:async_compl_ident = -1
 
+let s:has_noexpand = 0
+
 " 载入自身
 function! asynccompl#Load() "{{{2
     return 0
@@ -225,6 +227,41 @@ function! s:GetCSDict() "{{{2
             \ {'ccrow': 0, 'cccol': 0, 'base': '', 'pumvisible': 0, 'init': 0}
     endif
     return b:aucm_prev_stat
+endfunction
+"}}}
+function! asynccompl#GetStat() "{{{2
+    return s:GetCSDict()
+endfunction
+"}}}
+function! asynccompl#StatSimilar(s0, s1, ...) "{{{2
+    let icase = get(a:000, 0, &ignorecase)
+    return s:ComplStateSimilar(a:s0, a:s1, icase)
+endfunction
+"}}}
+" 返回0表示状态不同, 需要启动新的补全, 否则返回非0
+" s0 表示旧的状态, s1 表示新的状态
+function! s:ComplStateSimilar(s0, s1, ...) "{{{2
+    let s0 = a:s0
+    let s1 = a:s1
+    let icase = get(a:000, 0, &ignorecase)
+
+    let ret = 0
+
+    " 补全起始位置一样就不需要再次启动了
+    " 1. 起始行和上次相同
+    " 2. 起始列和上次相同
+    " 3. 上次的 base 是光标前的字符串的前缀
+    " 1 && 2 && 3 则忽略请求
+    let save_ic = &ignorecase
+    let &ignorecase = icase
+    if get(s1, 'ccrow') == get(s0, 'ccrow')
+            \ && get(s1, 'cccol') == get(s0, 'cccol')
+            \ && get(s1, 'base', '') =~ '^'.get(s0, 'base', '')
+        let ret = 1
+    endif
+    let &ignorecase = save_ic
+
+    return ret
 endfunction
 "}}}
 " 初始化
@@ -339,8 +376,8 @@ function! CommonAsyncComplete() "{{{2
 
     " 输入的字符不是有效的补全字符, 直接返回
     if sChar !~# b:config.valid_char_pattern
-        " 需要清补全状态吧? 不需要, 只要 b:config.trigger_char_count > 1
-        "call s:ResetAucmPrevStat()
+        " 需要清补全状态, 因为在获取到结果的时候, 需要跟这个状态比较
+        call s:ResetAucmPrevStat()
         return ''
     endif
 
@@ -362,10 +399,8 @@ function! CommonAsyncComplete() "{{{2
         let sPrevWord = matchstr(sLine[: nCol-2], b:config.substring_pattern).sChar
     endif
     if len(sPrevWord) < nTriggerCharCount
-        " 如果之前补全过就重置状态
-        if get(dPrevStat, 'cccol', 0) > 0
-            call s:ResetAucmPrevStat()
-        endif
+        " 重置状态
+        call s:ResetAucmPrevStat()
         "call vlutils#TimerEnd()
         "call vlutils#TimerEndEcho()
         return ''
@@ -377,28 +412,15 @@ function! CommonAsyncComplete() "{{{2
     " 现在的需求都是 sBase = sPrevWord
     let sBase = sPrevWord
 
-    " 补全起始位置一样就不需要再次启动了
-    " 貌似是有条件的，要判断 sPrevWord 的长度
-    " case: 如果前面的单词的长度 < nTriggerCharCount，那么就需要启动了
-    "       例如一直删除字符
-    " 1. 起始行和上次相同
-    " 2. 起始列和上次相同
-    " 3. 光标前的字符串长度大于等于触发长度
-    " 4. 上次的 base 是光标前的字符串的前缀(InsertCharPre 专用)
-    " 1 && 2 && 3 && 4 则忽略请求
-    let save_ic = &ignorecase
-    let &ignorecase = icase
-    if get(dPrevStat, 'ccrow', 0) == nRow
-            \ && get(dPrevStat, 'cccol', 0) == scol
-            \ && len(sPrevWord) >= nTriggerCharCount
-            \ && sBase =~ '^'.get(dPrevStat, 'base', '')
+    if s:ComplStateSimilar(dPrevStat,
+            \              {'ccrow': nRow, 'cccol': scol, 'base': sBase},
+            \              icase)
+        " 状态相近, 无须继续
         call s:UpdateAucmPrevStat(nRow, scol, sBase, pumvisible())
-        let &ignorecase = save_ic
         "call vlutils#TimerEnd()
         "call vlutils#TimerEndEcho()
         return ''
     endif
-    let &ignorecase = save_ic
 " ============================================================================
     " ok，启动
     call b:config.LaunchComplThreadHook(nRow, scol, sBase, icase)
@@ -415,6 +437,19 @@ function! CommonAsyncComplete() "{{{2
         " NOTE: 如果使用定时器机制的话, 这里也需要检查补全结果, 
         "       不然在一直打字的情况下, 补全菜单无法弹出
         call AsyncComplTimer()
+    endif
+
+    return ''
+endfunction
+"}}}
+" 主动停止所有后台正在异步(挤压)的线程
+" 现时没有主动停止的机制, 但是由于所有的异步回调都检查了补全状态才继续,
+" 所以没问题, 主动停止机制可以用作优化, 并且只有在定期器模式才有优化效果
+function! s:StopAsyncComplete() "{{{2
+    if s:timer_mode
+        call holdtimer#DelTimerI('AsyncComplTimer')
+    else
+        " NOTE: clientserver模式无太大的优化效果, 忽略即可
     endif
 endfunction
 "}}}
@@ -557,6 +592,8 @@ function! asynccompl#Driver(findstart, base) "{{{2
         let col = col('.')
         let base = a:base
         let icase = b:config.ignorecase
+        " 为了一致性, 这里需要更新状态
+        call s:UpdateAucmPrevStat(row, col, base, pumvisible())
         call b:config.LaunchComplThreadHook(row, col, base, icase, 1)
 
         unlet result " result 在下面的返回值可能会不通, [] 或 {}
@@ -588,6 +625,7 @@ function! asynccompl#CSDriver(findstart, base) "{{{2
         let col = col('.')
         let base = a:base
         let icase = b:config.ignorecase
+        call s:UpdateAucmPrevStat(row, col, base, pumvisible())
         call b:config.LaunchComplThreadHook(row, col, base, icase, 1)
 
         " 再取一次结果
@@ -604,8 +642,6 @@ function! s:SetOpts() "{{{2
     let s:bak_lz = &lazyredraw
 
     "set lazyredraw
-
-    let s:has_noexpand = 0
 
     if     b:config.item_select_mode == 0 " 不选择
         set completeopt-=menu,longest
@@ -759,6 +795,8 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
         endif
     else
     " clientserver模式下的处理
+        " 这个状态从参数新建
+        let stat = {'ccrow': row, 'cccol': col, 'base': base}
         " 启动异步补全线程
         if custom_args
             py g_asynccompl.PushThread(AsyncPython(AsyncCompl_AsyncHook,
@@ -768,10 +806,9 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
                     \                   vim.eval('base'), int(vim.eval('icase')),
                     \                   g_AsyncComplBVars.b.get('CommonCompleteArgsHookData')),
                     \       'data': g_AsyncComplBVars.b.get('CommonCompleteHookData')},
-                    \      AsyncCompl_Callback, {'ident': {'mode': vim.eval("mode()"),
-                    \                                      'buff': int(vim.eval("bufnr('%')")),
-                    \                                      'acid': int(vim.eval("s:GetAsyncComplIdent()"))},
+                    \      AsyncCompl_Callback, {'stat': vim.eval("stat"),
                     \                            'join': int(vim.eval('join')),
+                    \                            'icase': int(vim.eval('icase')),
                     \                           }))
         else
             py g_asynccompl.PushThread(AsyncPython(AsyncCompl_AsyncHook,
@@ -783,10 +820,9 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
                     \                'base': vim.eval('base'),
                     \                'icase': int(vim.eval('icase'))},
                     \       'data': g_AsyncComplBVars.b.get('CommonCompleteHookData')},
-                    \      AsyncCompl_Callback, {'ident': {'mode': vim.eval("mode()"),
-                    \                                      'buff': int(vim.eval("bufnr('%')")),
-                    \                                      'acid': int(vim.eval("s:GetAsyncComplIdent()"))},
+                    \      AsyncCompl_Callback, {'stat': vim.eval("stat"),
                     \                            'join': int(vim.eval('join')),
+                    \                            'icase': int(vim.eval('icase')),
                     \                           }))
         endif
 
@@ -800,6 +836,13 @@ endfunction
 function! CommonFetchComplResult(base) "{{{2
     "return [1, s:test_result]
 
+    " 根据当前补全状态可知, 当前无等待补全结果的需求, 直接返回即可
+    let stat = s:GetCSDict()
+    if get(stat, 'ccrow') == 0
+        return [1, {}]
+    endif
+
+
     py if not g_asynccompl.IsThreadDone():
         \ vim.command('return [0, {}]')
 
@@ -807,9 +850,22 @@ function! CommonFetchComplResult(base) "{{{2
     py if g_asynccompl.LatestThread().result is None:
         \ vim.command('return [1, {}]')
 
+    " 补全完成了, 也有结果, 但是这个结果不一定是现在需要的, 需要检查
+    py vim.command("let row = %d" % g_asynccompl.LatestThread().args.get('row', 0))
+    py vim.command("let col = %d" % g_asynccompl.LatestThread().args.get('col', 0))
+    py vim.command("let icase = %d" % g_asynccompl.LatestThread().args.get('icase', 0))
+    py vim.command("let base = %s" % ToVimEval(
+            \           g_asynccompl.LatestThread().args.get('base', '')))
+    " NOTE: stat 的状态是最新的, 这个顺序很重要!
+    if !s:ComplStateSimilar({'ccrow': row, 'cccol': col, 'base': base}, stat,
+            \               icase)
+        " 这个补全不是现在所需要的, 直接结束
+        return [1, {}]
+    endif
+
     " 到达这里表示已经有结果了
     py vim.command("let result = %s"
-        \           % ToVimEval(g_asynccompl.LatestThread().result))
+            \      % ToVimEval(g_asynccompl.LatestThread().result))
     let g:result = result
     return [1, result]
 endfunction
@@ -827,6 +883,15 @@ function! s:InitPyIf() "{{{2
         return
     endif
     let s:pyif_init = 1
+    let s:__temp = &completeopt
+    let s:has_noexpand = 1
+    try
+        set completeopt+=noexpand
+    catch /.*/
+        let s:has_noexpand = 0
+    endtry
+    let &completeopt = s:__temp
+    unlet s:__temp
 python << PYTHON_EOF
 import re
 import vim
@@ -1041,29 +1106,30 @@ def AsyncCompl_AsyncHook(td, priv):
 def AsyncCompl_Callback(td, priv):
     #print td, priv
 
-    # 1.检查最新请求是否为当前线程, 如果是才继续
-    # NOTE: 不需要检查线程了, 直接执行步骤2检查ident结构即可
-
-    # 2. 识别请求标识, 如果一致才继续
-    #   * 模式(插入)    - mode
-    #   * 缓冲区ID      - buff
-    #   * 请求ID        - acid
-    ident = priv.get('ident')
-    curid = vim.eval('asynccompl#CurrentIdent()')
-    #print ident, curid
-    if not (ident['mode'] == curid['mode'] and \
-            ident['buff'] == int(curid['buff']) and \
-            ident['acid'] == int(curid['acid'])):
-        return
-
     join = priv.get('join')
 
-    # 3.取出结果, 如果有结果继续
+    # 1.取出结果, 如果有结果继续
     result = td.async_return
     if not result:
         return
+
+    # 2.检查最新请求是否为当前线程, 如果是才继续
+    # NOTE: 不需要检查线程了, 直接执行步骤2检查ident结构即可
+
+    icase = priv.get('icase', 0)
+    stat = priv.get('stat')
+    stat['ccrow'] = int(stat['ccrow'])
+    stat['cccol'] = int(stat['cccol'])
+    # 同步模式不需要检查
+    if not join and vim.eval("asynccompl#StatSimilar(%s, asynccompl#GetStat(), %d)"
+                % (ToVimEval(stat), icase)) == '0':
+        # 状态不相似, 直接结束
+        return
+
+    # 3. 把结果返回
     vim.command("call asynccompl#FillResult(%s)" % ToVimEval(result))
 
+    # 4. 需要的话, 主动弹出补全菜单
     if not join:
         # 弹出补全菜单
         if int(vim.eval("b:config.omnifunc")):

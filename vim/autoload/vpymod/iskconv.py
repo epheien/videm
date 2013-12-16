@@ -17,6 +17,7 @@ tc7 = "@,48-57,_"
 
 testcases = \
     [
+     '!-~,^*,^|,^",192-255',
      isfname, iskeyword, tc0, tc1, tc3, tc4, tc5, tc6, tc7,
      "_,-,128-140,#-43",
      "^a-z,#,^",
@@ -197,7 +198,7 @@ def Conv2PyrePat(optlst, ascii_only = False):
         elif item.startswith('^'):
             tmp = item[1:]
             if len(tmp) == 1:
-                if ascii_only and ToOrd(item) > 127:
+                if ascii_only and ToOrd(tmp) > 127:
                     continue
                 excllist.append(ToPatHex(tmp))
             else:
@@ -246,7 +247,10 @@ def main(argv):
             assert re.compile('[%s]' % ''.join(a))
             if b:
                 assert re.compile('[^%s]' % ''.join(b))
-        except:
+
+            Conv2PattList(case, True)
+            Conv2PattList(case)
+        except AssertionError:
             print 'assert failed:', case, '==', ','.join(li)
             #raise
 
