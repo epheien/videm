@@ -355,7 +355,9 @@ function! CommonAsyncComplete() "{{{2
     if !empty(b:config.complete_pattern) && sChar =~# b:config.complete_pattern
         " 补全完毕后, 菜单没有消失, 这是来一个无条件补全, 需要把补全菜单干掉
         if pumvisible()
-            call feedkeys("\<Space>\<BS>", "n")
+            " 这两个字符会触发两次进入这个函数, 并且会清掉补全状态
+            " NOTE: 貌似不关掉补全菜单也能正常工作了
+            "call feedkeys("\<Space>\<BS>", "n")
         endif
 
         let nRow = line('.')
