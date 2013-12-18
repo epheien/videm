@@ -354,10 +354,14 @@ function! CommonAsyncComplete() "{{{2
     " 处理无条件指定触发补全的输入, 如C++中的::, ->, .
     if !empty(b:config.complete_pattern) && sChar =~# b:config.complete_pattern
         " 补全完毕后, 菜单没有消失, 这是来一个无条件补全, 需要把补全菜单干掉
-        if pumvisible()
-            " 这两个字符会触发两次进入这个函数, 并且会清掉补全状态
-            " NOTE: 貌似不关掉补全菜单也能正常工作了
-            "call feedkeys("\<Space>\<BS>", "n")
+        " clientserver模式下无此问题, 看起来是vim的BUG
+        if s:timer_mode && pumvisible()
+            " NOTE: 只要 v:char 不是 <C-?> 和 s 就没问题, <C-x>s 是拼写建议
+            "call feedkeys("\<C-x>", "n")
+            " NOTE: 这是另一种没有副作用的方案, 比较曲线, 可用
+            call feedkeys("\<C-x>\<BS>".sChar)
+            " 会再次进入这里, 所以这里直接返回, 方案二专用
+            return ''
         endif
 
         let nRow = line('.')
@@ -1113,6 +1117,11 @@ def AsyncCompl_Callback(td, priv):
     # 1.取出结果, 如果有结果继续
     result = td.async_return
     if not result:
+        return
+
+    mode = vim.eval("mode()")
+    # 只在插入模式, 替换模式, 虚拟替换模式下才继续
+    if mode != 'i' and mode != 'R' and mode != 'Rv':
         return
 
     # 2.检查最新请求是否为当前线程, 如果是才继续
