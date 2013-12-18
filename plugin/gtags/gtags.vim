@@ -124,29 +124,42 @@ function! videm#plugin#gtags#ConnectGtagsDatabase(...) "{{{2
 endfunction
 "}}}
 " 假定 sFile 是绝对路径的文件名
-function! s:Autocmd_UpdateGtagsDatabase(sFile) "{{{2
+function! s:Autocmd_UpdateGtagsDatabase(sFile, ...) "{{{2
     py if not ws.VLWIns.IsWorkspaceFile(vim.eval("a:sFile")):
                 \vim.command('return')
+
+    " 同步等待子进程终结
+    let sync = get(a:000, 0, 0)
 
     if exists('s:bHadConnGtagsDb') && s:bHadConnGtagsDb
         let sGlbFilesFile = GetWspName() . g:VLWorkspaceGtagsFilesFile
         py vim.command("let sWspDir = %s" % ToVimEval(ws.VLWIns.dirName))
         let sGlbFilesFile = g:vlutils#os.path.join(sWspDir, sGlbFilesFile)
-        let sCmd = printf("cd %s && %s -f %s --single-update %s",
-                    \     shellescape(sWspDir),
-                    \     shellescape(g:VLWorkspaceGtagsProgram),
-                    \     shellescape(sGlbFilesFile),
-                    \     shellescape(a:sFile))
 
-        if !vlutils#IsWindowsOS()
-            " Windows 下面没有这个语法，只在 Linux 下用
-            let sCmd .= ' &'
-        endif
-
-        call system(sCmd)
-        if v:shell_error != 0
-            call vlutils#EchoWarnMsg(printf("return %d with command: %s",
-                    \                        v:shell_error, sCmd))
+        if sync
+            let sCmd = printf("cd %s && %s -f %s --single-update %s",
+                        \     shellescape(sWspDir),
+                        \     shellescape(g:VLWorkspaceGtagsProgram),
+                        \     shellescape(sGlbFilesFile),
+                        \     shellescape(a:sFile))
+            " 调试的时候用
+            call system(sCmd)
+            if v:shell_error != 0
+                call vlutils#EchoWarnMsg(printf("return %d with command: %s",
+                        \                        v:shell_error, sCmd))
+            endif
+        else
+            " TODO 需要获取输出和错误信息
+            let cmd = [g:VLWorkspaceGtagsProgram, '-f', sGlbFilesFile,
+                    \  '--single-update', a:sFile]
+            let cwd = sWspDir
+            if vlutils#IsWindowsOS()
+                " 要这样实现在后台更新
+                py subprocess.Popen(['start', '/min'] + vim.eval('cmd'),
+                        \           cwd=vim.eval('cwd'), shell=True)
+            else
+                py subprocess.Popen(vim.eval('cmd'), cwd=vim.eval('cwd'))
+            endif
         endif
     endif
 endfunction
@@ -285,6 +298,7 @@ endfunction
 "}}}
 function! s:InitPythonIterfaces() "{{{2
 python << PYTHON_EOF
+import subprocess
 import vim
 
 def VidemWspGtagsHook(event, wsp, unused):
