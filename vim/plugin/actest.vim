@@ -46,7 +46,7 @@ function! InitKeywordsComplete() "{{{2
             \                     re.compile(__kw_pat))
     py CommonCompleteArgsHookRegister(CurrFileKeywordsCompleteArgs, None)
     py del __kw_pat
-    call asynccompl#Init()
+    call asynccompl#BuffInit()
 endfunction
 "}}}
 
@@ -92,6 +92,6 @@ endfunction
 "}}}
 
 call vpymod#driver#Init()
-autocmd! BufNewFile,BufReadPost * call InitKeywordsComplete()
+autocmd BufNewFile,BufReadPost * call InitKeywordsComplete()
 
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1

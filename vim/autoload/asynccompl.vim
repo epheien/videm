@@ -71,33 +71,44 @@
 " @data     - 注册的时候指定的参数
 " @return   - args 字典, 参考上面的说明, 最终给予 CommonCompleteHook 使用
 
-" 初始化每个缓冲区的变量
-function! s:InitBuffVars() "{{{2
-    if exists('b:config')
+" 初始化每缓冲区的变量
+" 无参数或<=0 - 初始化当前缓冲区，> 0 初始化指定缓冲区
+" 这个函数是内部的，参数设计可以简单化
+function! s:InitBuffVars(...) "{{{2
+    let bufnr = get(a:000, 0, -1)
+    if bufnr <= 0
+        let bufnr = bufnr('%')
+    endif
+
+    let bufvar = getbufvar(bufnr, 'config')
+    if !empty(bufvar)
+        " 已经初始化过了
         return
     endif
 
-    let b:config = {}
-    let b:config.ignorecase = 0
+    let config = {}
+    let config.ignorecase = 0
     " 匹配这个模式的时候, 直接启动补全搜索线程
-    let b:config.complete_pattern = '\.\|>\|:'
+    let config.complete_pattern = '\.\|>\|:'
     " 非指定完成的字符串模式, 即如果输入字符不匹配这个字符串的时候, 忽略处理
-    let b:config.valid_char_pattern = '[A-Za-z_0-9]'
+    let config.valid_char_pattern = '[A-Za-z_0-9]'
     " 补全支持的子串模式
-    let b:config.substring_pattern = '[A-Za-z_]\w*$'
+    let config.substring_pattern = '[A-Za-z_]\w*$'
     " 最小支持2, 为1的话可能有各种问题
-    let b:config.trigger_char_count = 2
-    let b:config.SearchStartColumnHook = function('empty')
+    let config.trigger_char_count = 2
+    let config.SearchStartColumnHook = function('empty')
     " 启动搜索线程, None (row, col, base, icase)
-    let b:config.LaunchComplThreadHook = function('empty')
+    let config.LaunchComplThreadHook = function('empty')
     " 获取结果的回调, [] (base)
-    let b:config.FetchComplResultHook = function('empty')
+    let config.FetchComplResultHook = function('empty')
     " 定时器机制使用, 超时时间, 单位毫秒
-    let b:config.timer_timeout = 100
+    let config.timer_timeout = 100
     " 补全菜单选择模式, 同vimccc的定义
-    let b:config.item_select_mode = 2
+    let config.item_select_mode = 2
     " 0 - 使用 completefunc, 1 - 使用 omnifunc
-    let b:config.omnifunc = 0
+    let config.omnifunc = 0
+
+    call setbufvar(bufnr, 'config', config)
 endfunction
 "}}}
 
@@ -122,7 +133,7 @@ let s:async_compl_ident = -1
 let s:has_noexpand = 0
 
 " 载入自身
-function! asynccompl#Load() "{{{2
+function! asynccompl#Init() "{{{2
     return 0
 endfunction
 "}}}
@@ -460,7 +471,13 @@ function! s:StopAsyncComplete() "{{{2
 endfunction
 "}}}
 " 这个初始化是每个缓冲区都要调用一次的
-function! asynccompl#Init() "{{{2
+" 无参数或<=0表示仅处理本缓冲区，其他正数值表示指定的缓冲区
+function! asynccompl#BuffInit(...) "{{{2
+    let bufnr = get(a:000, 0, -1)
+    if bufnr <= 0
+        let bufnr = bufnr('%')
+    endif
+
     if !exists('##InsertCharPre')
         echohl ErrorMsg
         echomsg 'Vim does not support InsertCharPre autocmd, so asynccompl can not work'
@@ -470,7 +487,6 @@ function! asynccompl#Init() "{{{2
     endif
 
     call s:InitPyIf()
-    call s:InitBuffVars()
 
     if !empty(v:servername)
         " 有clientserver支持的话就不用定时器模式了
@@ -499,25 +515,26 @@ function! asynccompl#Init() "{{{2
         call s:InitCsPyif()
     endif
 
-    let s:status.buffers[bufnr('%')] = 1
+    call s:InitBuffVars(bufnr)
+    let s:status.buffers[bufnr] = 1
     augroup AsyncCompl
-        autocmd! InsertCharPre  <buffer> call CommonAsyncComplete()
-        autocmd! InsertEnter    <buffer> call s:AutocmdInsertEnter()
-        autocmd! InsertLeave    <buffer> call s:AutocmdInsertLeave()
+        exec 'autocmd! InsertCharPre <buffer='.bufnr.'> call CommonAsyncComplete()'
+        exec 'autocmd! InsertEnter   <buffer='.bufnr.'> call s:AutocmdInsertEnter()'
+        exec 'autocmd! InsertLeave   <buffer='.bufnr.'> call s:AutocmdInsertLeave()'
         " NOTE: 添加销毁python的每缓冲区变量的时机
         "       暂时不需要, 只要每缓冲区的变量都是先初始化再使用的话, 无须清理
     augroup END
     if s:timer_mode
         if b:config.omnifunc
-            setlocal omnifunc=asynccompl#Driver
+            call setbufvar(bufnr, '&omnifunc', 'asynccompl#Driver')
         else
-            setlocal completefunc=asynccompl#Driver
+            call setbufvar(bufnr, '&completefunc', 'asynccompl#Driver')
         endif
     else
         if b:config.omnifunc
-            setlocal omnifunc=asynccompl#CSDriver
+            call setbufvar(bufnr, '&omnifunc', 'asynccompl#CSDriver')
         else
-            setlocal completefunc=asynccompl#CSDriver
+            call setbufvar(bufnr, '&completefunc', 'asynccompl#CSDriver')
         endif
     endif
 endfunction
@@ -537,17 +554,28 @@ function! s:AutocmdInsertLeave() "{{{2
 endfunction
 "}}}
 " 清理函数
-function! asynccompl#Exit() "{{{2
-    if b:config.omnifunc
-        setlocal omnifunc=
+" 无参数表示仅处理本缓冲区，0 - 表示处理全部缓冲区，其他正数值表示指定的缓冲区
+" 由于是清理函数，所以参数处理比较复杂，可以理解
+function! asynccompl#BuffExit(...) "{{{2
+    let bufnr = get(a:000, 0, -1)
+    if bufnr < 0
+        let bufs = [bufnr('%')]
+    elseif bufnr == 0
+        let bufs = keys(s:status.buffers)
     else
-        setlocal completefunc=
+        let bufs = [bufnr]
     endif
+
     augroup AsyncCompl
-        for i in keys(s:status.buffers)
-            exec printf('autocmd! InsertCharPre    <buffer=%d>', i)
-            exec printf('autocmd! InsertEnter      <buffer=%d>', i)
-            exec printf('autocmd! InsertLeave      <buffer=%d>', i)
+        for bufnr in bufs
+            exec printf('autocmd! InsertCharPre    <buffer=%d>', bufnr)
+            exec printf('autocmd! InsertEnter      <buffer=%d>', bufnr)
+            exec printf('autocmd! InsertLeave      <buffer=%d>', bufnr)
+            if b:config.omnifunc
+                call setbufvar(bufnr, '&omnifunc', '')
+            else
+                call setbufvar(bufnr, '&completefunc', '')
+            endif
         endfor
     augroup END
     call filter(s:status.buffers, 0)
@@ -565,17 +593,24 @@ function! asynccompl#Register(ignorecase, complete_pattern,
         \                     trigger_char_count,
         \                     SearchStartColumnHook, LaunchComplThreadHook,
         \                     FetchComplResultHook, ...) "{{{2
-    call s:InitBuffVars()
-    let b:config.ignorecase = a:ignorecase
-    let b:config.complete_pattern = a:complete_pattern
-    let b:config.valid_char_pattern = a:valid_char_pattern
-    let b:config.substring_pattern = a:substring_pattern
-    let b:config.trigger_char_count = a:trigger_char_count
-    let b:config.SearchStartColumnHook = s:Funcref(a:SearchStartColumnHook)
-    let b:config.LaunchComplThreadHook = s:Funcref(a:LaunchComplThreadHook)
-    let b:config.FetchComplResultHook = s:Funcref(a:FetchComplResultHook)
-    let b:config.omnifunc = get(a:000, 0, 0)
-    let b:config.item_select_mode = get(a:000, 1, 2)
+    " TODO 这个接口需要更新，不然要传入这个缓冲区编号太麻烦了
+    let bufnr = get(a:000, 2, -1)
+    if bufnr <= 0
+        let bufnr = bufnr('%')
+    endif
+
+    call s:InitBuffVars(bufnr)
+    let config = getbufvar(bufnr, 'config')
+    let config.ignorecase = a:ignorecase
+    let config.complete_pattern = a:complete_pattern
+    let config.valid_char_pattern = a:valid_char_pattern
+    let config.substring_pattern = a:substring_pattern
+    let config.trigger_char_count = a:trigger_char_count
+    let config.SearchStartColumnHook = s:Funcref(a:SearchStartColumnHook)
+    let config.LaunchComplThreadHook = s:Funcref(a:LaunchComplThreadHook)
+    let config.FetchComplResultHook = s:Funcref(a:FetchComplResultHook)
+    let config.omnifunc = get(a:000, 0, 0)
+    let config.item_select_mode = get(a:000, 1, 2)
 endfunction
 "}}}
 function! asynccompl#Driver(findstart, base) "{{{2
