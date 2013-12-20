@@ -98,9 +98,7 @@ def InitVLWCscopeDatabase():
     if needUpdateCsNameFile or vim.eval('force') == '1':
         #vim.command('let lFiles = %s' 
             #% [i.encode('utf-8') for i in ws.VLWIns.GetAllFiles(True)])
-        # 直接 GetAllFiles 可能会出现重复的情况，直接用 filesIndex 字典键值即可
-        ws.VLWIns.GenerateFilesIndex() # 重建，以免任何特殊情况
-        files = ws.VLWIns.filesIndex.keys()
+        files = list(set(ws.VLWIns.GetAllFiles(True)))
         files.sort()
         vim.command('let lFiles = %s' % json.dumps(files, ensure_ascii=False))
 

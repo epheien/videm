@@ -61,8 +61,7 @@ function! s:InitVLWGtagsDatabase(bIncremental) "{{{2
     py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
 
     let lFiles = []
-    py ws.VLWIns.GenerateFilesIndex() # 重建，以免任何特殊情况
-    py l_files = ws.VLWIns.filesIndex.keys()
+    py l_files = list(set(ws.VLWIns.GetAllFiles(True)))
     py l_files.sort()
     py vim.command('let lFiles = %s' % json.dumps(l_files, ensure_ascii=False))
     py del l_files
