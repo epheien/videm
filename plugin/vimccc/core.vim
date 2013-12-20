@@ -281,10 +281,7 @@ function! VIMCCCExit() "{{{2
         autocmd!
     augroup END
     silent! augroup! VIMCCC_AUGROUP
-    call s:ResetAucmPrevStat()
     call vlcalltips#Unregister(s:GetSFuncRef('s:RequestCalltips'))
-    py del g_SyncData
-    py del g_SyncDataResult
     let s:enable = 0
     " NOTE: VIMCCCIndex 不销毁
 endfunction
@@ -797,7 +794,7 @@ function! VIMCCCAsyncComplInit(...) "{{{2
             \                1, g:VIMCCC_ItemSelectionMode)
     py CommonCompleteHookRegister(VIMCCCCompleteHook, None)
     py CommonCompleteArgsHookRegister(VIMCCCArgsHook, None)
-    return asynccompl#Init()
+    return asynccompl#BuffInit()
 endfunction
 "}}}
 " NOTE: 调用此函数后，生成全局变量 VIMCCCIndex
