@@ -976,7 +976,8 @@ function s:Autocmd_WorkspaceEditorOptions() "{{{2
 endfunction
 "}}}
 function! s:Autocmd_LocateCurrentFile() "{{{2
-    if !g:VLWorkspaceLinkToEidtor
+    " 会不会比较慢？
+    if !videm#settings#Get('.videm.wsp.LinkToEditor')
         return
     endif
 
