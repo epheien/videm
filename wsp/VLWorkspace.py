@@ -253,7 +253,7 @@ class VLWorkspace(object):
         self.activeProject = ''
         self.modifyTime = 0
         self.filesIndex = {} # 用于从文件名快速定位所在位置(项目，目录等)的数据
-                             # {文件绝对路径: xml 节点}
+                             # {文件真实路径: xml 节点}
         self.fname2file = {} # 用于实现切换源文件/头文件
                              # {文件名: set(文件绝对路径)}
 
@@ -744,9 +744,10 @@ class VLWorkspace(object):
 
         if nodeType == TYPE_FILE:
             # 添加此 filesIndex
-            key = os.path.abspath(
-                os.path.join(parentDatum['project'].dirName, name))
-            self.filesIndex[key] = newNode
+            key = os.path.abspath(os.path.join(parentDatum['project'].dirName,
+                                               name))
+            fikey = os.path.realpath(key)
+            self.filesIndex[fikey] = newNode
             # 添加此 fname2file
             key2 = os.path.basename(key)
             if not self.fname2file.has_key(key2):
@@ -1139,8 +1140,10 @@ class VLWorkspace(object):
                 pass
 
             # 修正 filesIndex
-            self.filesIndex[absNewFile] = self.filesIndex[absOldFile]
-            del self.filesIndex[absOldFile]
+            oldKey = os.path.realpath(absOldFile)
+            newKey = os.path.realpath(absNewFile)
+            self.filesIndex[newKey] = self.filesIndex[oldKey]
+            del self.filesIndex[oldKey]
 
             # 修正 fname2file
             oldKey = os.path.basename(absOldFile)
@@ -1198,8 +1201,9 @@ class VLWorkspace(object):
             # 删除此 filesIndex
             key = os.path.abspath(os.path.join(project.dirName,
                                                delNode.getAttribute('Name').encode('utf-8')))
-            if self.filesIndex.has_key(key):
-                del self.filesIndex[key]
+            fikey = os.path.realpath(key)
+            if self.filesIndex.has_key(fikey):
+                del self.filesIndex[fikey]
             # 删除此 fname2file
             try:
                 self.fname2file[os.path.basename(key)].remove(key)
@@ -1379,9 +1383,9 @@ class VLWorkspace(object):
         self.filesIndex.clear()
         for k, v in self.projects.iteritems():
             self.filesIndex.update(v.GetFilesIndex())
-        # 从 filesIndex 重建 fname2file
+        # 重建 fname2file
         self.fname2file.clear()
-        for k in self.filesIndex.iterkeys():
+        for k in self.GetAllFiles(True):
             key2 = os.path.basename(k)
             if not self.fname2file.has_key(key2):
                 self.fname2file[key2] = set()
@@ -1389,6 +1393,7 @@ class VLWorkspace(object):
 
     def GetProjectByFileName(self, fileName):
         '''从绝对路径的文件名中获取文件所在的项目实例'''
+        fileName = os.path.realpath(fileName)
         if not self.filesIndex.has_key(fileName):
             return None
 
@@ -1436,6 +1441,7 @@ class VLWorkspace(object):
         '''从绝对路径的文件名中获取文件在工作空间的绝对路径
 
         从工作空间算起，如 /项目名/虚拟目录/文件显示名'''
+        fileName = os.path.realpath(fileName)
         if not self.filesIndex.has_key(fileName):
             return ''
 
@@ -1444,6 +1450,7 @@ class VLWorkspace(object):
 
     def IsWorkspaceFile(self, fileName):
         '''判断一个文件是否属于工作区'''
+        fileName = os.path.realpath(fileName)
         return self.filesIndex.has_key(fileName)
 
     def TouchAllProjectFiles(self):
@@ -1655,7 +1662,7 @@ class VLWorkspace(object):
             projectFilesIndex = project.GetFilesIndex()
             self.filesIndex.update(projectFilesIndex)
             # 更新 fname2file
-            for k in projectFilesIndex.iterkeys():
+            for k in project.GetAllFiles(True):
                 key2 = os.path.basename(k)
                 if not self.fname2file.has_key(key2):
                     self.fname2file[key2] = set()

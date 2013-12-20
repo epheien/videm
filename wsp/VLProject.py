@@ -37,6 +37,7 @@ class VLProject(Project):
         return text
 
     def GetFilesIndex(self):
+        '''文件索引需要用canonical文件名，即os.path.realpath'''
         ds = DirSaver()
         os.chdir(self.dirName)
         return self.GetFilesIndexOfNodes(self.rootNode)
@@ -49,7 +50,8 @@ class VLProject(Project):
         for i in node.childNodes:
             if i.nodeName == 'File':
                 fileName = i.getAttribute('Name').encode('utf-8')
-                fileName = os.path.abspath(fileName)
+                #fileName = os.path.abspath(fileName)
+                fileName = os.path.realpath(fileName)
                 filesIndex[fileName] = i
             # 递归遍历所有文件
             if i.hasChildNodes():
