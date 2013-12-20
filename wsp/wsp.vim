@@ -371,7 +371,7 @@ endfunction
 " 新老选项优先级问题
 " 1、如果 '.videm.Compatible' 非零，则老选项优先，否则参考2
 " 2、如果需要反转的选项的新老选项同时设置，那么新选项优先，会无条件把新选项的
-"    值赋予老选项。需要反转的选项无法通过设置新选项的方式适时刷新老选项
+"    值赋予老选项。需要反转的选项无法通过设置新选项的方式实时刷新老选项
 function! s:InitInverseCompatSettings() "{{{2
     for [oldopt, newopt] in items(s:InverseCompatSettings)
         if videm#settings#Has(newopt)

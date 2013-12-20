@@ -819,6 +819,7 @@ If you wish use gvim and mouse, the following configuration will be helpful >
 
     " This global variable is used to set the user's options for Videm by Videm
     let g:videm_user_options = {
+        \ '.videm.Compatible'                   : 0,
         \ '.videm.wsp.ShowBriefHelp'            : 0,
         \ '.videm.wsp.keybind.PopupMenu'        : "<RightRelease>",
         \ '.videm.wsp.LinkToEditor'             : 0,
