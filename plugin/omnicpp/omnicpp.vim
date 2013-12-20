@@ -295,7 +295,7 @@ endfunction
 "}}}
 function! s:GetTagsSettingsHelpText() "{{{2
     let s = "Run the following command to get gcc search paths:\n"
-    let s .= "  echo \"\" | gcc -v -x c++ - -fsyntax-only\n"
+    let s .= "  echo \"\" | gcc -v -x c++ -fsyntax-only -\n"
     return s
 endfunction
 "}}}
@@ -498,8 +498,9 @@ function! videm#plugin#omnicpp#Init() "{{{2
     call videm#wsp#WspOptRegister('.videm.cc.omnicpp.Enable',
             \                   videm#settings#Get('.videm.cc.omnicpp.Enable'))
     call videm#wsp#WspRestartOptRegister('.videm.cc.omnicpp.Enable')
-    call s:ThisInit()
-    let s:enable = 1
+    if videm#settings#Get('.videm.cc.omnicpp.Enable', 0)
+        call videm#plugin#omnicpp#Enable()
+    endif
 endfunction
 "}}}
 function! videm#plugin#omnicpp#Enable() "{{{2

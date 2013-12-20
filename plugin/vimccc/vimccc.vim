@@ -188,7 +188,7 @@ endfunction
 
 function! s:GetTagsSettingsHelpText() "{{{2
     let s = "Run the following command to get gcc search paths:\n"
-    let s .= "  echo \"\" | gcc -v -x c++ - -fsyntax-only\n"
+    let s .= "  echo \"\" | gcc -v -x c++ -fsyntax-only -\n"
     return s
 endfunction
 "}}}
@@ -291,11 +291,9 @@ function! videm#plugin#vimccc#Init() "{{{2
     call videm#wsp#WspOptRegister('.videm.cc.vimccc.Enable',
             \                     videm#settings#Get('.videm.cc.vimccc.Enable'))
     call videm#wsp#WspRestartOptRegister('.videm.cc.vimccc.Enable')
-    if !videm#settings#Get('.videm.cc.vimccc.Enable', 0)
-        return
+    if videm#settings#Get('.videm.cc.vimccc.Enable', 0)
+        call videm#plugin#vimccc#Enable()
     endif
-    call s:ThisInit()
-    let s:enable = 1
 endfunction
 "}}}
 function! videm#plugin#vimccc#Enable() "{{{2

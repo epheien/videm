@@ -864,7 +864,7 @@ NOTE: Compile the program with cl.exe, this implies that Videm can not debug
 If you update gcc, the search paths for parser will need to be updated also.
 Run the following command and find the search list of gcc, and then update the
 search paths for parser in 'Videm -> (OmniCpp Tags|VIMCCC) Settings' . >
-     echo "" | gcc -v -x c++ - -fsyntax-only 2>&1
+     echo "" | gcc -v -x c++ -fsyntax-only - 2>&1
 
 ------------------------------------------------------------------------------
 8.4. Trouble Shooting                   *Videm-TroubleShooting*

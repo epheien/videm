@@ -175,7 +175,7 @@ def GetGccIncludeSearchPaths():
     result = []
 
     #cmd = 'gcc -v -x c++ -fsyntax-only /dev/null 2>&1'
-    cmd = 'echo "" | gcc -v -x c++ - -fsyntax-only 2>&1'
+    cmd = 'echo "" | gcc -v -x c++ -fsyntax-only - 2>&1'
 
     for line in os.popen(cmd):
         #if line == '#include <...> search starts here:\n':
