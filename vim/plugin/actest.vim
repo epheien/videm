@@ -6,6 +6,12 @@
 
 " 这个插件暂时只支持 ASCII 码的补全, 其他的都不支持
 
+let s:loaded = 0
+if s:loaded
+    finish
+endif
+let s:loaded = 1
+
 let s:sfile = expand('<sfile>')
 function! CommonSearchStartColumn() "{{{2
     let row = line('.')
@@ -33,6 +39,10 @@ endfunction
 "}}}
 
 function! InitKeywordsComplete() "{{{2
+    if exists('#AsyncCompl#InsertCharPre#<buffer>')
+        return
+    endif
+
     call s:InitPyIf()
     call asynccompl#Register(1, '', '\k', '\k\+$', 2,
             \               'CommonSearchStartColumn', 'CommonLaunchComplThread',
