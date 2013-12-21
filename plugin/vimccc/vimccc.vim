@@ -95,9 +95,10 @@ endfunction
 function! videm#plugin#vimccc#InitFacilities() "{{{2
     let g:VIMCCC_Enable = 1 " 保证初始化成功
     " 先初始化默认的 clang index
-    call vimccc#core#InitEarly()
+    let ret = vimccc#core#InitEarly()
     py OrigVIMCCCIndex = VIMCCCIndex
     let g:VIMCCC_Enable = 0 " 再禁用 VIMCCC
+    return ret
 endfunction
 "}}}
 " FileType 自动命令调用的函数，第一次初始化
@@ -254,8 +255,12 @@ function! s:ThisInit() "{{{2
     " 先设置模块目录
     let g:VIMCCC_PythonModulePath = g:VidemPyDir
     call s:InitPythonIterfaces()
+    let ret = videm#plugin#vimccc#InitFacilities()
+    if ret != 0
+        " 初始化失败了
+        return ret
+    endif
     py VidemWorkspace.wsp_ntf.Register(VidemWspVIMCCCHook, 0, None)
-    call videm#plugin#vimccc#InitFacilities()
     " 替换自动命令
     augroup VidemCCVIMCCC
         autocmd!
@@ -300,7 +305,11 @@ function! videm#plugin#vimccc#Enable() "{{{2
     if s:enable
         return
     endif
-    call s:ThisInit()
+    let ret = s:ThisInit()
+    if ret != 0
+        call vlutils#EchoWarnMsg("Failed to initialize VIMCCC, disable")
+        return ret
+    endif
     let s:enable = 1
 endfunction
 "}}}

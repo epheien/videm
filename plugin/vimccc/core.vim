@@ -184,8 +184,12 @@ function! vimccc#core#InitForcibly() "{{{2
     call s:InitVariable('g:VIMCCC_Enable', 0)
     let bak = g:VIMCCC_Enable
     let g:VIMCCC_Enable = 1
-    call vimccc#core#InitEarly()
+    let ret = vimccc#core#InitEarly()
     let g:VIMCCC_Enable = bak
+    if ret != 0
+        call vlutils#EchoWarnMsg('Failed to initialize VIMCCC, abort')
+        return ret
+    endif
     call VIMCCCInit()
 endfunction
 "}}}
@@ -260,6 +264,9 @@ function! s:FirstInit() "{{{2
 
     " 这是异步接口
     call s:InitPyIf()
+
+    " 初始化失败的标志就是 VIMCCCIndex 为 None
+    py if VIMCCCIndex is None: vim.command('return -1')
 endfunction
 "}}}
 " 用于支持 videm 的插件动作
@@ -301,33 +308,12 @@ function! vimccc#core#InitEarly() "{{{2
     endif
 
     if s:bFirstInit
-        call s:FirstInit()
-        let s:has_noexpand = g:VIMCCC_Has_noexpand
+        let ret = s:FirstInit()
+        if ret != 0
+            return ret
+        endif
     endif
-    "let s:has_noexpand = 0
     let s:bFirstInit = 0
-
-    " 特性检查
-    " FIXME 在新版本，v:servername 的初始化在这个函数之后...
-    "if g:VIMCCC_AutoPopupMenu && (empty(v:servername) || !has('clientserver'))
-    "    echohl WarningMsg
-    "    echom '-------------------- VIMCCC --------------------'
-    "    if empty(v:servername)
-    "        echom "Please start vim as server, eg. vim --servername {name}"
-    "        echom "Auto popup menu feature will be disabled this time"
-    "    else
-    "        echom 'Auto popup menu feature required vim compiled vim with '
-    "                \ . '+clientserver'
-    "        echom 'The feature will be disabled this time'
-    "    endif
-    "    echom "You can run ':let g:VIMCCC_AutoPopupMenu = 0' to diable this "
-    "            \ . "message"
-    "    echohl None
-    "    " gvim 时，如果启动时即进入此流程，会让 gvim 无法启动，BUG？！
-    "    if !has('gui_running')
-    "        call getchar()
-    "    endif
-    "endif
 
     " 全局命令
     command! -nargs=0 -bar VIMCCCQuickFix
@@ -812,9 +798,6 @@ try:
     sys.path.index(vim.eval("g:VIMCCC_PythonModulePath"))
 except ValueError:
     sys.path.append(vim.eval("g:VIMCCC_PythonModulePath"))
-# FIXME 暂时用这么搓的方法来传递参数给 cindex
-sys.argv = [sys.argv[0], vim.eval("g:VIMCCC_ClangLibraryPath")]
-from VIMClangCC import *
 
 UF_None = 0
 UF_Related = 1
@@ -896,6 +879,19 @@ def VIMCCCCompleteHook(acthread, args, data):
     return result
 
 # 本插件只操作这个实例，其他事都不管
+VIMCCCIndex = None
+
+# FIXME 暂时用这么搓的方法来传递参数给 cindex
+__save_argv = sys.argv
+sys.argv = [sys.argv[0], vim.eval("g:VIMCCC_ClangLibraryPath")]
+try:
+    from VIMClangCC import *
+except:
+    raise
+finally:
+    sys.argv = __save_argv
+    del __save_argv
+# 真正的实例
 VIMCCCIndex = VIMClangCCIndex()
 PYTHON_EOF
 endfunction

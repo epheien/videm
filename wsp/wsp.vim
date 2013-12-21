@@ -1135,15 +1135,15 @@ endfunction
 " 关闭所有打开的工作空间的文件的缓冲区
 function! s:CloseWorkspaceFiles() "{{{2
     let buffer_count = bufnr('$')
-    for idx in range(1, buffer_count)
-        if !bufloaded(idx)
+    for bufnr in range(1, buffer_count)
+        if !bufloaded(bufnr)
             continue
         endif
 
-        let filename = fnamemodify(bufname(idx), ':p')
+        let filename = fnamemodify(bufname(bufnr), ':p')
         if s:IsWorkspaceFile(filename)
             " TODO 需要优雅的删除方式
-            exec 'confirm bdelete' idx
+            exec 'confirm bdelete' bufnr
         endif
     endfor
 endfunction
