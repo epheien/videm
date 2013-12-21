@@ -561,7 +561,8 @@ function! asynccompl#BuffExit(...) "{{{2
     if bufnr < 0
         let bufs = [bufnr('%')]
     elseif bufnr == 0
-        let bufs = keys(s:status.buffers)
+        " 字典的键总是字符串类型的
+        let bufs = map(keys(s:status.buffers), 'str2nr(v:val)')
     else
         let bufs = [bufnr]
     endif
@@ -571,7 +572,7 @@ function! asynccompl#BuffExit(...) "{{{2
             exec printf('autocmd! InsertCharPre    <buffer=%d>', bufnr)
             exec printf('autocmd! InsertEnter      <buffer=%d>', bufnr)
             exec printf('autocmd! InsertLeave      <buffer=%d>', bufnr)
-            if b:config.omnifunc
+            if getbufvar(bufnr, 'config').omnifunc
                 call setbufvar(bufnr, '&omnifunc', '')
             else
                 call setbufvar(bufnr, '&completefunc', '')

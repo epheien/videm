@@ -282,6 +282,8 @@ function! VIMCCCExit() "{{{2
     augroup END
     silent! augroup! VIMCCC_AUGROUP
     call vlcalltips#Unregister(s:GetSFuncRef('s:RequestCalltips'))
+    " 清掉所有缓冲区的补全设施
+    call asynccompl#BuffExit(0)
     let s:enable = 0
     " NOTE: VIMCCCIndex 不销毁
 endfunction
