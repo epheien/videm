@@ -569,6 +569,10 @@ function! asynccompl#BuffExit(...) "{{{2
 
     augroup AsyncCompl
         for bufnr in bufs
+            if !bufloaded(bufnr)
+                continue
+            endif
+
             exec printf('autocmd! InsertCharPre    <buffer=%d>', bufnr)
             exec printf('autocmd! InsertEnter      <buffer=%d>', bufnr)
             exec printf('autocmd! InsertLeave      <buffer=%d>', bufnr)
