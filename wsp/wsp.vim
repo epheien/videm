@@ -108,35 +108,44 @@ function! s:RefreshBackwardOptions() "{{{2
     if      g:VLWorkspaceCodeCompleteEngine == 'omnicpp'
         call videm#settings#Set('.videm.cc.vimccc.Enable', 0)
         call videm#settings#Set('.videm.cc.omnicpp.Enable', 1)
+        call videm#settings#Set('.videm.cc.Current', 'omnicpp')
     elseif  g:VLWorkspaceCodeCompleteEngine == 'vimccc'
         call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
         call videm#settings#Set('.videm.cc.vimccc.Enable', 1)
+        call videm#settings#Set('.videm.cc.Current', 'vimccc')
     else
         call videm#settings#Set('.videm.cc.vimccc.Enable', 0)
         call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
+        call videm#settings#Set('.videm.cc.Current', '')
     endif
 
     if type(g:VLWorkspaceSymbolDatabase) == type('')
         if g:VLWorkspaceSymbolDatabase ==? 'cscope'
             call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
             call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
+            call videm#settings#Set('.videm.symdb.Current', 'cscope')
         elseif g:VLWorkspaceSymbolDatabase ==? 'gtags'
             call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
             call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+            call videm#settings#Set('.videm.symdb.Current', 'gtags')
         else
             call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
             call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+            call videm#settings#Set('.videm.symdb.Current', '')
         endif
     else
         if g:VLWorkspaceSymbolDatabase == 1
             call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
             call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
+            call videm#settings#Set('.videm.symdb.Current', 'cscope')
         elseif g:VLWorkspaceSymbolDatabase == 2
             call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
             call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
+            call videm#settings#Set('.videm.symdb.Current', 'gtags')
         else
             call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
             call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
+            call videm#settings#Set('.videm.symdb.Current', '')
         endif
     endif
 endfunction
@@ -276,9 +285,12 @@ function! videm#wsp#SettingsHook(event, data, priv) "{{{2
         endif
     endfor
 
-    " 最后启用指定的插件
-    let key = printf("%s.%s.Enable", prefix, val)
-    call videm#settings#Set(key, 1, refresh)
+    " 如果这种选项置为空的话, 表示全部禁用
+    if !empty(val)
+        " 最后启用指定的插件
+        let key = printf("%s.%s.Enable", prefix, val)
+        call videm#settings#Set(key, 1, refresh)
+    endif
 endfunction
 "}}}
 " 从配置文本读取配置
@@ -680,13 +692,19 @@ function! s:OnceInit() "{{{2
     " 载入插件，应该在初始化所有公共设施后、初始化任何工作区实例前执行
     call s:LoadPlugin()
 
-    " 载入插件后, 在注册 Current 选项
+    " 载入插件后, 再注册 Current 选项
     call videm#wsp#WspOptRegister('.videm.cc.Current',
             \                     join(s:GetAlterList('.videm.cc'), '|'))
     call videm#wsp#WspOptRegister('.videm.symdb.Current',
             \                     join(s:GetAlterList('.videm.symdb'), '|'))
     call videm#wsp#WspRestartOptRegister('.videm.cc.Current')
     call videm#settings#RegisterHook('videm#wsp#SettingsHook', 0, 1)
+    " 注册了hook后刷新一次这个选项, 可能会产生抖动,
+    " 因为有些插件经历了启用后再禁用, 现时工作区未打开, 插件应该检查这一状况
+    call videm#settings#Set('.videm.cc.Current',
+            \               videm#settings#Get('.videm.cc.Current'))
+    call videm#settings#Set('.videm.symdb.Current',
+            \               videm#settings#Get('.videm.symdb.Current'))
 
     let s:OnceInit = 1
 endfunction
