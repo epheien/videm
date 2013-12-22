@@ -610,7 +610,10 @@ function! asynccompl#Register(ignorecase, complete_pattern,
     let config.complete_pattern = a:complete_pattern
     let config.valid_char_pattern = a:valid_char_pattern
     let config.substring_pattern = a:substring_pattern
-    let config.trigger_char_count = a:trigger_char_count
+    if a:trigger_char_count >= 2
+        " 这个选项的最小值不能小于2
+        let config.trigger_char_count = a:trigger_char_count
+    endif
     let config.SearchStartColumnHook = s:Funcref(a:SearchStartColumnHook)
     let config.LaunchComplThreadHook = s:Funcref(a:LaunchComplThreadHook)
     let config.FetchComplResultHook = s:Funcref(a:FetchComplResultHook)
