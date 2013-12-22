@@ -2,12 +2,11 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-12-13
-" Change:   2013-12-14
+" Change:   2013-12-22
 
 " 这个插件暂时只支持 ASCII 码的补全, 其他的都不支持
 
-let s:loaded = 0
-if s:loaded
+if get(s:, 'loaded', 0)
     finish
 endif
 let s:loaded = 1

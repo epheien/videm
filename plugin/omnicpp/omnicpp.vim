@@ -1,8 +1,8 @@
-" omnicpp plugin for videm
+" OmniCpp plugin for Videm
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-05-18
-" Change:   2013-09-28
+" Change:   2013-12-22
 
 " import library
 let s:os = vlutils#os
@@ -75,7 +75,6 @@ function! s:InitSettings() "{{{2
                 \           s:os.path.join(g:VidemDir, 'lib\libCxxParser.dll'))
     endif
     call videm#settings#Init(s:OmniCppSettings)
-    " 设置为这个
 endfunction
 "}}}
 function! s:SID() "获取脚本 ID {{{2
@@ -465,7 +464,7 @@ function! s:ThisInit() "{{{2
         autocmd!
         autocmd! FileType c,cpp call omnicpp#complete#Init()
         autocmd! BufWritePost * call <SID>AsyncParseCurrentFile(1, 1)
-        autocmd! VimLeave * call <SID>Autocmd_Quit()
+        autocmd! VimLeave     * call <SID>Autocmd_Quit()
     augroup END
     py OmniCppWMenuAction()
     " 工作区设置
