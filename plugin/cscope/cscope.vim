@@ -336,9 +336,6 @@ endfunction
 function! videm#plugin#cscope#Init() "{{{2
     call s:InitSettings()
     call videm#settings#RegisterHook('videm#plugin#cscope#SettingsHook', 0, 0)
-    call videm#wsp#WspOptRegister('.videm.symdb.cscope.Enable',
-            \                  videm#settings#Get('.videm.symdb.cscope.Enable'))
-    let s:enable = 0
     if videm#settings#Get('.videm.symdb.cscope.Enable')
         return videm#plugin#cscope#Enable()
     endif

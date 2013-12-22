@@ -64,11 +64,11 @@ class VLWorkspaceSettings:
         # 废弃的选项，仅用于后向兼容
         #self.localConfig = {}
         # 裸配置样，例的文本
-        self.localConfigText = '''\
-.videm.cc.omnicpp.Enable   = 0
-.videm.cc.vimccc.Enable    = 1
-.videm.symdb.cscope.Enable = 0
-.videm.symdb.gtags.Enable  = 1'''
+        self.localConfigText = """\
+# Code Complete Engine
+.videm.cc.Current       = 'vimccc'
+# Symbol Database
+.videm.symdb.Current    = 'gtags'"""
 
         # 统一的配置视图 on 2013-05-19
         # 路径示例:

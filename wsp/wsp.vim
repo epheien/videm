@@ -21,6 +21,9 @@ endfunction
 
 " 本脚本的绝对路径
 let s:sfile = expand('<sfile>:p')
+function! videm#wsp#SFunPrefix()
+    return printf("<SNR>%d_", s:sid)
+endfunction
 
 let s:os = vlutils#os
 
@@ -242,39 +245,40 @@ let s:WspConfTmplRestart = {
 let s:WspConfBakp = {}
 let g:WspConfBakp = s:WspConfBakp
 
-" NOTE: 这个 hook 不能注册进 videm#settings，否则无限递归
 function! videm#wsp#SettingsHook(event, data, priv) "{{{2
     let event = a:event
     let opt = a:data['opt']
     let val = a:data['val']
     let refresh = a:priv
-    if event ==# 'set'
-        if (opt ==# '.videm.cc.Current' || opt ==# '.videm.symdb.Current') && 
-                \ !empty(val)
-            if opt ==# '.videm.cc.Current'
-                let prefix = '.videm.cc'
-            else
-                let prefix = '.videm.symdb'
-            endif
-            let choice = ''
-            for item in items(videm#settings#Get(prefix, {}))
-                if item[0] ==# 'Current'
-                    continue
-                elseif item[0] ==# val
-                    let choice = val
-                else
-                    " 禁用其他同类插件
-                    let key = printf("%s.%s.Enable", prefix, item[0])
-                    call videm#settings#Set(key, 0, refresh)
-                endif
-            endfor
-            if !empty(choice)
-                " 启用选择的
-                let key = printf("%s.%s.Enable", prefix, choice)
-                call videm#settings#Set(key, 1, refresh)
-            endif
-        endif
+
+    " 只处理 'set' 事件
+    if event !=# 'set'
+        return
     endif
+
+    let prefix = ''
+    if opt ==# '.videm.cc.Current'
+        let prefix = '.videm.cc'
+    elseif opt ==# '.videm.symdb.Current'
+        let prefix = '.videm.symdb'
+    endif
+
+    let li = s:GetAlterList(prefix)
+    if empty(prefix) || empty(li)
+        return
+    endif
+
+    for name in li
+        if name !=# val
+            " 先禁用其他同类的插件
+            let key = printf("%s.%s.Enable", prefix, name)
+            call videm#settings#Set(key, 0, refresh)
+        endif
+    endfor
+
+    " 最后启用指定的插件
+    let key = printf("%s.%s.Enable", prefix, val)
+    call videm#settings#Set(key, 1, refresh)
 endfunction
 "}}}
 " 从配置文本读取配置
@@ -332,9 +336,6 @@ function! videm#wsp#WspConfSetCurr(conf, ...) "{{{2
         if has_key(s:WspConfTmpl, opt)
             let val = conf[opt]
             call videm#settings#Set(opt, val, refresh)
-            " hook
-            call videm#wsp#SettingsHook('set', {'opt': opt, 'val': val},
-                    \                   refresh)
         endif
     endfor
 endfunction
@@ -577,6 +578,27 @@ function! videm#wsp#IsStarted() "{{{2
     return g:VLWorkspaceHasStarted
 endfunction
 "}}}
+" 获取多选一的一个列表, 如从 '.wsp.cc' 选出 'omnicpp', 'omnicxx', 'vimccc'
+function! s:GetAlterList(opt) "{{{2
+    let opt = a:opt
+
+    try
+        let li = keys(videm#settings#Get(opt))
+    catch /.*/
+        let li = []
+    endtry
+
+    let result = []
+    for o in li
+        if videm#settings#Has(printf("%s.%s.Enable", opt, o))
+            " 有 o.Enable 键的话就认为有这个选项
+            call add(result, o)
+        endif
+    endfor
+
+    return result
+endfunction
+"}}}
 let s:OnceInit = 0
 " 这个函数只初始化一次，无论调用多少次
 function! s:OnceInit() "{{{2
@@ -658,9 +680,18 @@ function! s:OnceInit() "{{{2
     " 载入插件，应该在初始化所有公共设施后、初始化任何工作区实例前执行
     call s:LoadPlugin()
 
+    " 载入插件后, 在注册 Current 选项
+    call videm#wsp#WspOptRegister('.videm.cc.Current',
+            \                     join(s:GetAlterList('.videm.cc'), '|'))
+    call videm#wsp#WspOptRegister('.videm.symdb.Current',
+            \                     join(s:GetAlterList('.videm.symdb'), '|'))
+    call videm#wsp#WspRestartOptRegister('.videm.cc.Current')
+    call videm#settings#RegisterHook('videm#wsp#SettingsHook', 0, 1)
+
     let s:OnceInit = 1
 endfunction
 "}}}
+" 入口
 function! s:InitVLWorkspace(file) " 初始化 {{{2
     let sFile = a:file
 

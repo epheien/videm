@@ -19,6 +19,7 @@ function! videm#settings#UnregisterHook(hook, prio) "{{{2
     return s:settings_notifier.Unregister(a:hook, a:prio)
 endfunction
 "}}}2
+" 可选参数 callchain 非零, 则会继续调用设置的选项的hook, 如果有的话
 function! videm#settings#Set(opt, val, ...) "{{{2
     let callchain = get(a:000, 0, 1)
     let li = split(a:opt, '\.')
