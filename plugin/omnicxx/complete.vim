@@ -36,7 +36,9 @@ import os
 import os.path
 
 def OmniCxxArgsHook(row, col, base, icase, data):
+    # 暂时没有这么高端要支持好几个未保存的文件, 只支持当前文件未保存即可
     args = {'file': vim.eval('expand("%:p")'),
+            'buff': vim.current.buffer[:row], # 可以是列表或者字符串, 看需求
             'row': row,
             'col': col,
             'base': base,
@@ -48,6 +50,7 @@ def OmniCxxArgsHook(row, col, base, icase, data):
 def OmniCxxCompleteHook(acthread, args, data):
     '''这个函数在后台线程运行, 只能根据传入参数来进行操作'''
     file = args.get('file')
+    buff = args.get('buff') # 只保证到row行, row行后的内存可能不存在
     row = args.get('row')
     col = args.get('col')
     base = args.get('base')
