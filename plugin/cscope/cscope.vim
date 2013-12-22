@@ -2,7 +2,7 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-05-18
-" Change:   2013-05-18
+" Change:   2013-12-22
 
 let s:enable = 0
 
@@ -342,6 +342,10 @@ function! videm#plugin#cscope#Init() "{{{2
     if videm#settings#Get('.videm.symdb.cscope.Enable')
         return videm#plugin#cscope#Enable()
     endif
+endfunction
+"}}}
+function! videm#plugin#cscope#HasEnabled() "{{{2
+    return s:enable
 endfunction
 "}}}
 function! videm#plugin#cscope#Enable() "{{{2

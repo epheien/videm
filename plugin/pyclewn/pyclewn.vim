@@ -607,6 +607,10 @@ function! s:ThisInit() "{{{2
     call s:InstallCommands()
 endfunction
 "}}}2
+function! videm#plugin#pyclewn#HasEnabled() "{{{2
+    return 1
+endfunction
+"}}}
 function! videm#plugin#pyclewn#Init() "{{{2
     call s:InitSettings()
     if !videm#settings#Get('.videm.dbg.pyclewn.Enable', 0)

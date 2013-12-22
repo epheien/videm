@@ -2,7 +2,7 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  This file is placed in the public domain.
 " Create:   2011-03-18
-" Change:   2013-05-19
+" Change:   2013-12-22
 
 if exists("g:loaded_autoload_wsp")
     finish
@@ -5413,6 +5413,22 @@ function! s:LoadPlugin() "{{{2
     endfor
 endfunction
 "}}}2
+function! videm#wsp#PluginInfo() "{{{2
+    let sPluginPath = s:os.path.join(s:os.path.dirname(s:sfile), 'plugin')
+    for name in s:loaded_plugins
+        let funcname = printf("videm#plugin#%s#HasEnabled", name)
+        let state = 'Unknown'
+        if exists('*'.funcname)
+            exec printf("let ret = %s()", funcname)
+            let state = 'Disabled'
+            if ret
+                let state = 'Enabled'
+            endif
+        endif
+        echo printf("%s\t[%s]", name, state)
+    endfor
+    return ''
+endfunction
 " 获取已经载入的插件
 function! VidemGetLoadedPlugins() "{{{2
     return s:loaded_plugins

@@ -2,7 +2,7 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-05-18
-" Change:   2013-09-28
+" Change:   2013-12-22
 
 let s:enable = 0
 
@@ -280,6 +280,10 @@ function! videm#plugin#gtags#Disable() "{{{2
         unlet s:opts_bak
     endif
     let s:enable = 0
+endfunction
+"}}}
+function! videm#plugin#gtags#HasEnabled() "{{{2
+    return s:enable
 endfunction
 "}}}
 function! videm#plugin#gtags#Enable() "{{{2

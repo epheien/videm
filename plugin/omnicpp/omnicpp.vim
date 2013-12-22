@@ -502,6 +502,10 @@ function! videm#plugin#omnicpp#Init() "{{{2
     endif
 endfunction
 "}}}
+function! videm#plugin#omnicpp#HasEnabled() "{{{2
+    return s:enable
+endfunction
+"}}}
 function! videm#plugin#omnicpp#Enable() "{{{2
     if s:enable
         return

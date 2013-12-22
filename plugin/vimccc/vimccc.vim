@@ -2,7 +2,7 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-05-18
-" Change:   2013-09-28
+" Change:   2013-12-22
 
 "===============================================================================
 " VIMCCC 插件
@@ -301,6 +301,9 @@ function! videm#plugin#vimccc#Init() "{{{2
     endif
 endfunction
 "}}}
+function! videm#plugin#vimccc#HasEnabled() "{{{2
+    return s:enable
+endfunction
 function! videm#plugin#vimccc#Enable() "{{{2
     if s:enable
         return
