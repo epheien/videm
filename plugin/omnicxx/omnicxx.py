@@ -90,7 +90,7 @@ class ComplScope(object):
     {
         'kind': <'container'|'variable'|'function'|'unknown'>
         'name': <name>    <- 必然是单元类型 eg. A<a,b,c>
-        'til' : <template initialization list>
+        'tmpl' : <template initialization list>
         'tag' : {}        <- 在解析的时候添加
         'typeinfo': {}    <- 在解析的时候添加
         'cast': <强制类型转换>
@@ -104,7 +104,7 @@ class ComplScope(object):
     def __init__(self):
         self.name = ''
         self.kind = KIND_UNKNOWN
-        self.til = []
+        self.tmpl = []
         self.typeinfo = None
 
 class ComplInfo(object):
@@ -112,6 +112,77 @@ class ComplInfo(object):
         self.scopes = []
         # this | <global> | {precast type}
         #self.cast = ''
+
+# 跳至指定的匹配，tokrdr 当前的 token 为 left 的下一个
+def SkipToMatch(tokrdr, left, right, collector = None):
+    nestlv = 1
+    while tokrdr.current:
+        tok = tokrdr.Get()
+
+        if isinstance(collector, list):
+            collector.append(tok)
+
+        if tok.text == left:
+            nestlv += 1
+        elif tok.text == right:
+            nestlv -= 1
+
+        if nestlv == 0:
+            break
+
+class CxxUnitType(object):
+    '''单元类型, 如:
+    A a;
+    A<B, <C<D> > a;
+
+    像 A::B::C 就是由三个单元类型构成
+    '''
+    def __init__(self):
+        # 文本
+        self.text = ''
+        # 模板
+        self.tmpl = []
+
+    def IsValid(self):
+        return bool(self.text)
+
+    def IsError(self):
+        return not self.IsValid()
+
+class CxxType(object):
+    '''代表一个C++类型，保存足够的信息'''
+    def __init__(self):
+        # CxxUnitType 实例的列表
+        self.typelist = []
+        # 是否强制为全局作用域，如 ::A::B
+        self._global = False
+
+    def IsValid(self):
+        return bool(self.typelist)
+
+class TypeInfo(object):
+    '''代表一个C++类型，保存足够的信息, vim omnicpp 兼容形式'''
+    def __init__(self):
+        self.name = ''
+        self.tmpl = []
+        self.typelist = []
+
+def ParseTypeInfo(tokrdr):
+    '''
+    从一条语句中获取变量信息, 无法判断是否非法声明
+    尽量使传进来的参数是单个语句而不是多个语句
+    Return: 若解释失败，返回无有效内容的 TypeInfo
+    eg1. const MyClass&
+    eg2. const map < int, int >&
+    eg3. MyNs::MyClass
+    eg4. ::MyClass**
+    eg5. MyClass a, *b = NULL, c[1] = {};
+    eg6. A<B>::C::D<E<Z>, F>::G g;
+    eg7. hello(MyClass1 a, MyClass2* b
+    eg8. Label: A a;
+    TODO: eg9. A (*a)[10];
+    '''
+    pass
 
 def GetCompleteInfo(tokens):
     # 需要语法解析, 实在是太麻烦了
@@ -140,12 +211,12 @@ def GetCompleteInfo(tokens):
 " }
 "
 " 列表 OmniSS, 每个条目为 OmniScope
-" 'til' 一般在 'kind' 为 'container' 时才有效
+" 'tmpl' 一般在 'kind' 为 'container' 时才有效
 " OmniScope
 " {
 " 'kind': <'container'|'variable'|'function'|'cast'|'unknown'>
 " 'name': <name>    <- 必然是单元类型 eg. A<a,b,c>
-" 'til' : <template initialization list>
+" 'tmpl' : <template initialization list>
 " 'tag' : {}        <- 在解析的时候添加
 " 'typeinfo': {}    <- 在解析的时候添加
 " }
@@ -163,8 +234,8 @@ def GetCompleteInfo(tokens):
 " 1. A<B>::C<D, E>::F g; g.|
 " 2. A<B>::C<D, E>::F.g.| (g 为静态变量)
 "
-" 1 的方法, 需要记住整条路径每个作用域的 til
-" 2 的方法, OmniInfo 增加 til 域
+" 1 的方法, 需要记住整条路径每个作用域的 tmpl
+" 2 的方法, OmniInfo 增加 tmpl 域
     '''
     rdr = ListReader(tokens[::-1])
     while rdr.current:
@@ -183,7 +254,14 @@ def GetCompleteInfo(tokens):
 
     result = ComplInfo()
 
+    # 用于模拟 C 语言的 for(; x; y) 语句
+    __first_enter = True
     while True:
+        if not __first_enter:
+            # 消耗一个token
+            rdr.Get()
+        __first_enter = False
+
         if not rdr.current:
             break
 
@@ -206,11 +284,13 @@ def GetCompleteInfo(tokens):
 
         elif tok.kind == CPP_WORD:
             if state == STATE_INIT:
-                # 这是base, 无视, 继续
+                # 这是base, 这里不考虑base的问题, 继续
                 pass
             elif state == STATE_EXPECT_OP:
-                # 期待操作符的时候遇到单词, 这是语法错误或者直接终结吧
-                pass
+                # 期望操作符, 遇到单词
+                # 结束. eg A::B C::|
+                #             ^
+                break
             elif state == STATE_EXPECT_WORD:
                 # 成功获取一个单词
                 compl_scope = ComplScope()
@@ -224,6 +304,10 @@ def GetCompleteInfo(tokens):
                     else:
                         # unknown
                         pass
+                result.scopes.insert(0, compl_scope)
+                else:
+                    # unknown
+                    pass
 
                 state = STATE_EXPECT_OP
             else:
@@ -232,6 +316,7 @@ def GetCompleteInfo(tokens):
 
 
         elif tok.kind == CPP_KEYOWORD and tok.text == 'this':
+            # TODO: 未想好如何处理
             if state == STATE_INIT:
                 # 直接
                 pass
@@ -253,13 +338,72 @@ def GetCompleteInfo(tokens):
                 pass
             # endif
 
+        elif tok.kind == CPP_OP and tok.text == ')':
+            if state == STATE_INIT:
+                pass
+            elif state == STATE_EXPECT_OP:
+                # 期待操作符, 遇到右括号
+                # 必定是一个 postcast, 结束
+                # 无须处理, 直接完成
+                # eg. (A*)B->|
+                #        ^
+                break
+            elif state == STATE_EXPECT_WORD:
+                # 期待单词
+                # 遇到右括号
+                # 可能是 precast 或者 postcast 或者是一个函数
+                # precast:
+                #   ((A*)B.b)->C.|
+                #           ^|
+                #   ((A*)B.b())->C.|
+                #            ^|
+                #   static_cast<A *>(B.b())->C.|
+                #                        ^|
+                #   
+                # postcast:
+                #   (A)::B.|
+                #     ^|
+                #
+                # function:
+                #   func(0).|
+                #         ^|
+                # 
+                rdr.Get()
+                colltoks = []
+                SkipToMatch(rdr, ')', '(', colltoks)
+                tmprdr = ListReader(colltoks[::-1])
+                if rdr.current and rdr.current.kind == CPP_WORD:
+                    # 确定是函数
+                    # TODO: Func<T>(0)
+                    #             ^
+                    compl_scope = ComplScope()
+                    compl_scope.kind = ComplScope.KIND_FUNCTION
+                    compl_scope.name = rdr.Next().text
+                    result.scopes.insert(0, compl_scope)
+                    state = STATE_EXPECT_OP
+                elif tmprdr.current and tmprdr.current.text == '(':
+                    # C 形式的 precast
+                    compl_scope = ComplScope()
+                    compl_scope.kind = ComplScope.KIND_VARIABLE
+                    compl_scope.text = '<CODE>' # 无需名字
+                    result.scopes.insert(0, compl_scope)
+
+                    # 既然是 precast 那么这里可以直接获取结果并结束
+                    tmprdr.Get()
+                    colltoks = []
+                    SkipToMatch(tmprdr, '(', ')', colltoks)
+                    # 不要最后的 ')'
+                    if colltoks:
+                        colltoks.pop(-1)
+                    # 这里就可以解析类型了
+                    # TODO
+            else:
+                pass
+
         else:
             pass
 
         # endif
-
-        # 消耗一个token
-        rdr.Get()
 
     # endwhile
 
@@ -280,12 +424,12 @@ class ScopeInfo(object):
         self.container = []
         # 全局(文件)的作用域列表, 包括名空间信息
         # 因为 global 是 python 的关键词, 所以用这个错别字
-        self.globol = []
+        self._global = []
 
     def Print(self):
         print 'function: %s' % self.function
         print 'container: %s' % self.container
-        print 'global: %s' % self.globol
+        print 'global: %s' % self._global
 
 def GetTagsMgr(dbfile):
     tagmgr = VimTagsManager()
@@ -375,7 +519,7 @@ def ResolveScopeStack(scope_stack):
 
         result.function = function_scopes
         result.container = container_scopes
-        result.globol = global_scopes
+        result._global = global_scopes
 
         return result
 
@@ -491,7 +635,7 @@ def main(argv):
     if member_complete:
         scope_info = ResolveScopeStack(scope_stack)
         scope_info.Print()
-        search_scopes = scope_info.container + scope_info.globol + scope_info.function
+        search_scopes = scope_info.container + scope_info._global + scope_info.function
         # TODO 获取tags
         tags = tagmgr.GetOrderedTagsByScopesAndName(search_scopes, real_base)
     else:
