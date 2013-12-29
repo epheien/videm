@@ -616,6 +616,17 @@ class CppScope:
         self.stmt = '' # 'file' 类型为空
         self.cusrstmt = '' # 光标前的未完成的语句
 
+    def IsFile(self):
+        return self.kind == 'file'
+
+    def IsCtnr(self):
+        '''是否容器'''
+        return self.kind == 'container'
+
+    def IsFunc(self):
+        '''是否函数'''
+        return self.kind == 'function'
+
     def ToEvalStr(self):
         nsinfoEvalStr = '{}'
         s = '{"stmt": "%s", "kind": "%s", "name": "%s", '\
