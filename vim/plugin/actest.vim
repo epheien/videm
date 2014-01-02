@@ -12,43 +12,24 @@ endif
 let s:loaded = 1
 
 let s:sfile = expand('<sfile>')
-function! CommonSearchStartColumn() "{{{2
-    let row = line('.')
-    let col = col('.')
-
-    " 光标在第一列, 不能补全
-    if col <= 1
-        return -1
-    endif
-
-    let cursor_prechar = getline('.')[col-2 : col-2]
-
-    " 光标前的字符不是关键字, 不能补全
-    if cursor_prechar !~# '\k'
-        return -1
-    endif
-
-    " NOTE: 光标下的字符应该不算在内
-    let [srow, scol] = searchpos('\<\k', 'bn', row)
-
-    let start_column = scol
-
-    return start_column
-endfunction
-"}}}
-
 function! InitKeywordsComplete() "{{{2
     if exists('#AsyncCompl#InsertCharPre#<buffer>')
         return
     endif
 
     call s:InitPyIf()
-    call asynccompl#Register(1, '', '\k', '\k\+$', 2,
-            \               'CommonSearchStartColumn', 'CommonLaunchComplThread',
-            \               'CommonFetchComplResult')
+    let config = {}
+    let config.auto_popup_pattern = '\k'
+    let config.auto_popup_base_pattern = '\k\+$'
+    "let config.auto_popup_char_count = 2
+    "let config.item_select_mode = 2
+    "let config.SearchStartColumnHook = 'CommonSearchStartColumn'
+    "let config.LaunchComplThreadHook = 'CommonLaunchComplThread'
+    "let config.FetchComplResultHook = 'CommonFetchComplResult'
+    call asynccompl#Register(config)
     " NOTE: 暂时只能做到这种程度了, 因为python无法模拟vim的'\<'正则,
     "       用'\b'会有副作用, 正确的搜索模式应该是 '\<\k\k\+'
-    py __kw_pat = ''.join(iskconv.Conv2PattList(vim.eval('&iskeyword'), 1)[0])
+    py __kw_pat = ''.join(iskconv.Conv2PattList(vim.eval('&iskeyword'), ascii_only=1)[0])
     py __kw_pat = '(?<![%s])[%s]{2,}' % (__kw_pat, __kw_pat)
     "py print __kw_pat
     py CommonCompleteHookRegister(CurrFileKeywordsComplete,

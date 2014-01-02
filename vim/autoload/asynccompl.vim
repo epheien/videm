@@ -9,28 +9,29 @@
 " ============================================================================
 " 这是最原始的接口, 理论上只要此接口即可用
 " ============================================================================
-" function! asynccompl#Register(ignorecase, complete_pattern,
-"         \                     valid_char_pattern, substring_pattern,
-"         \                     trigger_char_count,
-"         \                     SearchStartColumnHook, LaunchComplThreadHook,
-"         \                     FetchComplResultHook,
-"         \                     omnifunc = 0, item_select_mode = 2)
-" @ignorecase - 是否忽略大小写
-" @complete_pattern - 匹配时直接启动补全
-" @valid_char_pattern - 不匹配这个模式的时候, 直接忽略
-" @substring_pattern - 在光标前的字符串中提取 base 用, 一般需要 '$' 结尾
-" @trigger_char_count - 触发异步补全时, 光标前的最小要求的单词字符数
-" @SearchStartColumnHook() - 搜索补全起始列号, 返回起始列号
-" @LaunchComplThreadHook(row, col, base, icase, join = 0) - 无返回值
-" @FetchComplResultHook(base) - 返回补全结果, 形如 [0|1, result]
-"                               0表示未完成, 1表示完成, result可能为[]或{}
-" @omnifunc - 0 - 使用 completefunc, 1 - 使用 omnifunc
-" @item_select_mode - 参考相关说明
+" function! asynccompl#Register(config)
+" @config = {}
+" @config.ignorecase                : 参考 'ignorecase', default &ignorecase
+" @config.smartcase                 : 参考 'smartcase',  default &smartcase
+" @config.manu_popup_pattern        : 匹配时无条件直接启动补全, default ''
+" @config.auto_popup_pattern        : 不匹配这个模式的时直接忽略
+" @config.auto_popup_base_pattern   : 自动弹出补全时需要提取的字串模式
+" @config.auto_popup_char_count     : 触发异步补全时, 光标前的最小要求的单词字符数,
+"                                     最小 2, default 2
+" @config.item_select_mode          : 参考 omnicxx 相关说明, default 2
+" @config.omnifunc                  : 0 - &completefunc, 1 - &omnifunc, default 0
+" @config.bufnr                     : default -1
+" @config.ManualPopupCheck          : (char) - 返回 0 表示终止, 否则表示继续
+"                                     只有 manu_popup_pattern 非空时才有用
+" @config.SearchStartColumnHook     : 搜索补全起始列号, 返回起始列号
+" @config.LaunchComplThreadHook     : (row, col, base, icase, join = 0) - 无返回值
+" @config.FetchComplResultHook      : 返回补全结果, 形如 [0|1, result]
+"                                     0表示未完成, 1表示完成, result可能为[]或{}
 "
-" @LaunchComplThreadHook 可使用通用的 CommonLaunchComplThread
-" @FetchComplResultHook 可使用通用的 CommonFetchComplResult
+" LaunchComplThreadHook 可使用通用的 CommonLaunchComplThread
+" FetchComplResultHook  可使用通用的 CommonFetchComplResult
 "
-" 对于Cxx, @SearchStartColumnHook 可使用 CxxSearchStartColumn
+" 对于Cxx, SearchStartColumnHook 可使用 CxxSearchStartColumn
 "
 " ===== 一般流程 =====
 " 1. 根据输入字符检查, 如不需要继续, 则直接返回
@@ -75,7 +76,7 @@
 " 无参数或<=0 - 初始化当前缓冲区，> 0 初始化指定缓冲区
 " 这个函数是内部的，参数设计可以简单化
 function! s:InitBuffVars(...) "{{{2
-    let bufnr = get(a:000, 0, -1)
+    let bufnr = get(a:000, 0, 0)
     if bufnr <= 0
         let bufnr = bufnr('%')
     endif
@@ -87,26 +88,23 @@ function! s:InitBuffVars(...) "{{{2
     endif
 
     let config = {}
-    let config.ignorecase = 0
-    " 匹配这个模式的时候, 直接启动补全搜索线程
-    let config.complete_pattern = '\.\|>\|:'
-    " 非指定完成的字符串模式, 即如果输入字符不匹配这个字符串的时候, 忽略处理
-    let config.valid_char_pattern = '[A-Za-z_0-9]'
-    " 补全支持的子串模式
-    let config.substring_pattern = '[A-Za-z_]\w*$'
-    " 最小支持2, 为1的话可能有各种问题
-    let config.trigger_char_count = 2
+    let config.ignorecase = &ignorecase
+    let config.smartcase = &smartcase
+    let config.manu_popup_pattern = ''
+    let config.auto_popup_pattern = '[A-Za-z_0-9]'
+    let config.auto_popup_base_pattern = '[A-Za-z_]\w*$'
+    let config.auto_popup_char_count = 2
+    let config.item_select_mode = 2
+    let config.omnifunc = 0
+    let config.bufnr = bufnr
+
+    let config.ManualPopupCheck = function('empty')
     let config.SearchStartColumnHook = function('empty')
-    " 启动搜索线程, None (row, col, base, icase)
     let config.LaunchComplThreadHook = function('empty')
-    " 获取结果的回调, [] (base)
     let config.FetchComplResultHook = function('empty')
+
     " 定时器机制使用, 超时时间, 单位毫秒
     let config.timer_timeout = 100
-    " 补全菜单选择模式, 同vimccc的定义
-    let config.item_select_mode = 2
-    " 0 - 使用 completefunc, 1 - 使用 omnifunc
-    let config.omnifunc = 0
 
     call setbufvar(bufnr, 'config', config)
 endfunction
@@ -363,7 +361,11 @@ function! CommonAsyncComplete() "{{{2
     let icase = b:config.ignorecase
 
     " 处理无条件指定触发补全的输入, 如C++中的::, ->, .
-    if !empty(b:config.complete_pattern) && sChar =~# b:config.complete_pattern
+    if !empty(b:config.manu_popup_pattern) && sChar =~# b:config.manu_popup_pattern
+        if !b:config.ManualPopupCheck(sChar)
+            call s:ResetAucmPrevStat()
+            return ''
+        endif
         " 补全完毕后, 菜单没有消失, 这是来一个无条件补全, 需要把补全菜单干掉
         " clientserver模式下无此问题, 看起来是vim的BUG
         if s:timer_mode && pumvisible()
@@ -392,7 +394,7 @@ function! CommonAsyncComplete() "{{{2
     endif
 
     " 输入的字符不是有效的补全字符, 直接返回
-    if sChar !~# b:config.valid_char_pattern
+    if sChar !~# b:config.auto_popup_pattern
         " 需要清补全状态, 因为在获取到结果的时候, 需要跟这个状态比较
         call s:ResetAucmPrevStat()
         return ''
@@ -400,7 +402,6 @@ function! CommonAsyncComplete() "{{{2
 
     "call vlutils#TimerStart()
 
-    let nTriggerCharCount = b:config.trigger_char_count
     let nRow = line('.')
     let nCol = col('.')
     let sLine = getline('.')
@@ -413,9 +414,10 @@ function! CommonAsyncComplete() "{{{2
         " 光标在第一列打了一个字符
         let sPrevWord = sChar
     else
-        let sPrevWord = matchstr(sLine[: nCol-2], b:config.substring_pattern).sChar
+        let sPrevWord = matchstr(sLine[: nCol-2],
+                \                b:config.auto_popup_base_pattern) . sChar
     endif
-    if len(sPrevWord) < nTriggerCharCount
+    if len(sPrevWord) < b:config.auto_popup_char_count
         " 重置状态
         call s:ResetAucmPrevStat()
         "call vlutils#TimerEnd()
@@ -593,32 +595,38 @@ function! s:Funcref(Func) "{{{2
     return a:Func
 endfunction
 "}}}
-function! asynccompl#Register(ignorecase, complete_pattern,
-        \                     valid_char_pattern, substring_pattern,
-        \                     trigger_char_count,
-        \                     SearchStartColumnHook, LaunchComplThreadHook,
-        \                     FetchComplResultHook, ...) "{{{2
-    " TODO 这个接口需要更新，不然要传入这个缓冲区编号太麻烦了
-    let bufnr = get(a:000, 2, -1)
+function! asynccompl#Register(config) "{{{2
+    " NOTE: 这个变量是基础, 需要首先获取和初始化
+    let bufnr = get(a:config, "bufnr", 0)
     if bufnr <= 0
         let bufnr = bufnr('%')
     endif
 
     call s:InitBuffVars(bufnr)
     let config = getbufvar(bufnr, 'config')
-    let config.ignorecase = a:ignorecase
-    let config.complete_pattern = a:complete_pattern
-    let config.valid_char_pattern = a:valid_char_pattern
-    let config.substring_pattern = a:substring_pattern
-    if a:trigger_char_count >= 2
-        " 这个选项的最小值不能小于2
-        let config.trigger_char_count = a:trigger_char_count
+    let config.ignorecase = get(a:config, 'ignorecase', &ignorecase)
+    let config.smartcase = get(a:config, 'smartcase', &smartcase)
+    let config.manu_popup_pattern = get(a:config, 'manu_popup_pattern', '')
+    let config.auto_popup_pattern = get(a:config, 'auto_popup_pattern', '[A-Za-z_0-9]')
+    let config.auto_popup_base_pattern = get(a:config, 'auto_popup_base_pattern', '[A-Za-z_]\w*$')
+    let config.auto_popup_char_count = get(a:config, 'auto_popup_char_count', 2)
+    let config.item_select_mode = get(a:config, 'item_select_mode', 2)
+    let config.omnifunc = get(a:config, 'omnifunc', 0)
+    let config.bufnr = bufnr
+
+    let config.ManualPopupCheck = s:Funcref(
+            \   get(a:config, 'ManualPopupCheck', 'empty'))
+    let config.SearchStartColumnHook = s:Funcref(
+            \   get(a:config, 'SearchStartColumnHook', 'CommonSearchStartColumn'))
+    let config.LaunchComplThreadHook = s:Funcref(
+            \   get(a:config, 'LaunchComplThreadHook', 'CommonLaunchComplThread'))
+    let config.FetchComplResultHook = s:Funcref(
+            \   get(a:config, 'FetchComplResultHook', 'CommonFetchComplResult'))
+
+    " 修正不正确的选项
+    if config.auto_popup_char_count < 2
+        let config.auto_popup_char_count =2
     endif
-    let config.SearchStartColumnHook = s:Funcref(a:SearchStartColumnHook)
-    let config.LaunchComplThreadHook = s:Funcref(a:LaunchComplThreadHook)
-    let config.FetchComplResultHook = s:Funcref(a:FetchComplResultHook)
-    let config.omnifunc = get(a:000, 0, 0)
-    let config.item_select_mode = get(a:000, 1, 2)
 endfunction
 "}}}
 function! asynccompl#Driver(findstart, base) "{{{2
@@ -879,6 +887,31 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
             call asynccompl#JoinLatestThread()
         endif
     endif
+endfunction
+"}}}
+" 通用补全开始位置搜索函数
+function! CommonSearchStartColumn() "{{{2
+    let row = line('.')
+    let col = col('.')
+
+    " 光标在第一列, 不能补全
+    if col <= 1
+        return -1
+    endif
+
+    let cursor_prechar = getline('.')[col-2 : col-2]
+
+    " 光标前的字符不是关键字, 不能补全
+    if cursor_prechar !~# '\k'
+        return -1
+    endif
+
+    " NOTE: 光标下的字符应该不算在内
+    let [srow, scol] = searchpos('\<\k', 'bn', row)
+
+    let start_column = scol
+
+    return start_column
 endfunction
 "}}}
 " 通用获取补全结果函数, 使用内置实现

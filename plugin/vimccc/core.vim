@@ -773,13 +773,33 @@ function! s:GotoLocation(dLocation) "{{{2
     endif
 endfunction
 "}}}
+function! VIMCCCManualPopupCheck(char) "{{{2
+    " NOTE: char 为即将输入的字符
+    if col('.') < 2
+        return 0
+    endif
+
+    let prev_char = getline('.')[col('.')-2 : col('.')-2]
+    if a:char ==# ':' && prev_char !=# ':'
+        return 0
+    elseif a:char ==# '>' && prev_char !=# '-'
+        return 0
+    endif
+    return 1
+endfunction
+"}}}
 function! VIMCCCAsyncComplInit(...) "{{{2
-    let pat = get(a:000, 0, '\.\|>\|:')
-    call asynccompl#Register(g:VIMCCC_IgnoreCase, pat,
-            \                '[A-Za-z_0-9]', '[A-Za-z_]\w*$', 2,
-            \                'CxxSearchStartColumn', 'CommonLaunchComplThread',
-            \                'CommonFetchComplResult',
-            \                1, g:VIMCCC_ItemSelectionMode)
+    let config = {}
+    let config.ignorecase = g:VIMCCC_IgnoreCase
+    let config.manu_popup_pattern = get(a:000, 0, '\.\|>\|:')
+    let config.auto_popup_pattern = '[A-Za-z_0-9]'
+    let config.auto_popup_base_pattern = '[A-Za-z_]\w*$'
+    let config.item_select_mode = g:VIMCCC_ItemSelectionMode
+    let config.SearchStartColumnHook = 'CxxSearchStartColumn'
+    let config.ManualPopupCheck = 'VIMCCCManualPopupCheck'
+    " 使用 completefunc 就不会有补全菜单弹出的 BUG
+    "let config.omnifunc = 1
+    call asynccompl#Register(config)
     py CommonCompleteHookRegister(VIMCCCCompleteHook, None)
     py CommonCompleteArgsHookRegister(VIMCCCArgsHook, None)
     return asynccompl#BuffInit()
