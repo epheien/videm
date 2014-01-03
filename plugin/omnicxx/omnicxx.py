@@ -30,7 +30,7 @@ from CxxSemanticParser import ResolveComplInfo
 def GetTagsMgr(dbfile):
     tagmgr = TagsManager()
     # 不一定打开成功
-    if not tagmgr.OpenDatabase(dbfile):
+    if tagmgr.OpenDatabase(dbfile) != 0:
         return None
     return tagmgr
 
@@ -171,6 +171,9 @@ def main(argv):
             pass
 
     tagmgr = GetTagsMgr(dbfile)
+    if not tagmgr:
+        print 'Failed to get tagmgr'
+        return 1
     tags = []
 
     if member_complete:

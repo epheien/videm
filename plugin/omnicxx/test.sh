@@ -49,10 +49,10 @@ cd "$__dir__"
 
 cmd="./omnicxx.py ./videm.vltags test.cxx 6 16 ''"
 echo "$cmd"
-eval "$cmd"
+eval "$cmd" || exit $?
 
 cmd="./omnicxx.py ./videm.vltags test.cxx 6 10 ''"
 echo "$cmd"
-eval "$cmd"
+eval "$cmd" || exit $?
 
 # vi:set et sts=4 sw=4 ts=8:

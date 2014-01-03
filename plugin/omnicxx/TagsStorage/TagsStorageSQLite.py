@@ -125,7 +125,7 @@ class TagsStorageSQLite(object):
             self.db = None
 
     def OpenDatabase(self, fname):
-        '''正常返回0, 异常返回-1'''
+        '''正常返回0, 致命异常返回-1, 版本不兼容异常返回-2'''
         # TODO: 验证文件是否有效
 
         # 如果相同, 表示已经打开了相同的数据库, 直接返回
@@ -153,6 +153,15 @@ class TagsStorageSQLite(object):
         try:
             self.db = sqlite3.connect(ToU(fname))
             self.db.text_factory = str # 以字符串方式保存而不是 unicode
+            schema_version = self.GetSchemaVersion()
+            if schema_version and schema_version != self.GetVersion():
+                #_print('Failed to check database version:\n'
+                       #'    database file version is %d, current schema version is %d'
+                       #% (schema_version, self.GetVersion()))
+                self.CloseDatabase()
+                # 这个是标志返回值
+                return -2
+            # 固定调用, 因为打开的数据库可能是一个空的数据库
             self.CreateSchema()
             self.fname = fname
             return 0
@@ -324,7 +333,8 @@ class TagsStorageSQLite(object):
                 version = int(row[0])
                 break
         except sqlite3.OperationalError:
-            pass
+            #PrintExcept()
+            pass # 返回 0 即标志着错误
         return version
 
     def StoreFromTagFile(self, tagFile, auto_commit = True):
