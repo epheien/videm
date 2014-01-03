@@ -45,9 +45,9 @@ CxxOmniCpp_GetSearchScopes = libCxxParser.CxxOmniCpp_GetSearchScopes
 CxxOmniCpp_GetSearchScopes.restype = c_char_p
 CxxOmniCpp_GetSearchScopes.argtypes = [c_void_p]
 
-GetScopeStack = libCxxParser.GetScopeStack
-GetScopeStack.restype = POINTER(c_char)
-GetScopeStack.argtypes = [c_char_p]
+_GetScopeStack = libCxxParser.GetScopeStack
+_GetScopeStack.restype = POINTER(c_char)
+_GetScopeStack.argtypes = [c_char_p]
 
 CxxParser_GetVersion = libCxxParser.CxxParser_GetVersion
 CxxParser_GetVersion.restype = c_int
@@ -66,8 +66,14 @@ CxxParser_GetVersion.argtypes = []
 #CxxHWParser_Destroy(pParser)
 #pParser = None
 
+def GetScopeStack(buff):
+    '''buff必须是字符串'''
+    assert isinstance(buff, str)
+    return GetCharPStr(_GetScopeStack(buff))
+
 if __name__ == "__main__":
     import sys
+    import json
     print 'CxxParser version: %d' % CxxParser_GetVersion()
     if not sys.argv[1:]:
         print "usage: %s {file} [line]" % sys.argv[0]
@@ -84,5 +90,4 @@ if __name__ == "__main__":
     f.close()
     lines = ''.join(allLines[: line])
     #print lines
-    print GetCharPStr(GetScopeStack(lines))
-
+    print json.dumps(json.loads(GetScopeStack(lines)), sort_keys=True, indent=4)
