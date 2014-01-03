@@ -1,0 +1,6 @@
+
+| id | name | file | fileid | line | kind | scope | parent_kind | access | inherits | signature | extra |
+|----|------|------|--------|------|------|-------|-------------|--------|----------|-----------|-------|
+|    |      |      |        |      |      |       |             |        |          |           |       |
+
+# vi:set ft=vimwiki:
