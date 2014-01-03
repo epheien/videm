@@ -10,17 +10,6 @@ import re
 # 这个正则表达式经常要用
 CXX_MEMBER_OP_RE = re.compile('^(\.|->|::)$')
 
-########## 硬编码设置, 用于快速测试 ##########
-path = [os.path.expanduser('~/.videm/core'),
-        os.path.expanduser('~/.vim/bundle/videm/autoload/omnicpp'),
-        os.path.expanduser('~/.vim/autoload/omnicpp')]
-sys.path.extend(path)
-
-# NOTE 不在 vim 环境下运行, 默认使用 "~/libCxxParser.so"
-import CppParser
-
-##########
-
 # CPP_OP 作为 CPP_OPERATORPUNCTUATOR 的缩写
 from CppTokenizer import CPP_EOF, CPP_KEYOWORD, CPP_WORD, C_COMMENT,        \
         C_UNFIN_COMMENT, CPP_COMMENT, CPP_STRING, CPP_CHAR, CPP_DIGIT,      \

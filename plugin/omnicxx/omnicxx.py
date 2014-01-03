@@ -7,21 +7,9 @@ import os.path
 import json
 import re
 
-# 这个正则表达式经常要用
-CXX_MEMBER_OP_RE = re.compile('^(\.|->|::)$')
+import CxxParser
 
-########## 硬编码设置, 用于快速测试 ##########
-path = [os.path.expanduser('~/.videm/core'),
-        os.path.expanduser('~/.vim/bundle/videm/autoload/omnicpp'),
-        os.path.expanduser('~/.vim/autoload/omnicpp')]
-sys.path.extend(path)
-
-# NOTE 不在 vim 环境下运行, 默认使用 "~/libCxxParser.so"
-import CppParser
-
-##########
-
-from VimTagsManager import VimTagsManager
+from TagsStorage.TagsManager import TagsManager
 
 # CPP_OP 作为 CPP_OPERATORPUNCTUATOR 的缩写
 from CppTokenizer import CPP_EOF, CPP_KEYOWORD, CPP_WORD, C_COMMENT,        \
@@ -40,7 +28,7 @@ from CxxSemanticParser import ResolveScopeStack
 from CxxSemanticParser import ResolveComplInfo
 
 def GetTagsMgr(dbfile):
-    tagmgr = VimTagsManager()
+    tagmgr = TagsManager()
     # 不一定打开成功
     if not tagmgr.OpenDatabase(dbfile):
         return None
@@ -58,7 +46,7 @@ def GetScopeStack(buff, row, col):
     contents = buff[: row-1]
     # NOTE: 按照vim的计算方式, 当前列不包括, 要取光标前的字符
     contents.append(buff[row-1][:col-1])
-    return CppParser.CxxGetScopeStack(contents)
+    return CxxParser.CxxGetScopeStack(contents)
 
 def Error(msg):
     print msg
@@ -201,7 +189,7 @@ def main(argv):
 
     print CodeComplete(file, buff, row, col, dbfile)
 
-def CodeComplete(file, buff, row, col, tagsdb = VimTagsManager(':memory:'),
+def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
                  **kwargs):
     '''返回补全结果, 返回结果应该为字典, 参考vim的complete-items的帮助信息
     @file:      当前补全的文件名
@@ -225,7 +213,7 @@ def CodeComplete(file, buff, row, col, tagsdb = VimTagsManager(':memory:'),
     retmsg = kwargs.get('retmsg', {})
     pre_scopes = kwargs.get('pre_scopes', [])
 
-    if isinstance(tagsdb, VimTagsManager):
+    if isinstance(tagsdb, TagsManager):
         tagmgr = tagsdb
     else:
         tagmgr = GetTagsMgr(tagsdb)
