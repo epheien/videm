@@ -7,13 +7,6 @@ import os.path
 import re
 import json
 
-########## 硬编码设置, 用于快速测试 ##########
-path = [os.path.expanduser('~/.videm/core'),
-        os.path.expanduser('~/.vim/bundle/videm/autoload/omnicpp'),
-        os.path.expanduser('~/.vim/autoload/omnicpp')]
-sys.path.extend(path)
-##########
-
 from CppTokenizer import CxxToken
 from ListReader import ListReader
 from CppTokenizer import CxxTokenize
@@ -731,6 +724,7 @@ def main(argv):
 
     cxx_type = CxxParseType('A<X, Y>::B::C')
     assert cxx_type.fullname == 'A::B::C'
+    print 'Test is ok.'
 
 if __name__ == '__main__':
     import sys
