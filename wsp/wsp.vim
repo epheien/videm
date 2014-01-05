@@ -343,13 +343,44 @@ function! videm#wsp#WspConfSetCurr(conf, ...) "{{{2
 
     let all = pres + posts
 
+    " 后向兼容处理
+    let old_opts = {
+        \ '.videm.cc.omnicpp.Enable'    : 1,
+        \ '.videm.cc.vimccc.Enable'     : 1,
+        \ '.videm.symdb.cscope.Enable'  : 1,
+        \ '.videm.symdb.gtags.Enable'   : 1,
+    \ }
+    let found_old = 0
+
     for opt in all
         " 只允许设置指定的选项
         if has_key(s:WspConfTmpl, opt)
             let val = conf[opt]
             call videm#settings#Set(opt, val, refresh)
+        elseif has_key(old_opts, opt)
+            let found_old = 1
+            let val = conf[opt]
+            " 后向兼容处理
+            let lst = split(opt, '\.')
+            let optx = printf('.videm.%s.Current', lst[1])
+            let valx = lst[2]
+            if val
+                call videm#settings#Set(optx, valx)
+            else
+                call videm#settings#Set(optx, '')
+            endif
         endif
     endfor
+
+    if found_old
+        " 显示转换选项帮助
+        echohl WarningMsg
+        echo 'Workspace Settings has updated, please convert the old config to new.'
+        echo 'Please read the videm.txt help file for more information.'
+        echo 'Press any key to continue...'
+        echohl None
+        call getchar()
+    endif
 endfunction
 "}}}
 function! videm#wsp#WspOptRegister(opt, val) "{{{2
