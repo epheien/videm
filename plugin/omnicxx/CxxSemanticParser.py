@@ -748,7 +748,7 @@ def ResolveFirstVariable(tagmgr, scope_stack, search_scopes, variable_name):
     # 在作用域栈中搜索
     tag = GetFirstMatchTag(tagmgr, search_scopes, variable_name)
     # TODO: 从 tag 中获取变量声明, 然后解析出 CxxType
-    cxx_type = CxxParseType(tag.get('text', ''))
+    cxx_type = CxxParseType(tag.get('extra', ''))
     if tag.has_key('class'):
         # 变量是类中的成员, 需要解析模版
         # TODO
@@ -878,26 +878,21 @@ def ResolveComplInfo(scope_stack, compl_info, tagmgr = None):
         else:
             cxx_type = ResolveFirstVariable(tagmgr, scope_stack,
                                             search_scopes, compl_scope.text)
-            tag = None
-            if not cxx_type.IsValid():
-                # 再尝试搜索 tag
-                tag = GetFirstMatchTag(tagmgr, search_scopes, compl_scope.text)
-                if not tag:
-                    return []
-
-            compl_scope.type = cxx_type
-            if tag:
-                search_scopes = ExpandSearchScopesFromScope(tag['scope'])
-
-            if len(cxx_type.typelist) > 1:
-                # 复合类型的变量, 需要解析, 因为这时的 cxx_type 可能无法搜索到 tag
-                # TODO
+            if cxx_type.IsValid():
+                # 如果这个类型解析成功了, 则继续
+                compl_scope.type = cxx_type
+                if len(cxx_type.typelist) > 1:
+                    # 复合类型的变量, 需要解析, 因为这时的 cxx_type 可能无法搜索到 tag
+                    # TODO
+                    pass
+            else:
+                # 类型解析失败的话, 交给常规处理, 常规处理会无条件搜索 tag
                 pass
     elif compl_scope.kind == compl_scope.KIND_FUNCTION and not compl_scope.cast:
         tag = GetFirstMatchTag(tagmgr, search_scopes, compl_scope.text)
         if not tag:
             return []
-        cxx_type = CxxParseType(tag.get('text', ''))
+        cxx_type = CxxParseType(tag.get('extra', ''))
         if not cxx_type.IsValid():
             return []
         # 更新
@@ -941,25 +936,27 @@ def ResolveComplInfo(scope_stack, compl_info, tagmgr = None):
         elif compl_scope.kind == compl_scope.KIND_CONTAINER:
             pass
         elif compl_scope.kind == compl_scope.KIND_VARIABLE:
-            name = compl_scope.text
             if compl_scope.type:
-                name = compl_scope.type.fullname
+                # 无需解析, 并且 search_scopes 已经正确
+                search_name = compl_scope.type.fullname
             elif compl_scope.cast:
-                name = compl_scope.cast.fullname
-            tag = GetFirstMatchTag(tagmgr, search_scopes, name)
-            if not tag:
-                search_scopes = []
-                break
-            if compl_scope.cast:
-                cxx_type = compl_scope.cast
+                # 无需解析, 并且 search_scopes 已经正确
+                search_name = compl_scope.cast.fullname
             else:
-                cxx_type = CxxParseType(tag.get('text', ''))
-            if not cxx_type.IsValid():
-                search_scopes = []
-                break
-            compl_scope.type = cxx_type
-            search_scopes = ExpandSearchScopesFromScope(tag['path'])
-            search_name = cxx_type.fullname
+                # 需要解析
+                name = compl_scope.text
+                tag = GetFirstMatchTag(tagmgr, search_scopes, name)
+                if not tag:
+                    search_scopes = []
+                    break
+                # 从 tag 中解析类型
+                cxx_type = CxxParseType(tag.get('extra', ''))
+                if not cxx_type.IsValid():
+                    search_scopes = []
+                    break
+                compl_scope.type = cxx_type
+                search_scopes = ExpandSearchScopesFromScope(tag['scope'])
+                search_name = cxx_type.fullname
         elif compl_scope.kind == compl_scope.KIND_FUNCTION:
             tag = GetFirstMatchTag(tagmgr, search_scopes, compl_scope.text)
             if not tag:
@@ -968,7 +965,7 @@ def ResolveComplInfo(scope_stack, compl_info, tagmgr = None):
             if compl_scope.cast:
                 cxx_type = compl_scope.cast
             else:
-                cxx_type = CxxParseType(tag.get('text', ''))
+                cxx_type = CxxParseType(tag.get('extra', ''))
             if not cxx_type.IsValid():
                 search_scopes = []
                 break

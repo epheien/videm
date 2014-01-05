@@ -7,6 +7,8 @@ import os.path
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
+_DEBUG = True
+
 sys.path.append(os.path.dirname(__dir__))
 import omnicxx
 
@@ -33,15 +35,15 @@ def test00(tagmgr):
     #print retmsg
 
     cases = [
-        #([79, 18], []),
+        ([84, 44], ['a', 'af()']),
 
         ([4, 24], ['a', 'af()']),
-        ([61, 6], []),
-        ([61, 24], []),
+        ([61, 6], ['argc', 'argv', 'aa', 'A']),
+        ([61, 24], ['B', 'a', 'af()']),
         #([70, 27],[])
-        ([79, 18], []),
-        ([83, 25], []),
-        ([84, 44], []),
+        ([79, 18], ['a', 'af()']),
+        ([83, 25], ['f()', 'ff()', 'a', 'b']),
+        ([84, 44], ['a', 'af()']),
         ([90, 19], []),
         ([91, 21], []),
         ([96, 10], []),
@@ -59,9 +61,9 @@ def test00(tagmgr):
         print li
         if result:
             try:
-                assert li == result
+                assert set(li) == set(result)
             except:
-                print li, '!=', result
+                print set(li), '!=', set(result)
                 raise
         print 'retmsg:', retmsg
 
@@ -83,12 +85,15 @@ def main(argv):
         if os.path.splitext(fname)[1] in set(['.c', '.cpp', '.h', '.hpp', '.cxx']):
             files.append(fname)
 
-    tagmgr = GetTagsMgr(':memory:')
-    #tagmgr = GetTagsMgr('test.db')
-
     for fname in files:
-        if not os.path.basename(fname).startswith('test'):
+        fbname = os.path.basename(fname)
+        if not fbname.startswith('test'):
             continue
+        if _DEBUG:
+            tagmgr = GetTagsMgr(os.path.join(__dir__,
+                                             '%s.db' % os.path.splitext(fname)[0]))
+        else:
+            tagmgr = GetTagsMgr(':memory:')
         tagmgr.RecreateDatabase()
         tagmgr.ParseFiles([fname])
         name = os.path.splitext(os.path.basename(fname))[0]
