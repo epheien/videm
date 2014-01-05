@@ -663,7 +663,7 @@ try:
     import vim
     VIDEM_DIR = vim.eval('g:VidemDir')
 except ImportError:
-    _print('%s: Can not get g:VidemDir, fallback to Linux case'
+    _print('%s: Can not get variable g:VidemDir, fallback to ~/.videm'
            % os.path.basename(__file__), file=sys.stderr)
     # only for Linux
     VIDEM_DIR = os.path.expanduser('~/.videm')

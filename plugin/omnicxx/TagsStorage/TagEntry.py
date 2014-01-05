@@ -155,6 +155,11 @@ class TagEntry():
             return getattr(self, key, default)
         return self.exts.get(key, default)
 
+    def has_key(self, key):
+        if hasattr(self, key):
+            return True
+        return self.exts.has_key(key)
+
     def ToDict(self):
         return Obj2Dict(self)
 
@@ -200,7 +205,7 @@ class TagEntry():
             m = re.search(r'([^(]+)\(', text)
             if m:
                 extra = re.sub(r'\s*[a-zA-Z_]\w*$', '', m.group(1).strip())
-        elif kind == 'variable' or kind == 'externvar':
+        elif kind == 'variable' or kind == 'externvar' or kind == 'member':
             # TODO: 数组形式未能解决, 很复杂, 暂时无法完善处理, 全部存起来
             if exts.has_key('typeref'):
                 # 从这个域解析
