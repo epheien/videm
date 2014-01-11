@@ -23,9 +23,9 @@ vimfiles := \
     utils.vim \
 
 
-PY_TARGET_DIR = $(VIMDIR)/autoload/omnicpp
-VIM_TARGET_DIR = $(VIMDIR)/autoload/omnicpp
-VIDEM_PLUGIN_DIR = $(VIMDIR)/autoload/videm/plugin
+PY_TARGET_DIR = $(DESTDIR)/autoload/omnicpp
+VIM_TARGET_DIR = $(DESTDIR)/autoload/omnicpp
+VIDEM_PLUGIN_DIR = $(DESTDIR)/autoload/videm/plugin
 
 all:
 
@@ -39,8 +39,8 @@ install:
 	@mkdir -p $(VIDEM_PLUGIN_DIR)
 	@cp omnicpp.vim $(VIDEM_PLUGIN_DIR)
 # vltagmgr.vim
-	@mkdir -p $(VIMDIR)/plugin
-	@cp CtagsDatabase/vltagmgr.vim $(VIMDIR)/autoload
+	@mkdir -p $(DESTDIR)/plugin
+	@cp CtagsDatabase/vltagmgr.vim $(DESTDIR)/autoload
 
 
 .PHONY: all clean install

@@ -58,13 +58,16 @@ function! s:InitEnum(li, n) "{{{2
 endfunction
 "}}}2
 
-if vlutils#IsWindowsOS()
-    call s:InitVariable("g:VidemDir", fnamemodify($VIM . '\videm', ":p"))
-else
-    call s:InitVariable("g:VidemDir", fnamemodify("~/.videm", ":p"))
-endif
 
-let g:VidemPyDir = s:os.path.join(g:VidemDir, 'core')
+" 新的命名规范
+let g:videm_dir = s:os.path.join(
+        \   s:os.path.dirname(s:os.path.dirname(s:os.path.dirname(s:sfile))),
+        \   '_videm')
+let g:videm_pydir = s:os.path.join(g:videm_dir, 'core')
+
+" 后向兼容
+let g:VidemDir = g:videm_dir
+let g:VidemPyDir = g:videm_pydir
 
 " 如果这个选项为零，所有后向兼容的选项都失效
 if !videm#settings#Has('.videm.Compatible')
@@ -5477,6 +5480,7 @@ function! s:InitPythonInterfaces() "{{{2
         return
     endif
 
+    call vpymod#driver#Init()
     let pyf = g:vlutils#os.path.join(fnamemodify(s:sfile, ':h'), 'wsp.py')
     exec 'pyfile' fnameescape(pyf)
     py from Misc import GetBgThdCnt, Touch, GetMTime

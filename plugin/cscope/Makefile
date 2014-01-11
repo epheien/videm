@@ -1,7 +1,7 @@
 
 files := $(wildcard *.vim)
 
-TARGET_DIR = $(VIMDIR)/autoload/videm/plugin
+TARGET_DIR = $(DESTDIR)/autoload/videm/plugin
 
 all:
 

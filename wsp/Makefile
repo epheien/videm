@@ -26,17 +26,17 @@ all:
 clean:
 
 install:
-	@for d in $(files); do cp "$$d" $(PYDIR)/; done
-	@mkdir -p $(VIMDIR)/autoload/videm
-	@cp videm.vim $(VIMDIR)/plugin
-	@cp settings.vim wsp.vim wsp.py $(VIMDIR)/autoload/videm
-	@mkdir -p $(VIMDIR)/syntax
-	@cp syntax/* $(VIMDIR)/syntax
-	@mkdir -p $(VIDEMDIR)/config
-	@cp BuildSettings.jcnf $(VIDEMDIR)/config
-	@-cp -r templates/ $(VIDEMDIR)/ 2>/dev/null
-	@-cp -r bitmaps/ $(VIDEMDIR)/ 2>/dev/null
-	@-cp tools/* $(VIDEMDIR)
+	@for d in $(files); do cp "$$d" $(VIDEM_PYDIR)/; done
+	@mkdir -p $(DESTDIR)/autoload/videm
+	@cp videm.vim $(DESTDIR)/plugin
+	@cp settings.vim wsp.vim wsp.py $(DESTDIR)/autoload/videm
+	@mkdir -p $(DESTDIR)/syntax
+	@cp syntax/* $(DESTDIR)/syntax
+	@mkdir -p $(VIDEM_DIR)/config
+	@cp BuildSettings.jcnf $(VIDEM_DIR)/config
+	@-cp -r templates/ $(VIDEM_DIR)/ 2>/dev/null
+	@-cp -r bitmaps/ $(VIDEM_DIR)/ 2>/dev/null
+	@-cp tools/* $(VIDEM_DIR)
 
 
 .PHONY: all clean install
