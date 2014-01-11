@@ -2,7 +2,7 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-12-13
-" Change:   2013-12-22
+" Change:   2014-01-11
 
 " 这个插件暂时只支持 ASCII 码的补全, 其他的都不支持
 
@@ -47,6 +47,8 @@ function! s:InitPyIf() "{{{2
         return
     endif
     let s:init_pyif = 1
+
+    call vpymod#driver#Init()
 python << PYTHON_EOF
 import re
 import vim
@@ -82,7 +84,6 @@ PYTHON_EOF
 endfunction
 "}}}
 
-call vpymod#driver#Init()
 autocmd BufNewFile,BufReadPost * call InitKeywordsComplete()
 
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1
