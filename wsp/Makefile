@@ -19,6 +19,7 @@ files := \
     VLWorkspaceSettings.py \
     XmlUtils.py \
     VidemSession.py \
+    Macros.py \
 
 
 all:
