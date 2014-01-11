@@ -53,13 +53,14 @@ function! omnicpp#settings#Init() "{{{1
     " 使用 libCxxParser.so
     call s:InitVariable('g:VLOmniCpp_UseLibCxxParser', 0)
 
-    " libCxxParser.so 所在的路径
+    " libCxxParser.so 所在的路径, 直接使用 g:videm_dir 变量即可
+    " 所以这个插件只能跟 videm 一起使用
     if has('win32') || has('win64')
         call s:InitVariable('g:VLOmniCpp_LibCxxParserPath', 
-                    \       $VIM . '\videm\lib\libCxxParser.dll')
+                    \       g:videm_dir . '\lib\libCxxParser.dll')
     else
         call s:InitVariable('g:VLOmniCpp_LibCxxParserPath', 
-                    \       $HOME . "/.videm/lib/libCxxParser.so")
+                    \       g:videm_dir . "/lib/libCxxParser.so")
     endif
 
     " 跳转至符号声明处的快捷键
