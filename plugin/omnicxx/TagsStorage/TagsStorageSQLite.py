@@ -24,7 +24,13 @@ import json
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
-_DEBUG = False
+_DEBUG = True
+
+# 使用 fileid 域, 至少需要处理以下情况
+# * 以文件名索引删除 tags
+# * 插入 tag 时需要获取到 fileid
+# * 获取 tags 时需要获取到 file     # TODO
+_USE_FILEID = True
 
 STORAGE_VERSION = 3000
 
@@ -337,7 +343,7 @@ class TagsStorageSQLite(object):
             pass # 返回 0 即标志着错误
         return version
 
-    def StoreFromTagFile(self, tagFile, auto_commit = True):
+    def StoreFromTagFile(self, tagFile, auto_commit = True, filedict = {}):
         '''从 tags 文件保存'''
         if not self.IsOpen():
             return -1
@@ -358,6 +364,9 @@ class TagsStorageSQLite(object):
             except:
                 return -1
 
+            if _USE_FILEID:
+                prevfile = ''
+                prevfileid = 0
             for line in f:
                 # does not matter if we insert or update, 
                 # the cache must be cleared for any related tags
@@ -366,6 +375,18 @@ class TagsStorageSQLite(object):
 
                 tagEntry = TagEntry()
                 tagEntry.FromLine(line)
+
+                if _USE_FILEID:
+                    # 切换到下一个文件, 有一些优化效果
+                    if tagEntry.GetFile() != prevfile:
+                        # 重查
+                        tagEntry.fileid = filedict.get(tagEntry.GetFile(),
+                                                       TagEntry()).id
+                        prevfile = tagEntry.GetFile()
+                        prevfileid = tagEntry.fileid
+                    else:
+                        # 使用上一次的结果
+                        tagEntry.fileid = prevfileid
 
                 if self.InsertTagEntry(tagEntry, auto_commit=False) != 0:
                     # 插入不成功?
@@ -395,10 +416,36 @@ class TagsStorageSQLite(object):
 
         return ret
 
+    def DeleteTagsByFileids(self, fileids, auto_commit = True):
+        if not self.IsOpen() or not fileids:
+            return -1
+
+        ret = -1
+        try:
+            if auto_commit:
+                self.Begin()
+
+            self.db.execute("DELETE FROM TAGS WHERE fileid IN %s;"
+                            % MakeQMarkString(len(fileids)), tuple(fileids))
+
+            if auto_commit:
+                self.Commit()
+            ret = 0
+        except sqlite3.OperationalError:
+            if auto_commit:
+                self.Rollback()
+            ret = -1
+        return ret
+
     def DeleteTagsByFiles(self, files, auto_commit = True):
         '''删除属于指定文件名 fname 的所有标签'''
-        if not self.IsOpen():
+        if not self.IsOpen() or not files:
             return -1
+
+        # 这里需要 bypass 掉
+        if _USE_FILEID:
+            fileids = self.GetFileidsByFiles(files)
+            return self.DeleteTagsByFileids(fileids)
 
         ret = -1
         try:
@@ -422,6 +469,24 @@ class TagsStorageSQLite(object):
             return True
         else:
             return False
+
+    def GetFileByFileid(self, fileid):
+        if not self.IsOpen():
+            return ''
+
+        res = self.ExecuteSQL('SELECT * FROM FILES WHERE id = ?;', (fileid,))
+        for row in res:
+            return row[1]
+
+        return ''
+
+    def GetFileidsByFiles(self, files):
+        if not self.IsOpen() or not files:
+            return []
+
+        res = self.ExecuteSQL("SELECT * FROM FILES WHERE file IN %s;" 
+                        % MakeQMarkString(len(files)), tuple(files))
+        return [int(row[0]) for row in res]
 
     def GetFilesMapping(self, files = []):
         '''返回文件到文件条目的字典, 方便比较
@@ -589,13 +654,19 @@ class TagsStorageSQLite(object):
             return -1
 
         try:
+            if _USE_FILEID:
+                fname = ''
+                fileid = tag.fileid
+            else:
+                fname = tag.GetFile()
+                fileid = 0
             # INSERT OR REPLACE 貌似是不会失败的?!
             self.db.execute('''
                 INSERT OR REPLACE INTO TAGS VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 ''',
                 (tag.GetName(),
-                 tag.GetFile(),
-                 0, # TODO: fileid
+                 fname,
+                 fileid,
                  tag.GetLine(),
                  tag.GetAbbrKind(), # 缩写
 
@@ -618,6 +689,12 @@ class TagsStorageSQLite(object):
             return -1
 
         try:
+            if _USE_FILEID:
+                fname = ''
+                fileid = tag.fileid
+            else:
+                fname = tag.GetFile()
+                fileid = 0
             self.db.execute('''
                 UPDATE OR REPLACE TAGS SET
                     name=?, file=?, fileid, line=?, kind=?, scope=?,
@@ -626,8 +703,8 @@ class TagsStorageSQLite(object):
                 WHERE name=? AND file=? AND kind=? AND scope=? AND signature=?;
                 '''
                 (tag.GetName(),
-                 tag.GetFile(),
-                 0, # TODO: fileid
+                 fname,
+                 fileid,
                  tag.GetLine(),
                  tag.GetAbbrKind(),
                  ToAbbrGlobal(tag.GetScope()),
@@ -651,12 +728,12 @@ class TagsStorageSQLite(object):
         else:
             return 0
 
-    def GetTagsByFiles(self, files):
-        if not files:
-            return []
-
-        return self._FetchTags('SELECT * FROM TAGS WHERE file IN %s' \
-                               % MakeQMarkString(len(files)), tuple(files))
+#    def GetTagsByFiles(self, files):
+#        if not files:
+#            return []
+#
+#        return self._FetchTags('SELECT * FROM TAGS WHERE file IN %s' \
+#                               % MakeQMarkString(len(files)), tuple(files))
 
 try:
     # 暂时用这种尝试方法
@@ -666,7 +743,7 @@ except ImportError:
     _print('%s: Can not get variable g:VidemDir, fallback to ~/.videm'
            % os.path.basename(__file__), file=sys.stderr)
     # only for Linux
-    VIDEM_DIR = os.path.expanduser('~/.videm')
+    VIDEM_DIR = os.path.expanduser('~/.vim/_videm')
 
 if platform.system() == 'Windows':
     CTAGS = os.path.join(VIDEM_DIR, 'bin', 'vlctags2.exe')
@@ -800,9 +877,9 @@ def ParseAndStore(storage, files, macros_files = [], ignore_needless = True,
     # 分批 parse
     totalCount = len(pending_files)
     batchCount = totalCount / 10
-    if batchCount > 200: # 上限
+    if batchCount > 200:    # 上限
         batchCount = 200
-    if batchCount <= 0: # 下限
+    if batchCount <= 0:     # 下限
         batchCount = 1
 
     i = 0
@@ -810,25 +887,38 @@ def ParseAndStore(storage, files, macros_files = [], ignore_needless = True,
     if indicator:
         indicator(0, 100)
 
-    if _DEBUG:
-        tagFile = os.path.join(__dir__, 'tags.txt')
-    else:
+    if not _DEBUG:
         tagFile = TempFile()
     while batchFiles:
+        if _DEBUG:
+            tagFile = os.path.join(__dir__, 'tags_%d.txt' % i)
+            ret = 0
         # 使用临时文件
-        ret = ParseFilesToTags(batchFiles, tagFile, macros_files)
+        #ret = ParseFilesToTags(batchFiles, tagFile, macros_files)
         if ret == 0: # 只有解析成功才入库
             storage.Begin()
+
+            # 先删除旧的 tags
             if storage.DeleteTagsByFiles(batchFiles, auto_commit = False) != 0:
                 storage.Rollback()
                 storage.Begin()
-            if storage.StoreFromTagFile(tagFile, auto_commit = False) != 0:
-                storage.Rollback()
-                storage.Begin()
+
+            # 存 FILES 表
             tagtime = int(time.time())
             for f in batchFiles:
                 if os.path.isfile(f):
                     storage.InsertFileEntry(f, tagtime, auto_commit = False)
+            if _USE_FILEID:
+                filedict = storage.GetFilesMapping()
+            else:
+                filedict = {}
+
+            # 存 TAGS 表
+            if storage.StoreFromTagFile(tagFile, auto_commit = False,
+                                        filedict = filedict) != 0:
+                storage.Rollback()
+                storage.Begin()
+
             storage.Commit()
 
         i += batchCount
@@ -910,10 +1000,14 @@ extern int g_ii;
     storage.RecreateDatabase()
     t1 = time.time()
     ParseAndStore(storage, files, macros_files, ignore_needless = False,
-                  indicator = PrintProgress)
+                  indicator = PrintProgress, filter_noncxx = True)
     t2 = time.time()
     print "consume time: %f" % (t2 - t1)
+
     os.remove(tfile)
+
+    if _DEBUG:
+        return
 
     #tags = storage.GetTagsBySQL('SELECT * FROM TAGS;')
     #for tag in tags:
@@ -924,6 +1018,8 @@ extern int g_ii;
     for tag in storage.GetOrderedTagsByScopesAndName(['<global>', 'C'], 'c'):
         tag.Print()
 
+    assert storage.GetFileByFileid(1)
+    assert storage.GetFileidsByFiles([storage.GetFileByFileid(1)]) == [1]
     assert storage.GetTagsByPath('C::cc')
 
     #print storage.GetFilesMapping(['/usr/include/stdio.h',
