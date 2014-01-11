@@ -131,10 +131,10 @@ import os
 import os.path
 import vim
 
-try:
-    sys.path.index(os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir')))
-except ValueError:
-    sys.path.append(os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir')))
+#try:
+#    sys.path.index(os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir')))
+#except ValueError:
+#    sys.path.append(os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir')))
 from omnicpp.VimTagsManager import VimTagsManager
 from omnicpp.VimTagsManager import AppendCtagsOpt
 from Misc import ToVimEval

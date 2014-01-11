@@ -51,11 +51,11 @@ endtry
 if exists('g:VLOmniCpp_UsePython') && g:VLOmniCpp_UsePython
 python << PYTHON_EOF
 try:
-    import CppTokenizer
+    from omnicpp import CppTokenizer
 except ImportError:
     import sys
     import os
-    sys.path.append(os.path.expanduser('~/.vimlite/VimLite'))
+    #sys.path.append(os.path.expanduser('~/.vimlite/VimLite'))
     import vim
     import CppTokenizer
 PYTHON_EOF

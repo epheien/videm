@@ -51,7 +51,7 @@ import sys
 bak = sys.argv[:]
 sys.argv = bak[0:1]
 sys.argv.append(vim.eval("g:VLOmniCpp_LibCxxParserPath"))
-import CppParser
+from omnicpp import CppParser
 sys.argv = bak
 del bak
 def GetScopeStack():
