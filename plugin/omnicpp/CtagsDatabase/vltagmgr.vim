@@ -135,8 +135,8 @@ try:
     sys.path.index(os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir')))
 except ValueError:
     sys.path.append(os.path.expanduser(vim.eval('g:VimTagsManager_SrcDir')))
-from VimTagsManager import VimTagsManager
-from VimTagsManager import AppendCtagsOpt
+from omnicpp.VimTagsManager import VimTagsManager
+from omnicpp.VimTagsManager import AppendCtagsOpt
 from Misc import ToVimEval
 
 # 添加选项

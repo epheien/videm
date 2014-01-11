@@ -547,14 +547,10 @@ function! s:InitPythonIterfaces() "{{{2
 python << PYTHON_EOF
 import sys
 import os.path
-try:
-    sys.path.index(os.path.dirname(vim.eval('omnicpp#settings#GetSfile()')))
-except ValueError:
-    sys.path.append(os.path.dirname(vim.eval('omnicpp#settings#GetSfile()')))
 
-from OmniCpp import OmniCpp
 #from Notifier import Notifier
 from TagsSettings import GetGccIncludeSearchPaths
+from omnicpp.OmniCpp import OmniCpp
 
 # 设置资源位置
 vim.command("let g:VimTagsManager_SrcDir = "

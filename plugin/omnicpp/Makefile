@@ -11,6 +11,7 @@ pyfiles := \
     CtagsDatabase/TagEntry.py \
     CtagsDatabase/TagsStorageSQLite.py \
     CtagsDatabase/VimTagsManager.py \
+    __init__.py \
 
 
 vimfiles := \
@@ -23,7 +24,7 @@ vimfiles := \
     utils.vim \
 
 
-PY_TARGET_DIR = $(DESTDIR)/autoload/omnicpp
+PY_TARGET_DIR = $(VPYMOD_DIR)/omnicpp
 VIM_TARGET_DIR = $(DESTDIR)/autoload/omnicpp
 VIDEM_PLUGIN_DIR = $(DESTDIR)/autoload/videm/plugin
 
