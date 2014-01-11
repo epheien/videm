@@ -24,7 +24,7 @@ import json
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
-_DEBUG = True
+_DEBUG = False
 
 # 使用 fileid 域, 至少需要处理以下情况
 # * 以文件名索引删除 tags
@@ -910,7 +910,7 @@ def ParseAndStore(storage, files, macros_files = [], ignore_needless = True,
             tagFile = os.path.join(__dir__, 'tags_%d.txt' % i)
             ret = 0
         # 使用临时文件
-        #ret = ParseFilesToTags(batchFiles, tagFile, macros_files)
+        ret = ParseFilesToTags(batchFiles, tagFile, macros_files)
         if ret == 0: # 只有解析成功才入库
             storage.Begin()
 
@@ -1012,11 +1012,15 @@ extern int g_ii;
     def PrintProgress(*args):
         print args
 
+    filter_noncxx = False
+    if _DEBUG:
+        filter_noncxx = True
+
     storage.OpenDatabase(dbfile)
     storage.RecreateDatabase()
     t1 = time.time()
     ParseAndStore(storage, files, macros_files, ignore_needless = False,
-                  indicator = PrintProgress, filter_noncxx = True)
+                  indicator = PrintProgress, filter_noncxx = filter_noncxx)
     t2 = time.time()
     print "consume time: %f" % (t2 - t1)
 
