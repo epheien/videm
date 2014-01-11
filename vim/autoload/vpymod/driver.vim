@@ -19,11 +19,6 @@ function vpymod#driver#Init()
     py import sys
     py import os.path
     py import vim
-    if has('win32') || has('win64') || has('win32unix')
-        py sys.path.append(os.path.join(vim.eval("$VIM"), 'videm', 'core'))
-    else
-        py sys.path.append(os.path.expanduser('~/.videm/core'))
-    endif
     py sys.path.append(os.path.dirname(vim.eval('s:sfile')))
 endfunction
 
