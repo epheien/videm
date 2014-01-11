@@ -13,6 +13,7 @@ let s:loaded = 1
 
 let s:sfile = expand('<sfile>')
 function! InitKeywordsComplete() "{{{2
+    " 防止重复初始化
     if exists('#AsyncCompl#InsertCharPre#<buffer>')
         return
     endif

@@ -480,6 +480,11 @@ function! asynccompl#BuffInit(...) "{{{2
         let bufnr = bufnr('%')
     endif
 
+    " 防止重复初始化
+    if has_key(s:status.buffers, bufnr)
+        return
+    endif
+
     if !exists('##InsertCharPre')
         echohl ErrorMsg
         echomsg 'Vim does not support InsertCharPre autocmd, so asynccompl can not work'
