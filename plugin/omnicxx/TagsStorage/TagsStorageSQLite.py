@@ -625,12 +625,16 @@ class TagsStorageSQLite(object):
 
     def InsertFileEntry(self, fname, tagtime, auto_commit = True):
         try:
+            if auto_commit:
+                self.Begin()
             # 理论上, 不会插入失败
             self.db.execute("INSERT OR REPLACE INTO FILES VALUES(NULL, ?, ?);", 
                            (fname, tagtime))
             if auto_commit:
                 self.Commit()
         except:
+            if auto_commit:
+                self.Rollback()
             PrintExcept()
             return -1
         else:
@@ -638,12 +642,16 @@ class TagsStorageSQLite(object):
 
     def UpdateFileEntry(self, fname, tagtime, auto_commit = True):
         try:
+            if auto_commit:
+                self.Begin()
             self.db.execute(
                 "UPDATE OR REPLACE FILES SET tagtime=? WHERE file=?;", 
                 (tagtime, fname))
             if auto_commit:
                 self.Commit()
         except:
+            if auto_commit:
+                self.Rollback()
             PrintExcept()
             return -1
         else:
@@ -660,6 +668,8 @@ class TagsStorageSQLite(object):
             else:
                 fname = tag.GetFile()
                 fileid = 0
+            if auto_commit:
+                self.Begin()
             # INSERT OR REPLACE 貌似是不会失败的?!
             self.db.execute('''
                 INSERT OR REPLACE INTO TAGS VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
@@ -679,6 +689,8 @@ class TagsStorageSQLite(object):
             if auto_commit:
                 self.Commit()
         except:
+            if auto_commit:
+                self.Rollback()
             PrintExcept()
             return -1
         else:
@@ -695,6 +707,8 @@ class TagsStorageSQLite(object):
             else:
                 fname = tag.GetFile()
                 fileid = 0
+            if auto_commit:
+                self.Begin()
             self.db.execute('''
                 UPDATE OR REPLACE TAGS SET
                     name=?, file=?, fileid, line=?, kind=?, scope=?,
@@ -723,6 +737,8 @@ class TagsStorageSQLite(object):
             if auto_commit:
                 self.Commit()
         except:
+            if auto_commit:
+                self.Rollback()
             PrintExcept()
             return -1
         else:
