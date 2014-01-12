@@ -594,6 +594,8 @@ if __name__ == '__main__':
                 entry = TagEntry()
                 entry.FromLine(line)
                 entry.Print()
+    if sys.argv[1:]:
+        sys.exit(0)
 
     assert GetMacroSignature('#define MIN(x, y) x < y ? x : y') == '(x, y)'
     entry = TagEntry()
