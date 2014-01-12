@@ -27,6 +27,8 @@ from CxxSemanticParser import GetComplInfo
 from CxxSemanticParser import ResolveScopeStack
 from CxxSemanticParser import ResolveComplInfo
 
+_DEBUG = False
+
 def GetTagsMgr(dbfile):
     tagmgr = TagsManager()
     # 不一定打开成功
@@ -123,6 +125,9 @@ def main(argv):
         usage(argv[0])
         return 1
 
+    import pprint
+    pp = pprint.PrettyPrinter(indent=4)
+
     icase = True
     opt = None
 
@@ -133,64 +138,28 @@ def main(argv):
     with open(file) as f:
         buff = f.read().splitlines()
 
-    scope_stack = GetScopeStack(buff, row, col)
-    obj = eval(repr(scope_stack))
-    print json.dumps(obj, sort_keys=True, indent=4)
+    if _DEBUG:
+        scope_stack = GetScopeStack(buff, row, col)
+        obj = eval(repr(scope_stack))
+        print '========== Scope Stack =========='
+        print json.dumps(obj, sort_keys=True, indent=4)
 
-    if not scope_stack:
-        return 1
+        if not scope_stack:
+            return 1
 
-    tokens = CxxTokenize(scope_stack[-1].cusrstmt)
-    print tokens
+        tokens = CxxTokenize(scope_stack[-1].cusrstmt)
+        print '========== Cursor Statement Tokens =========='
+        print tokens
 
-    print GetComplInfo(tokens)
+        print '========== Cursor Statement Complete Info =========='
+        print GetComplInfo(tokens)
 
-    # "::", "->", "." 之后的补全(无论 base 是否为空字符)定义为成员补全
-    member_complete = False
-
-    # "::" 作用域补全, 用于与 "->" 和 "." 补全区分
-    scope_complete = False
-
-    base = ''
-
-    member_complete_re = re.compile('^(\.|->|::)$')
-
-    if tokens:
-        if tokens[-1].kind == CPP_OP and member_complete_re.match(tokens[-1].text):
-            member_complete = True
-        elif tokens[-1].kind == CPP_KEYOWORD or tokens[-1].kind == CPP_WORD:
-            base = tokens[-1]
-            if len(tokens) >= 2 and member_complete_re.match(tokens[-2].text):
-                member_complete = True
-                if tokens[-2].text == '::':
-                    scope_complete = True
-                # endif
-            # endif
-        else:
-            # TODO: 进入这个分支的话不能补全
-            pass
-
-    tagmgr = GetTagsMgr(dbfile)
-    if not tagmgr:
-        print 'Failed to get tagmgr'
-        return 1
-    tags = []
-
-    if member_complete:
-        scope_info = ResolveScopeStack(scope_stack)
-        scope_info.Print()
-        search_scopes = scope_info.container + scope_info._global + scope_info.function
-        # TODO 获取tags
-        tags = tagmgr.GetOrderedTagsByScopesAndName(search_scopes, base)
-    else:
-        pass
-
-    if tags:
-        print 'fetch tags', len(tags)
-        print json.dumps([ToVimComplItem(tag) for tag in tags[:10]],
-                         sort_keys=True, indent=4)
-
-    print CodeComplete(file, buff, row, col, dbfile)
+    retmsg = {}
+    result = CodeComplete(file, buff, row, col, dbfile, retmsg=retmsg)
+    print '========== Code Complete Result =========='
+    pp.pprint(result)
+    print '========== Code Complete Returned Messages =========='
+    pp.pprint(retmsg)
 
 def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
                  **kwargs):
