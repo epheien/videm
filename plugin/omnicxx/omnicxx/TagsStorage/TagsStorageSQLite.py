@@ -488,6 +488,15 @@ class TagsStorageSQLite(object):
                         % MakeQMarkString(len(files)), tuple(files))
         return [int(row[0]) for row in res]
 
+    def UpdateFilesFile(self, oldfile, newfile):
+        '''用于支持文件重命名操作'''
+        try:
+            self.ExecuteSQL("UPDATE FILES SET file=? WHERE file=?;",
+                            (newfile, oldfile))
+        except sqlite3.OperationalError:
+            pass
+        return 0
+
     def GetFilesMapping(self, files = []):
         '''返回文件到文件条目的字典, 方便比较
         @files:     如果非空则为需要匹配的文件'''

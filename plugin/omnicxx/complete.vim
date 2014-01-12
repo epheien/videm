@@ -2,19 +2,22 @@
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-12-22
-" Change:   2013-12-22
+" Change:   2014-01-12
 
 function! omnicxx#complete#BuffInit() "{{{2
     call s:InitPyIf()
-    let icase = videm#settings#Get('.videm.cc.omnicxx.IgnoreCase')
-    let slmode = videm#settings#Get('.videm.cc.omnicxx.ItemSelectMode')
-    let trigchr = videm#settings#Get('.videm.cc.omnicxx.AutoTriggerCharCount')
-    let omnifunc = 1
-    call asynccompl#Register(icase, '\.\|>\|:',
-            \                '[A-Za-z_0-9]', '[A-Za-z_]\w*$', trigchr,
-            \                'CxxSearchStartColumn', 'CommonLaunchComplThread',
-            \                'CommonFetchComplResult',
-            \                omnifunc, slmode)
+    let config = {}
+    let config.manu_popup_pattern = '\.\|>\|:'
+    let config.auto_popup_pattern = '[A-Za-z_0-9]'
+    let config.auto_popup_base_pattern = '[A-Za-z_]\w*$'
+    let config.ignorecase = videm#settings#Get('.videm.cc.omnicxx.IgnoreCase')
+    let config.item_select_mode =
+            \ videm#settings#Get('.videm.cc.omnicxx.ItemSelectMode')
+    let config.auto_popup_char_count =
+            \ videm#settings#Get('.videm.cc.omnicxx.AutoTriggerCharCount')
+    let config.omnifunc = 1
+    let config.SearchStartColumnHook = 'CxxSearchStartColumn'
+    call asynccompl#Register(config)
     py CommonCompleteHookRegister(OmniCxxCompleteHook, None)
     py CommonCompleteArgsHookRegister(OmniCxxArgsHook, None)
     call asynccompl#BuffInit()
