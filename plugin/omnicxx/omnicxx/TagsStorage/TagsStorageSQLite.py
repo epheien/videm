@@ -266,21 +266,36 @@ class TagsStorageSQLite(object):
             # 为了看起来美观点
             sql = re.sub(r'\s+', ' ', sql).strip()
             self.ExecuteSQL(sql)
+            sqls = []
+            sqls += ['CREATE UNIQUE INDEX IF NOT EXISTS FILES_UNIQ_IDX ON FILES(file);',]
 
-            sqls = [
-                'CREATE UNIQUE INDEX IF NOT EXISTS FILES_UNIQ_IDX ON FILES(file);',
+            if _USE_FILEID:
+                sqls += [
+                    # 唯一索引 mod on 2011-01-07
+                    # 不同源文件文件之间会存在相同的符号
+                    # 最靠谱是(name, fileid, line, kind, scope, signature)
+                    # 但是可能会比较慢, 所以尽量精简
+                    # 假定同一行不会存在相同名字和类型的符号
+                    '''
+                    CREATE UNIQUE INDEX IF NOT EXISTS TAGS_UNIQ_IDX ON TAGS(name, fileid, kind, scope, signature);
+                    ''',
+                ]
+            else:
+                sqls += [
+                    # 唯一索引 mod on 2011-01-07
+                    # 不同源文件文件之间会存在相同的符号
+                    # 最靠谱是(name, file, line, kind, scope, signature)
+                    # 但是可能会比较慢, 所以尽量精简
+                    # 假定同一行不会存在相同名字和类型的符号
+                    '''
+                    CREATE UNIQUE INDEX IF NOT EXISTS TAGS_UNIQ_IDX ON TAGS(name, file, kind, scope, signature);
+                    ''',
+                ]
 
-                # 唯一索引 mod on 2011-01-07
-                # 不同源文件文件之间会存在相同的符号
-                # 最靠谱是(name, file, line, kind, scope, signature)
-                # 但是可能会比较慢, 所以尽量精简
-                # 假定同一行不会存在相同名字和类型的符号
-                '''
-                CREATE UNIQUE INDEX IF NOT EXISTS TAGS_UNIQ_IDX ON TAGS(name, file, kind, scope, signature);
-                ''',
-
+            sqls += [
                 #"CREATE INDEX IF NOT EXISTS TAGS_NAME_IDX ON TAGS(name);",
                 #"CREATE INDEX IF NOT EXISTS TAGS_FILE_IDX ON TAGS(file);",
+                #"CREATE INDEX IF NOT EXISTS TAGS_FILE_IDX ON TAGS(fileid);",
                 #"CREATE INDEX IF NOT EXISTS TAGS_KIND_IDX ON TAGS(kind);",
                 #"CREATE INDEX IF NOT EXISTS TAGS_SCOPE_IDX ON TAGS(scope);",
 
@@ -870,6 +885,19 @@ def _ParseFilesToTags(files, tagFile, macros_files = [], append = False,
 
     return ret
 
+def GetFilesMappingSafe(storage, files):
+    filedict = {}
+    # 每次 200 个足够吧?
+    i = 0
+    batch = 200
+
+    while i < len(files):
+        fs = files[i : i+batch]
+        filedict.update(storage.GetFilesMapping(fs))
+        i += batch
+
+    return filedict
+
 # 常用的接口
 def ParseAndStore(storage, files, macros_files = [], ignore_needless = True,
                   indicator = None, filter_noncxx = False):
@@ -889,7 +917,9 @@ def ParseAndStore(storage, files, macros_files = [], ignore_needless = True,
         pending_files = [os.path.abspath(f) for f in files]
 
     if ignore_needless:
-        filedict = storage.GetFilesMapping(pending_files)
+        # NOTE: pending_files 数量太多的话, SQL 无法支持, 需要分批来获取
+        #filedict = storage.GetFilesMapping(pending_files)
+        filedict = GetFilesMappingSafe(storage, pending_files)
         tmp = pending_files
         pending_files = []
         for pf in tmp:
