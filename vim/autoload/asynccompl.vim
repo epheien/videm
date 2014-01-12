@@ -620,7 +620,7 @@ function! asynccompl#Register(config) "{{{2
     let config.bufnr = bufnr
 
     let config.ManualPopupCheck = s:Funcref(
-            \   get(a:config, 'ManualPopupCheck', 'empty'))
+            \   get(a:config, 'ManualPopupCheck', 'len'))
     let config.SearchStartColumnHook = s:Funcref(
             \   get(a:config, 'SearchStartColumnHook', 'CommonSearchStartColumn'))
     let config.LaunchComplThreadHook = s:Funcref(
