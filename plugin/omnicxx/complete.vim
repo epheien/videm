@@ -4,6 +4,22 @@
 " Create:   2013-12-22
 " Change:   2014-01-12
 
+" 返回 0 表示不触发补全
+function! omnicxx#complete#ManualPopupCheck(char) "{{{2
+    " NOTE: char 为即将输入的字符
+    if col('.') < 2
+        return 0
+    endif
+
+    let prev_char = getline('.')[col('.')-2 : col('.')-2]
+    if a:char ==# ':' && prev_char !=# ':'
+        return 0
+    elseif a:char ==# '>' && prev_char !=# '-'
+        return 0
+    endif
+    return 1
+endfunction
+"}}}
 function! omnicxx#complete#BuffInit() "{{{2
     call s:InitPyIf()
     let config = {}
@@ -17,6 +33,7 @@ function! omnicxx#complete#BuffInit() "{{{2
             \ videm#settings#Get('.videm.cc.omnicxx.AutoTriggerCharCount')
     let config.omnifunc = 1
     let config.SearchStartColumnHook = 'CxxSearchStartColumn'
+    let config.ManualPopupCheck = 'omnicxx#complete#ManualPopupCheck'
     call asynccompl#Register(config)
     py CommonCompleteHookRegister(OmniCxxCompleteHook, None)
     py CommonCompleteArgsHookRegister(OmniCxxArgsHook, None)
@@ -37,6 +54,7 @@ import sys
 import vim
 import os
 import os.path
+from omnicxx import CodeComplete as OmniCxxCodeComplete
 
 def OmniCxxArgsHook(row, col, base, icase, data):
     # 暂时没有这么高端要支持好几个未保存的文件, 只支持当前文件未保存即可
@@ -53,7 +71,7 @@ def OmniCxxArgsHook(row, col, base, icase, data):
 def OmniCxxCompleteHook(acthread, args, data):
     '''这个函数在后台线程运行, 只能根据传入参数来进行操作'''
     file = args.get('file')
-    buff = args.get('buff') # 只保证到row行, row行后的内存可能不存在
+    buff = args.get('buff') # 只保证到row行, row行后的内容可能不存在
     row = args.get('row')
     col = args.get('col')
     base = args.get('base')
@@ -64,9 +82,14 @@ def OmniCxxCompleteHook(acthread, args, data):
     result = None
 
     acthread.CommonLock()
-    # TODO 这里开始根据参数来获取补全结果
-    # result = xxxxx(file, row, col, base, icase, dbfile, opts)
+    # just for test
     result = ['abc', 'xyz', 'ABC', 'XYZ']
+    retmsg = {}
+    # 这里开始根据参数来获取补全结果
+    result = OmniCxxCodeComplete(file, buff, row, col, dbfile, retmsg=retmsg)
+    #print '\n'.join(buff)
+    #print row, col
+    #print result
     acthread.CommonUnlock()
 
     return result
