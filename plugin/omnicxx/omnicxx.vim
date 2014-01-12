@@ -69,6 +69,8 @@ function! videm#plugin#omnicxx#Enable() "{{{2
     augroup END
     " 安装videm菜单项目
     py OmniCxxWMenuAction()
+    " 执行一次hook动作
+    py if ws.IsOpen(): VidemWspOmniCxxHook('open_post', ws, videm_cc_omnicxx)
     let s:enable = 1
 endfunction
 "}}}
@@ -89,6 +91,8 @@ function! videm#plugin#omnicxx#Disable() "{{{2
     augroup! VidemCCOmniCxx
     " 删除videm菜单项目
     py OmniCxxWMenuAction(remove=True)
+    " 执行一次hook动作
+    py if ws.IsOpen(): VidemWspOmniCxxHook('close_post', ws, videm_cc_omnicxx)
     let s:enable = 0
 endfunction
 "}}}
