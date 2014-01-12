@@ -66,9 +66,9 @@ class VLWorkspaceSettings:
         # 裸配置样，例的文本
         self.localConfigText = """\
 # Code Complete Engine
-.videm.cc.Current       = 'vimccc'
+.videm.cc.Current    = 'vimccc'
 # Symbol Database
-.videm.symdb.Current    = 'gtags'"""
+.videm.symdb.Current = 'gtags'"""
 
         # 统一的配置视图 on 2013-05-19
         # 路径示例:
