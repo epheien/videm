@@ -57,14 +57,15 @@ import os.path
 from omnicxx import CodeComplete as OmniCxxCodeComplete
 
 def OmniCxxArgsHook(row, col, base, icase, data):
+    dbfile = vim.eval('videm#plugin#omnicxx#GetWspDbfile()')
     # 暂时没有这么高端要支持好几个未保存的文件, 只支持当前文件未保存即可
     args = {'file': vim.eval('expand("%:p")'),
-            'buff': vim.current.buffer[:row], # 可以是列表或者字符串, 看需求
+            'buff': vim.current.buffer[:row],   # 可以是列表或者字符串, 看需求
             'row': row,
             'col': col,
             'base': base,
             'icase': icase,
-            'dbfile': os.path.expanduser('~/dbfile.vltags'), # 数据库文件名
+            'dbfile': dbfile,                   # 数据库文件名
             'opts': ''}
     return args
 
@@ -87,9 +88,6 @@ def OmniCxxCompleteHook(acthread, args, data):
     retmsg = {}
     # 这里开始根据参数来获取补全结果
     result = OmniCxxCodeComplete(file, buff, row, col, dbfile, retmsg=retmsg)
-    #print '\n'.join(buff)
-    #print row, col
-    #print result
     acthread.CommonUnlock()
 
     return result

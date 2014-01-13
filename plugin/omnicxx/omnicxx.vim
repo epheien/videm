@@ -123,6 +123,12 @@ function! videm#plugin#omnicxx#SettingsHook(event, data, priv) "{{{2
     endif
 endfunction
 "}}}
+function! videm#plugin#omnicxx#GetWspDbfile() "{{{2
+    py if not videm.wsp.IsOpen(): vim.command("return ''")
+    py vim.command("return %s" % ToVimEval(
+            \ os.path.splitext(videm.wsp.VLWIns.fileName)[0] + '.vtags'))
+endfunction
+"}}}
 let s:initpy = 0
 function! s:InitPyIf() "{{{2
     if s:initpy
@@ -150,7 +156,7 @@ def RnmNodePostHook(wsp, nodepath, nodetype, oldfile, newfile, ins):
 def VidemWspOmniCxxHook(event, wsp, ins):
     #print 'Enter VidemWspOmniCxxHook():', event, wsp, ins
     if event == 'open_post':
-        dbfile = os.path.splitext(wsp.VLWIns.fileName)[0] + '.vtags'
+        dbfile = vim.eval('videm#plugin#omnicxx#GetWspDbfile()')
         if ins.tagmgr.OpenDatabase(dbfile) != 0:
             print 'Failed to open tags database:', dbfile
         # 更新额外的搜索域
