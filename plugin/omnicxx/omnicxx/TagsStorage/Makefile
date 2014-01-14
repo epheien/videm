@@ -9,9 +9,9 @@ clean:
 install:
 	@mkdir -p $(THIS_DESTDIR)
 # 排除掉软链接, 一般软链接仅供测试用而已
-	@for f in $(files);			\
-	    [ -L "$$f" ] && continue;		\
-	    do cp "$$f" $(THIS_DESTDIR);	\
+	@for f in $(files); do		\
+	    [ -L "$$f" ] && continue;	\
+	    cp "$$f" $(THIS_DESTDIR);	\
 	done
 
 .PHONY: all clean install
