@@ -21,11 +21,12 @@
 " @config.item_select_mode          : 参考 omnicxx 相关说明, default 2
 " @config.omnifunc                  : 0 - &completefunc, 1 - &omnifunc, default 0
 " @config.bufnr                     : default -1
+"
 " @config.ManualPopupCheck          : (char) - 返回 0 表示终止, 否则表示继续
 "                                     只有 manu_popup_pattern 非空时才有用
-" @config.SearchStartColumnHook     : 搜索补全起始列号, 返回起始列号
-" @config.LaunchComplThreadHook     : (row, col, base, icase, join = 0) - 无返回值
-" @config.FetchComplResultHook      : 返回补全结果, 形如 [0|1, result]
+" @config.SearchStartColumnHook     : (void) - 搜索补全起始列号, 返回起始列号
+" @config.LaunchComplThreadHook     : (row, col, base, icase, scase, join=0) - 无返回值
+" @config.FetchComplResultHook      : (base) - 返回补全结果, 形如 [0|1, result]
 "                                     0表示未完成, 1表示完成, result可能为[]或{}
 "
 " LaunchComplThreadHook 可使用通用的 CommonLaunchComplThread
@@ -45,31 +46,34 @@
 "   @FetchComplResultHook 使用 CommonFetchComplResult
 " @SearchStartColumnHook 根据需要修改, 一般可直接用 CxxSearchStartColumn
 " 最后只需要定义类似下列的python hook, 并注册即可
-"   CommonCompleteHookRegister(CommonCompleteHook, data)
-"   CommonCompleteArgsHookRegister(CommonCompleteArgsHook, data)
+"   CommonCompleteHookRegister(CommonCompleteHook, priv)
+"   CommonCompleteArgsHookRegister(CommonCompleteArgsHook, priv)
 " NOTE: 这个函数是在后台线程运行, 绝不能在此函数内对vim进行操作
 " ============================================================================
 " 这个函数接受三个参数, 并最终返回补全结果
-" def CommonCompleteHook(acthread, args, data)
+" def CommonCompleteHook(acthread, args)
 " @acthread - AsyncComplThread 实例
 " @args     - 参数, 是一个字典, 自动生成, CommonLaunchComplThread 定义的键值包括
-"               'text':     '\n'.join(vim.current.buffer),
-"               'file':     vim.eval('expand("%:p")'),
-"               'row':      int(vim.eval('row')),
-"               'col':      int(vim.eval('col')),
-"               'base':     vim.eval('base'),
-"               'icase':    int(vim.eval('icase'))}
-" @data     - 注册的时候指定的参数
+"   'text'  : '\n'.join(vim.current.buffer)
+"   'file'  : vim.eval('expand("%:p")')
+"   'row'   : int(vim.eval('row'))
+"   'col'   : int(vim.eval('col'))
+"   'base'  : vim.eval('base')
+"   'icase' : int(vim.eval('icase'))
+"   'scase' : int(vim.eval('scase'))
+"   'priv'  : 注册的时候指定的参数
 " @return   - 补全列表, 直接用于补全结果, 参考 complete-items
 "
 " 这个函数用于动态生成 CommonCompleteHook 的 args 字典参数, 若不使用的话, args
 " 字典参数自动生成, 参考上面的说明
-" def CommonCompleteArgsHook(data)
-" @row      - 行
-" @col      - 列
-" @base     - 光标前关键词
-" @icase    - 忽略大小写
-" @data     - 注册的时候指定的参数
+" def CommonCompleteArgsHook(args)
+" @args     - 字典, 至少包含以下键值
+"   'row'   : 行
+"   'col'   : 列
+"   'base'  : 光标前关键词
+"   'icase' : 忽略大小写
+"   'scase' : smartcase
+"   'priv'  : 注册的时候指定的参数
 " @return   - args 字典, 参考上面的说明, 最终给予 CommonCompleteHook 使用
 
 " 初始化每缓冲区的变量
@@ -312,8 +316,9 @@ function! CCByChar() "{{{2
     let col = aucm_prev_stat['cccol']
     let base = aucm_prev_stat['base']
     let icase = b:config.ignorecase
+    let scase = b:config.smartcase
     " 启动线程
-    call b:config.LaunchComplThreadHook(row, col, base, icase)
+    call b:config.LaunchComplThreadHook(row, col, base, icase, scase)
     " 启动定时器
     call AsyncComplTimer()
     return ''
@@ -369,6 +374,7 @@ endfunction
 function! CommonAsyncComplete() "{{{2
     let sChar = v:char
     let icase = b:config.ignorecase
+    let scase = b:config.smartcase
 
     " 处理无条件指定触发补全的输入, 如C++中的::, ->, .
     if !empty(b:config.manu_popup_pattern) && sChar =~# b:config.manu_popup_pattern
@@ -452,7 +458,7 @@ function! CommonAsyncComplete() "{{{2
     endif
 " ============================================================================
     " ok，启动
-    call b:config.LaunchComplThreadHook(nRow, scol, sBase, icase)
+    call b:config.LaunchComplThreadHook(nRow, scol, sBase, icase, scase)
     let s:compl_count += 1
 
     " 更新状态
@@ -664,9 +670,10 @@ function! asynccompl#Driver(findstart, base) "{{{2
         let col = col('.')
         let base = a:base
         let icase = b:config.ignorecase
+        let scase = b:config.smartcase
         " 为了一致性, 这里需要更新状态
         call s:UpdateAucmPrevStat(row, col, base, pumvisible())
-        call b:config.LaunchComplThreadHook(row, col, base, icase, 1)
+        call b:config.LaunchComplThreadHook(row, col, base, icase, scase, 1)
 
         unlet result " result 在下面的返回值可能会不通, [] 或 {}
         " 没有定时器帮忙取结果, 所以只能自己取结果
@@ -697,8 +704,9 @@ function! asynccompl#CSDriver(findstart, base) "{{{2
         let col = col('.')
         let base = a:base
         let icase = b:config.ignorecase
+        let scase = b:config.smartcase
         call s:UpdateAucmPrevStat(row, col, base, pumvisible())
-        call b:config.LaunchComplThreadHook(row, col, base, icase, 1)
+        call b:config.LaunchComplThreadHook(row, col, base, icase, scase, 1)
 
         " 再取一次结果
         unlet result
@@ -826,13 +834,14 @@ endfunction
 
 let s:test_result = []
 " 通用启动线程函数, 使用内置实现
-function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
+function! CommonLaunchComplThread(row, col, base, icase, scase, ...) "{{{2
     "let s:test_result = ['abc', 'def', 'ghi', 'jkl', 'mno', 'abc']
 
     let row = a:row
     let col = a:col
     let base = a:base
     let icase = a:icase
+    let scase = a:scase
     let join = get(a:000, 0, 0)
 
     let custom_args = 0
@@ -842,24 +851,38 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
     if s:timer_mode
         if custom_args
             py g_asynccompl.PushThreadAndStart(
-                \ AsyncComplThread(
-                \   g_AsyncComplBVars.b.get('CommonCompleteHook'),
-                \   g_AsyncComplBVars.b.get('CommonCompleteArgsHook')(
-                \       int(vim.eval('row')), int(vim.eval('col')),
-                \       vim.eval('base'), int(vim.eval('icase')),
-                \       g_AsyncComplBVars.b.get('CommonCompleteArgsHookData')),
-                \   g_AsyncComplBVars.b.get('CommonCompleteHookData')))
+                \   AsyncComplThread(
+                \       g_AsyncComplBVars.b.get('CommonCompleteHook'),
+                \       g_AsyncComplBVars.b.get('CommonCompleteArgsHook')(
+                \           {
+                \               'row'   : int(vim.eval('row')),
+                \               'col'   : int(vim.eval('col')),
+                \               'base'  : vim.eval('base'),
+                \               'icase' : int(vim.eval('icase')),
+                \               'scase' : int(vim.eval('scase')),
+                \               'priv'  : g_AsyncComplBVars.b.get('CommonCompleteArgsHookData'),
+                \           }
+                \       ),
+                \       g_AsyncComplBVars.b.get('CommonCompleteHookData')
+                \   )
+                \ )
         else
             " 默认情况下
             py g_asynccompl.PushThreadAndStart(
-                \ AsyncComplThread(g_AsyncComplBVars.b.get('CommonCompleteHook'),
-                \                  {'text': '\n'.join(vim.current.buffer),
-                \                   'file': vim.eval('expand("%:p")'),
-                \                   'row': int(vim.eval('row')),
-                \                   'col': int(vim.eval('col')),
-                \                   'base': vim.eval('base'),
-                \                   'icase': int(vim.eval('icase'))},
-                \                  g_AsyncComplBVars.b.get('CommonCompleteHookData')))
+                \   AsyncComplThread(
+                \       g_AsyncComplBVars.b.get('CommonCompleteHook'),
+                \       {
+                \           'text': '\n'.join(vim.current.buffer),
+                \           'file': vim.eval('expand("%:p")'),
+                \           'row': int(vim.eval('row')),
+                \           'col': int(vim.eval('col')),
+                \           'base': vim.eval('base'),
+                \           'icase': int(vim.eval('icase')),
+                \           'scase': int(vim.eval('scase')),
+                \       },
+                \       g_AsyncComplBVars.b.get('CommonCompleteHookData')
+                \   )
+                \ )
         endif
 
         if join
@@ -871,33 +894,59 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
         let stat = {'ccrow': row, 'cccol': col, 'base': base}
         " 启动异步补全线程
         if custom_args
-            py g_asynccompl.PushThread(AsyncPython(AsyncCompl_AsyncHook,
-                    \      {'hook': g_AsyncComplBVars.b.get('CommonCompleteHook'),
-                    \       'args': g_AsyncComplBVars.b.get('CommonCompleteArgsHook')(
-                    \                   int(vim.eval('row')), int(vim.eval('col')),
-                    \                   vim.eval('base'), int(vim.eval('icase')),
-                    \                   g_AsyncComplBVars.b.get('CommonCompleteArgsHookData')),
-                    \       'data': g_AsyncComplBVars.b.get('CommonCompleteHookData')},
-                    \      AsyncCompl_Callback, {'stat': vim.eval("stat"),
-                    \                            'join': int(vim.eval('join')),
-                    \                            'icase': int(vim.eval('icase')),
-                    \                            'bufnr': int(vim.eval('bufnr("%")')),
-                    \                           }))
+            py g_asynccompl.PushThread(
+                \   AsyncPython(
+                \       AsyncCompl_AsyncHook,
+                \       {
+                \           'hook': g_AsyncComplBVars.b.get('CommonCompleteHook'),
+                \           'args': g_AsyncComplBVars.b.get('CommonCompleteArgsHook')(
+                \               {
+                \                   'row'   : int(vim.eval('row')),
+                \                   'col'   : int(vim.eval('col')),
+                \                   'base'  : vim.eval('base'),
+                \                   'icase' : int(vim.eval('icase')),
+                \                   'scase' : int(vim.eval('scase')),
+                \                   'priv'  : g_AsyncComplBVars.b.get('CommonCompleteArgsHookData'),
+                \               }),
+                \           'data': g_AsyncComplBVars.b.get('CommonCompleteHookData'),
+                \       },
+                \
+                \       AsyncCompl_Callback,
+                \       {
+                \           'stat': vim.eval("stat"),
+                \           'join': int(vim.eval('join')),
+                \           'icase': int(vim.eval('icase')),
+                \           'bufnr': int(vim.eval('bufnr("%")')),
+                \       }
+                \   )
+                \ )
         else
-            py g_asynccompl.PushThread(AsyncPython(AsyncCompl_AsyncHook,
-                    \      {'hook': g_AsyncComplBVars.b.get('CommonCompleteHook'),
-                    \       'args': {'text': '\n'.join(vim.current.buffer),
-                    \                'file': vim.eval('expand("%:p")'),
-                    \                'row': int(vim.eval('row')),
-                    \                'col': int(vim.eval('col')),
-                    \                'base': vim.eval('base'),
-                    \                'icase': int(vim.eval('icase'))},
-                    \       'data': g_AsyncComplBVars.b.get('CommonCompleteHookData')},
-                    \      AsyncCompl_Callback, {'stat': vim.eval("stat"),
-                    \                            'join': int(vim.eval('join')),
-                    \                            'icase': int(vim.eval('icase')),
-                    \                            'bufnr': int(vim.eval('bufnr("%")')),
-                    \                           }))
+            py g_asynccompl.PushThread(
+                \   AsyncPython(
+                \       AsyncCompl_AsyncHook,
+                \       {
+                \           'hook': g_AsyncComplBVars.b.get('CommonCompleteHook'),
+                \           'args': {
+                \               'text' : '\n'.join(vim.current.buffer),
+                \               'file' : vim.eval('expand("%:p")'),
+                \               'row'  : int(vim.eval('row')),
+                \               'col'  : int(vim.eval('col')),
+                \               'base' : vim.eval('base'),
+                \               'icase': int(vim.eval('icase')),
+                \               'scase': int(vim.eval('scase')),
+                \           },
+                \           'data': g_AsyncComplBVars.b.get('CommonCompleteHookData'),
+                \       },
+                \
+                \       AsyncCompl_Callback,
+                \       {
+                \           'stat': vim.eval("stat"),
+                \           'join': int(vim.eval('join')),
+                \           'icase': int(vim.eval('icase')),
+                \           'bufnr': int(vim.eval('bufnr("%")')),
+                \       }
+                \   )
+                \ )
         endif
 
         if join
@@ -1018,14 +1067,16 @@ def ToVimEval(o):
 def GetAllKeywords(s, kw_re = keyword_re):
     return kw_re.findall(s)
 
-def GetCurBufKws(base = '', ignorecase = False, buffer = vim.current.buffer,
-                 kw_re = keyword_re):
+def GetCurBufKws(base = '', ignorecase = False, smartcase = False,
+                 buffer = vim.current.buffer, kw_re = keyword_re):
     if isinstance(buffer, str):
         li = GetAllKeywords(buffer, kw_re)
     else:
         li = GetAllKeywords('\n'.join(buffer), kw_re)
     if base:
-        if ignorecase and base:
+        if smartcase and re.search('[A-Z]', base):
+            ignorecase = False
+        if ignorecase:
             pat = ''.join(["\\x%2x" % ord(c) for c in base])
             w = re.compile(pat, re.I)
             li = [i for i in li if w.match(i)]
@@ -1090,7 +1141,9 @@ class AsyncComplThread(threading.Thread):
         threading.Thread.__init__(self)
         self.hook = hook
         self.args = args # 这个参数是自动生成的
-        self.data = data # 这个是注册时指定的
+        #self.data = data # 这个是注册时指定的
+        # 把 data 合并进 args
+        self.args['priv'] = data
         self.result = None
         self.name = 'AsyncComplThread-' + self.name
         # 这个一般指向 AsyncComplData 实例, 用于和自身检查
@@ -1109,7 +1162,7 @@ class AsyncComplThread(threading.Thread):
             if not self.hook:
                 return
 
-            result = self.hook(self, self.args, self.data)
+            result = self.hook(self, self.args)
             if result is None:
                 return
 
@@ -1162,16 +1215,16 @@ class BufferVariables(object):
 g_AsyncComplBVars = BufferVariables()
 
 # 通用补全hook注册, 外知的接口
-def CommonCompleteHookRegister(hook, data):
+def CommonCompleteHookRegister(hook, priv):
     global g_AsyncComplBVars
     g_AsyncComplBVars.b['CommonCompleteHook'] = hook
-    g_AsyncComplBVars.b['CommonCompleteHookData'] = data
+    g_AsyncComplBVars.b['CommonCompleteHookData'] = priv
 
 # 通用补全hook注册, 外知的接口
-def CommonCompleteArgsHookRegister(hook, data):
+def CommonCompleteArgsHookRegister(hook, priv):
     global g_AsyncComplBVars
     g_AsyncComplBVars.b['CommonCompleteArgsHook'] = hook
-    g_AsyncComplBVars.b['CommonCompleteArgsHookData'] = data
+    g_AsyncComplBVars.b['CommonCompleteArgsHookData'] = priv
 
 # 本模块持有的全局变量, 保存最新的补全线程的信息
 g_asynccompl = AsyncComplData()
@@ -1197,8 +1250,9 @@ def AsyncCompl_AsyncHook(td, priv):
     # 2.搜索完毕后, 返回结果
     hook = priv.get('hook')
     args = priv.get('args')
-    data = priv.get('data')
-    result = hook(td, args, data)
+    # 把 data 合并进 args
+    args['priv'] = priv.get('data')
+    result = hook(td, args)
     #print result
     return result
 

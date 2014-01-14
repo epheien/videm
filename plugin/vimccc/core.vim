@@ -39,11 +39,11 @@ let g:dRelatedFile = {}
 
 let s:sPluginPath = substitute(expand('<sfile>:p:h'), '\\', '/', 'g')
 
-if has('win32') || has('win64')
-    let s:sDefaultPyModPath = fnamemodify($VIM . '\videm\core', ":p")
-else
-    let s:sDefaultPyModPath = fnamemodify("~/.videm/core", ":p")
-endif
+let s:os = vlutils#os
+
+let s:videm_base_dir = s:os.path.dirname(s:os.path.dirname(s:os.path.dirname(s:sfile)))
+let s:sDefaultPyModPath = s:os.path.join(s:videm_base_dir, '_videm', 'core')
+unlet s:videm_base_dir
 
 function! vimccc#core#Init() "{{{2
     return 0
@@ -863,19 +863,22 @@ def GetCurCol():
     #return vim.current.window.cursor[1]
     return int(vim.eval("col('.')"))
 
-def VIMCCCArgsHook(row, col, base, icase, data):
-    args = {'file': vim.eval('g:ToClangFileName(expand("%:p"))'),
-            'row': row,
-            'col': col,
-            'us_files': [GetCurUnsavedFile()],
-            'base': base,
-            'icase': vim.eval("g:VIMCCC_IgnoreCase") != '0',
-            'flags': int(vim.eval("g:VIMCCC_CodeCompleteFlags")),
-            'servername': vim.eval('v:servername')}
+def VIMCCCArgsHook(kwargs):
+    args = {
+        'file'      : vim.eval('g:ToClangFileName(expand("%:p"))'),
+        'us_files'  : [GetCurUnsavedFile()],
+        'row'       : kwargs['row'],
+        'col'       : kwargs['col'],
+        'base'      : kwargs['base'],
+        'icase'     : kwargs['icase'],
+        'scase'     : kwargs['scase'],
+        'flags'     : int(vim.eval("g:VIMCCC_CodeCompleteFlags")),
+        'servername': vim.eval('v:servername'),
+    }
     #print args
     return args
 
-def VIMCCCCompleteHook(acthread, args, data):
+def VIMCCCCompleteHook(acthread, args):
     '''这个函数在后台线程里面运行'''
     fil = args.get('file')
     row = args.get('row')

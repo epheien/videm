@@ -57,27 +57,32 @@ import os.path
 
 import iskconv
 
-def CurrFileKeywordsComplete(acthread, args, data):
+def CurrFileKeywordsComplete(acthread, args):
     '''补全当前文件的关键词, 类似于 <C-x><C-n>'''
-    kw_re = data
-    base = args.get('base', '')
     text = args.get('text', '')
-    icase = args.get('icase', False)
-    raw_result = GetCurBufKws(base, icase, text, kw_re)
+    base = args.get('base', '')
+    icase = args.get('icase', 0)
+    scase = args.get('scase', 0)
+    kw_re = args.get('priv', re.compile(''))
+    raw_result = GetCurBufKws(base, icase, scase, text, kw_re)
+    if scase and re.search('[A-Z]', base):
+        icase = 0
     # 转为字典, 否则不支持icase
     return [{'word': i, 'icase': icase} for i in raw_result]
 
-def CurrFileKeywordsCompleteArgs(row, col, base, icase, data):
-    args = {'text': '\n'.join(vim.current.buffer),
-            'file': vim.eval('expand("%:p")'),
-            'hello': 'world',
-            'row': row,
-            'col': col,
-            'base': base,
-            'icase': icase}
+def CurrFileKeywordsCompleteArgs(kwargs):
+    args = {
+        'text'  : '\n'.join(vim.current.buffer),
+        'file'  : vim.eval('expand("%:p")'),
+        'row'   : kwargs['row'],
+        'col'   : kwargs['col'],
+        'base'  : kwargs['base'],
+        'icase' : kwargs['icase'],
+        'scase' : kwargs['scase'],
+    }
     #print args
     return args
-    
+
 PYTHON_EOF
 endfunction
 "}}}
