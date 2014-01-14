@@ -7,8 +7,8 @@ clean:
 
 install:
 	@mkdir -p $(VIM_DESTDIR)
-	@-cp -r omnicxx/ $(VPYMOD_DIR)
 	@cp omnicxx.vim $(VIDEM_PLUGIN_DIR)
 	@cp complete.vim $(VIM_DESTDIR)
+	@cd omnicxx && $(MAKE) $@
 
 .PHONY: all clean install
