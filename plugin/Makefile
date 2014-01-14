@@ -4,6 +4,7 @@ dirs := \
 	omnicpp \
 	pyclewn \
 	vimccc \
+	omnicxx \
 
 all:
 
