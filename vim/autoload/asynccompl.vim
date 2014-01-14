@@ -230,16 +230,26 @@ function! CxxSearchStartColumn() "{{{2
 endfunction
 "}}}
 " 获取异步补全状态数据结构
-function! s:GetCSDict() "{{{2
-    if !exists('b:aucm_prev_stat')
-        let b:aucm_prev_stat =
-            \ {'ccrow': 0, 'cccol': 0, 'base': '', 'pumvisible': 0, 'init': 0}
+function! s:GetCSDict(...) "{{{2
+    let bufnr = get(a:000, 0, -1)
+    if bufnr <= 0
+        let bufnr = bufnr('%')
     endif
-    return b:aucm_prev_stat
+
+    if empty(getbufvar(bufnr, 'aucm_prev_stat'))
+        " 不存在变量就新建
+        let aucm_prev_stat =
+            \ {'ccrow': 0, 'cccol': 0, 'base': '', 'pumvisible': 0, 'init': 0}
+        call setbufvar(bufnr, 'aucm_prev_stat', aucm_prev_stat)
+    else
+        " 存在变量就直接返回
+        let aucm_prev_stat = getbufvar(bufnr, 'aucm_prev_stat')
+    endif
+    return aucm_prev_stat
 endfunction
 "}}}
-function! asynccompl#GetStat() "{{{2
-    return s:GetCSDict()
+function! asynccompl#GetStat(...) "{{{2
+    return s:GetCSDict(get(a:000, 0, -1))
 endfunction
 "}}}
 function! asynccompl#StatSimilar(s0, s1, ...) "{{{2
@@ -871,6 +881,7 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
                     \      AsyncCompl_Callback, {'stat': vim.eval("stat"),
                     \                            'join': int(vim.eval('join')),
                     \                            'icase': int(vim.eval('icase')),
+                    \                            'bufnr': int(vim.eval('bufnr("%")')),
                     \                           }))
         else
             py g_asynccompl.PushThread(AsyncPython(AsyncCompl_AsyncHook,
@@ -885,6 +896,7 @@ function! CommonLaunchComplThread(row, col, base, icase, ...) "{{{2
                     \      AsyncCompl_Callback, {'stat': vim.eval("stat"),
                     \                            'join': int(vim.eval('join')),
                     \                            'icase': int(vim.eval('icase')),
+                    \                            'bufnr': int(vim.eval('bufnr("%")')),
                     \                           }))
         endif
 
@@ -1208,13 +1220,14 @@ def AsyncCompl_Callback(td, priv):
     # 2.检查最新请求是否为当前线程, 如果是才继续
     # NOTE: 不需要检查线程了, 直接执行步骤2检查ident结构即可
 
+    bufnr = priv.get('bufnr')
     icase = priv.get('icase', 0)
     stat = priv.get('stat')
     stat['ccrow'] = int(stat['ccrow'])
     stat['cccol'] = int(stat['cccol'])
     # 同步模式不需要检查
-    if not join and vim.eval("asynccompl#StatSimilar(%s, asynccompl#GetStat(), %d)"
-                % (ToVimEval(stat), icase)) == '0':
+    if not join and vim.eval("asynccompl#StatSimilar(%s, asynccompl#GetStat(%d), %d)"
+                % (ToVimEval(stat), bufnr, icase)) == '0':
         # 状态不相似, 直接结束
         return
 
