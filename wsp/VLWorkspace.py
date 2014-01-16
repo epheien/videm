@@ -1450,6 +1450,8 @@ class VLWorkspace(object):
 
     def IsWorkspaceFile(self, fileName):
         '''判断一个文件是否属于工作区'''
+        if not fileName:
+            return False
         fileName = os.path.realpath(fileName)
         return self.filesIndex.has_key(fileName)
 

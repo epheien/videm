@@ -1034,6 +1034,10 @@ endfunction
 "}}}
 function s:Autocmd_WorkspaceEditorOptions() "{{{2
     let sFile = expand('%:p')
+    " NOTE: 老版本的 vim 中, 空字符串传给 python 的时候, 是 None
+    if empty(sFile)
+        return
+    endif
     " 不是工作区的文件就直接跳出
     py if not ws.VLWIns.IsWorkspaceFile(vim.eval("sFile")):
                 \vim.command('return')
