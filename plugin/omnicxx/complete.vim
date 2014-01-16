@@ -56,20 +56,25 @@ import os
 import os.path
 from omnicxx import CodeComplete as OmniCxxCodeComplete
 
-def OmniCxxArgsHook(row, col, base, icase, data):
+def OmniCxxArgsHook(kwargs):
     dbfile = vim.eval('videm#plugin#omnicxx#GetWspDbfile()')
     # 暂时没有这么高端要支持好几个未保存的文件, 只支持当前文件未保存即可
-    args = {'file': vim.eval('expand("%:p")'),
-            'buff': vim.current.buffer[:row],   # 可以是列表或者字符串, 看需求
-            'row': row,
-            'col': col,
-            'base': base,
-            'icase': icase,
-            'dbfile': dbfile,                   # 数据库文件名
-            'opts': ''}
+    args = {
+        'file'  : vim.eval('expand("%:p")'),
+        # 可以是列表或者字符串, 看需求
+        'buff'  : vim.current.buffer[:kwargs['row']],
+        'row'   : kwargs['row'],
+        'col'   : kwargs['col'],
+        'base'  : kwargs['base'],
+        'icase' : kwargs['icase'],
+        'scase' : kwargs['scase'],
+        # 数据库文件名
+        'dbfile': dbfile,
+        'opts'  : '',
+    }
     return args
 
-def OmniCxxCompleteHook(acthread, args, data):
+def OmniCxxCompleteHook(acthread, args):
     '''这个函数在后台线程运行, 只能根据传入参数来进行操作'''
     file = args.get('file')
     buff = args.get('buff') # 只保证到row行, row行后的内容可能不存在
