@@ -50,9 +50,6 @@ def GetScopeStack(buff, row, col):
     contents.append(buff[row-1][:col-1])
     return CxxParser.CxxGetScopeStack(contents)
 
-def Error(msg):
-    print msg
-
 def usage(cmd):
     print 'Usage:\n\t%s {dbfile} {file} {row} {col}' % cmd
 
