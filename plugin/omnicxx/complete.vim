@@ -54,6 +54,7 @@ import sys
 import vim
 import os
 import os.path
+import re
 from omnicxx import CodeComplete as OmniCxxCodeComplete
 
 def OmniCxxArgsHook(kwargs):
@@ -82,6 +83,7 @@ def OmniCxxCompleteHook(acthread, args):
     col = args.get('col')
     base = args.get('base')
     icase = args.get('icase')
+    scase = args.get('scase')
     dbfile = args.get('dbfile') # 数据库文件, 跨线程需要新建数据库连接实例
     opts = args.get('opts')
 
@@ -94,6 +96,15 @@ def OmniCxxCompleteHook(acthread, args):
     # 这里开始根据参数来获取补全结果
     result = OmniCxxCodeComplete(file, buff, row, col, dbfile, retmsg=retmsg)
     acthread.CommonUnlock()
+
+    if base:
+        if scase and re.search('[A-Z]', base):
+            icase = 0
+        if icase:
+            re_base = re.compile(base, re.I) # TODO
+            result = [i for i in result if re_base.match(i['word'])]
+        else:
+            result = [i for i in result if i['word'].startswith(base)]
 
     return result
 
