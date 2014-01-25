@@ -228,7 +228,7 @@ def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
             member_complete = True
             if tokens[-1].text == '::':
                 scope_complete = True
-        elif this_base:
+        elif base:
             # 如果最后的 token 不是有效的补全开始 token, 那么这时有 base 的话
             # 还是可以继续的, 否则就是无效的补全请求了
             pass
