@@ -48,10 +48,10 @@ def _print(*args, **kwargs):
 # 为了进一步减少数据库的容量, "<global>" 使用 "#" 字符代替存在数据库中
 def ToAbbrGlobal(g):
     if g == '<global>':
-        return '#'
+        return ''
     return g
 def ToFullGlobal(g):
-    if g == '#':
+    if g == '':
         return '<global>'
     return g
 
