@@ -920,8 +920,6 @@ class VimLiteWorkspace(object):
         if texts:
             self.buffer[ln - 1 : ret - 1] = texts
 
-        self.HlActiveProject()
-
         # post action
         self.CallAddNodePostHooks(self.VLWIns.GetNodePathByLineNum(row),
                                   self.VLWIns.GetNodeTypeByLineNum(row),
@@ -983,7 +981,6 @@ class VimLiteWorkspace(object):
             #self.buffer[prevLn-1:row-1] = texts
 
         del self.buffer[row-1:row-1+ret]
-        self.HlActiveProject()
 
         if nodeType == VidemWorkspace.NT_VIRTDIR:
             # 可优化
@@ -996,11 +993,9 @@ class VimLiteWorkspace(object):
         return files
 
     def HlActiveProject(self):
-        activeProject = self.VLWIns.activeProject
-        if activeProject:
-            vim.command('match %s /^[|`][+~]\zs%s$/' 
-                % (vim.eval('g:VLWorkspaceActiveProjectHlGroup'), 
-                    activeProject))
+        '''这个函数的含义已经变了, 现在仅用于刷新指定配置'''
+        hlname = vim.eval('videm#settings#Get(".videm.wsp.ActProjHlGroup")')
+        vim.command("hi link VLWActiveProject %s" % hlname)
 
     def RefreshLines(self, start, end):
         '''刷新数行，不包括 end 行'''
@@ -1863,7 +1858,7 @@ class VimLiteWorkspace(object):
                 self.builder.Export(projName, '', force = True)
             elif choice == 'Set As Active':
                 self.VLWIns.SetActiveProjectByLineNum(row)
-                self.HlActiveProject()
+                vim.command("call s:RefreshBuffer()")
             elif choice == 'Add a New File...':
                 self.__MenuOper_AddANewFile(row, useGui)
             elif choice == 'Add Existing Files...':

@@ -27,11 +27,15 @@ syn match VLWIgnoredFile '[|`]#.\+'hs=s+1 contains=VLWTreeLead
 " 工作空间名字只能由 [a-zA-Z_ +-.] 组成
 syn match VLWorkspace '^[a-zA-Z0-9_ +-.]\+$'
 
-syn match VLWProject '^[|`][+~].\+' 
-            \contains=VLWOpenable,VLWClosable,VLWTreeLead
+" 当前激活的项目名称
+syn match VLWActiveProject '^[|`][+~][^*]\+\*$'hs=s+2,he=e-1
+        \ contains=VLWOpenable,VLWClosable,VLWTreeLead
 
-syn match VLWVirtualDirectory '\s[|`][+~].\+$'hs=s+3 
-            \contains=VLWOpenable,VLWClosable,VLWTreeLead
+syn match VLWProject '^[|`][+~].\+'
+        \ contains=VLWOpenable,VLWClosable,VLWTreeLead,VLWActiveProject
+
+syn match VLWVirtualDirectory '\s[|`][+~].\+$'hs=s+3
+        \ contains=VLWOpenable,VLWClosable,VLWTreeLead
 
 " 帮助信息
 syn match VLWFlag '\~'
@@ -42,22 +46,22 @@ syn match VLWHelp '^".*' contains=VLWHelpKey,VLWHelpTitle,VLWFlag
 
 if exists('g:VLWorkspaceHighlightSourceFile') && g:VLWorkspaceHighlightSourceFile
     " c/c++ 源文件、头文件
-    syn match VLWCSource    '\V\c\[|`]-\.\+.c\$'hs=s+2 
-                \contains=VLWFilePre,VLWTreeLead
+    syn match VLWCSource    '\V\c\[|`]-\.\+.c\$'hs=s+2
+            \ contains=VLWFilePre,VLWTreeLead
 
-    syn match VLWCHeader    '\V\c\[|`]-\.\+.h\$'hs=s+2 
-                \contains=VLWFilePre,VLWTreeLead
+    syn match VLWCHeader    '\V\c\[|`]-\.\+.h\$'hs=s+2
+            \ contains=VLWFilePre,VLWTreeLead
 
-    syn match VLWCppSource  '\V\c\[|`]-\.\+.cpp\$'hs=s+2 
-                \contains=VLWFilePre,VLWTreeLead
-    syn match VLWCppSource  '\V\c\[|`]-\.\+.c++\$'hs=s+2 
-                \contains=VLWFilePre,VLWTreeLead
-    syn match VLWCppSource  '\V\c\[|`]-\.\+.cxx\$'hs=s+2 
-                \contains=VLWFilePre,VLWTreeLead
-    syn match VLWCppSource  '\V\c\[|`]-\.\+.cc\$'hs=s+2 
-                \contains=VLWFilePre,VLWTreeLead
-    syn match VLWCppHeader  '\V\c\[|`]-\.\+.hpp\$'hs=s+2 
-                \contains=VLWFilePre,VLWTreeLead
+    syn match VLWCppSource  '\V\c\[|`]-\.\+.cpp\$'hs=s+2
+            \ contains=VLWFilePre,VLWTreeLead
+    syn match VLWCppSource  '\V\c\[|`]-\.\+.c++\$'hs=s+2
+            \ contains=VLWFilePre,VLWTreeLead
+    syn match VLWCppSource  '\V\c\[|`]-\.\+.cxx\$'hs=s+2
+            \ contains=VLWFilePre,VLWTreeLead
+    syn match VLWCppSource  '\V\c\[|`]-\.\+.cc\$'hs=s+2
+            \ contains=VLWFilePre,VLWTreeLead
+    syn match VLWCppHeader  '\V\c\[|`]-\.\+.hpp\$'hs=s+2
+            \ contains=VLWFilePre,VLWTreeLead
 
     hi def link VLWCSource Function
     hi def link VLWCHeader Constant
@@ -68,6 +72,7 @@ endif
 hi def link VLWorkspace PreProc
 hi def link VLWProject Type
 hi def link VLWVirtualDirectory Statement
+hi def link VLWActiveProject SpecialKey
 
 hi def link VLWTreeLead Special
 hi def link VLWFilePre Linenr

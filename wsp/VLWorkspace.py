@@ -488,9 +488,13 @@ class VLWorkspace(object):
             else:
                 expandText = FOLD_PREFIX
 
-        text = MakeLevelPreStrDependList(datum['deepFlag']) + \
-            expandText + \
-            os.path.basename(datum['node'].getAttribute('Name').encode('utf-8'))
+        name = os.path.basename(datum['node'].getAttribute('Name').encode('utf-8'))
+        text = MakeLevelPreStrDependList(datum['deepFlag']) + expandText + name
+            
+        # 当前激活的项目需要特殊标记 on 2013-01-25
+        if self.DoGetTypeOfNode(datum['node']) == TYPE_PROJECT \
+           and name == self.GetActiveProjectName():
+            text += '*' # 暂时使用这个作为标记
 
         return text
 

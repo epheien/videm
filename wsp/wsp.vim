@@ -775,7 +775,6 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     if sFile ==# '' && g:VLWorkspaceHasStarted
         py ws.CreateWindow()
         py ws.SetupStatusLine()
-        py ws.HlActiveProject()
         return
     endif
 
@@ -1330,20 +1329,13 @@ function! s:DeleteNode(lnum) "{{{2
 endfunction
 
 
-function! s:HlActiveProject() "{{{2
-    py ws.HlActiveProject()
-endfunction
-
-
 function! s:RefreshLines(start, end) "刷新数行，不包括 end 行 {{{2
     py ws.RefreshLines(vim.eval('a:start'), vim.eval('a:end'))
 endfunction
 
-
 function! s:RefreshStatusLine() "{{{2
     py ws.RefreshStatusLine()
 endfunction
-
 
 function! s:RefreshBuffer() "{{{2
     " 跳至工作区缓冲区窗口
@@ -1787,7 +1779,6 @@ def CreateProjectPostCbk(ret):
 CreateProjectPostCbk(int(vim.eval("a:data")))
 PYTHON_EOF
     setlocal nomodifiable
-    call s:HlActiveProject()
 endfunction
 
 function! s:CreateProjectCategoriesCbk(ctl, data) "{{{2
