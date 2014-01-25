@@ -628,21 +628,31 @@ class TagsStorageSQLite(object):
 
     # ------------------------------------------------------------------------
 
-    def DeleteFileEntry(self, fname):
+    def DeleteFileEntry(self, fname, auto_commit = True):
         try:
+            if auto_commit:
+                self.Begin()
             self.db.execute("DELETE FROM FILES WHERE file=?;", (fname, ))
-            self.Commit()
+            if auto_commit:
+                self.Commit()
         except sqlite3.OperationalError:
+            if auto_commit:
+                self.Rollback()
             return -1
         else:
             return 0
 
-    def DeleteFileEntries(self, files):
+    def DeleteFileEntries(self, files, auto_commit = True):
         try:
+            if auto_commit:
+                self.Begin()
             self.db.execute("DELETE FROM FILES WHERE file IN %s;" 
                             % MakeQMarkString(len(files)), tuple(files))
-            self.Commit()
+            if auto_commit:
+                self.Commit()
         except sqlite3.OperationalError:
+            if auto_commit:
+                self.Rollback()
             return -1
         else:
             return 0
