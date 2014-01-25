@@ -318,7 +318,7 @@ class VimLiteWorkspace(object):
         self.SetupStatusLine()
         self.RefreshStatusLine()
         self.RefreshBuffer()
-        self.HlActiveProject()
+        self.SetupActiveProject()
 
         self.cache_predefineMacros = {} # <项目名, 宏列表> 的缓存
         self.ctime_predefineMacros = {} # <项目名，缓存时间>
@@ -363,7 +363,7 @@ class VimLiteWorkspace(object):
         self.LoadWspSettings()
         self.VLWIns._SetStatus(type(self.VLWIns).STATUS_OPEN)
         self.RefreshStatusLine()
-        self.HlActiveProject()
+        self.SetupActiveProject()
         VidemWorkspace.wsp_ntf.CallChain('open_post', self)
         vim.command('call s:AutoLoadSession()') # 会话处理
 
@@ -982,6 +982,11 @@ class VimLiteWorkspace(object):
 
         del self.buffer[row-1:row-1+ret]
 
+        # 当删除的项目为激活的项目, 需要进一步处理
+        if projName == self.GetActiveProjectName():
+            # 现在只需要刷新一次即可
+            vim.command("call s:RefreshBuffer()")
+
         if nodeType == VidemWorkspace.NT_VIRTDIR:
             # 可优化
             s2 = set(self.VLWIns.GetAllFiles(True))
@@ -992,7 +997,7 @@ class VimLiteWorkspace(object):
 
         return files
 
-    def HlActiveProject(self):
+    def SetupActiveProject(self):
         '''这个函数的含义已经变了, 现在仅用于刷新指定配置'''
         hlname = vim.eval('videm#settings#Get(".videm.wsp.ActProjHlGroup")')
         vim.command("hi link VLWActiveProject %s" % hlname)
