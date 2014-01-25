@@ -23,6 +23,8 @@ from CxxTypeParser import CxxUnitType
 from CxxTypeParser import CxxParseType
 from CxxTypeParser import CxxParseTemplateList
 
+MAX_NEST = 20
+
 class ComplScope(object):
     '''
     代码补全时每个scope的信息, 只有三种:
@@ -873,7 +875,7 @@ def ResolveComplInfo(scope_stack, compl_info, tagmgr = None):
             #search_scopes = ExpandSearchScopesFromScope(tag['path'])
             #search_scopes = ExpandClassScopes(tag['path'])
             search_scopes = [tag['path']]
-            # 这里自己处理掉这个 scope
+            # NOTE: 这里自己处理掉这个 scope
             compl_scopes.pop(0)
         else:
             cxx_type = ResolveFirstVariable(tagmgr, scope_stack,
@@ -983,13 +985,17 @@ def ResolveComplInfo(scope_stack, compl_info, tagmgr = None):
         # 根据已经获取到的 search_scopes 搜索目标 tag
         tag = GetFirstMatchTag(tagmgr, search_scopes, search_name)
         if not tag:
-            # 处理匿名容器, 因为匿名容器是不存在对应的 tag 的
-            # 所以如果有需要的时候, 手动构造匿名容器的 tag, 然后继续
-            # TODO: 貌似vlctags2没有这个问题了? 待确认
             search_scopes = []
             break
 
         # TODO: 处理 tag 的 typedef
+        nestlv = 0
+        while tag.IsTypedef() and nestlv < MAX_NEST:
+            realtype = CxxParseType(tag.extra)
+            tag = GetFirstMatchTag(tagmgr, search_scopes, realtype.fullname)
+            if not tag:
+                return [] # 发生错误, 提前退出
+            nestlv += 1
 
         #compl_scope.tag = tag
 

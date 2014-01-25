@@ -7,7 +7,7 @@ import os.path
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
-_DEBUG = True
+_DEBUG = False
 
 sys.path.append(os.path.dirname(__dir__))
 import omnicxx
@@ -20,6 +20,30 @@ def _ToList(compl_items):
     for item in compl_items:
         li.append(item['word'])
     return li
+
+def _runcases(fname, cases, tagmgr):
+    if not os.path.isabs(fname):
+        fname = os.path.join(__dir__, fname)
+    with open(fname) as f:
+        buff = f.read().splitlines()
+    for pos, result in cases:
+        row = pos[0]
+        col = pos[1]
+        if not result or _DEBUG:
+            print '=' * 40
+            print buff[row-1][: col-1].strip()
+        retmsg = {}
+        li = _ToList(CodeComplete(fname, buff, row, col, tagmgr, retmsg=retmsg))
+        if not result or _DEBUG:
+            print li
+        if result:
+            try:
+                assert set(li) == set(result)
+            except:
+                print set(li), '!=', set(result)
+                raise
+        if not result or _DEBUG:
+            print 'retmsg:', retmsg
 
 def test00(tagmgr):
     assert tagmgr.GetTagsByPath('A::B')
@@ -51,21 +75,7 @@ def test00(tagmgr):
         ([99, 5], []),
     ]
 
-    for pos, result in cases:
-        row = pos[0]
-        col = pos[1]
-        print '=' * 40
-        print buff[row-1][: col-1].strip()
-        retmsg = {}
-        li = _ToList(CodeComplete(fname, buff, row, col, tagmgr, retmsg=retmsg))
-        print li
-        if result:
-            try:
-                assert set(li) == set(result)
-            except:
-                print set(li), '!=', set(result)
-                raise
-        print 'retmsg:', retmsg
+    _runcases(fname, cases, tagmgr)
 
 def test01(tagmgr):
     '''test.cpp 的测试用例'''
@@ -76,6 +86,15 @@ def test01(tagmgr):
 def test02(tagmgr):
     pass
 
+def test03(tagmgr):
+    '''C形式的typedef处理'''
+    cases = [
+        ([12, 7], ['a']),
+        ([13, 10], ['a']),
+        ([14, 13], ['main()']),
+    ]
+    _runcases('test03.cpp', cases, tagmgr)
+
 def main(argv):
     files = []
     for item in os.listdir(__dir__):
@@ -84,6 +103,8 @@ def main(argv):
             continue
         if os.path.splitext(fname)[1] in set(['.c', '.cpp', '.h', '.hpp', '.cxx']):
             files.append(fname)
+
+    files.sort()
 
     for fname in files:
         fbname = os.path.basename(fname)
@@ -97,7 +118,9 @@ def main(argv):
         tagmgr.RecreateDatabase()
         tagmgr.ParseFiles([fname])
         name = os.path.splitext(os.path.basename(fname))[0]
+        print '<<< call %s() >>>' % name
         eval('%s(tagmgr)' % name)
+    print 'test ok'
 
 if __name__ == '__main__':
     import sys
