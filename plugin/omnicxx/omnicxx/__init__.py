@@ -71,7 +71,7 @@ def ToVimComplItem(tag, filter_kinds = set()):
         return tag
 
     if tag['kind'] == 'f' and tag.has_key('class') and not tag.has_key('access'):
-        # 如国此 tag 为类的成员函数, 类型为函数, 且没有访问控制信息, 跳过
+        # 如果此 tag 为类的成员函数, 类型为函数, 且没有访问控制信息, 跳过
         # 防止没有访问控制信息的类成员函数条目覆盖带访问控制信息的成员函数原型的
         return {}
         return tag
@@ -80,8 +80,7 @@ def ToVimComplItem(tag, filter_kinds = set()):
     access_mapping = {'public': '+','protected': '#','private': '-'}
 
     menu = ''
-    if tag.has_key('access'):
-        menu += access_mapping.get(tag['access'], ' ')
+    menu += access_mapping.get(tag.get('access', ''), ' ')
 
     menu += ' ' + tag['parent']
 
@@ -99,15 +98,25 @@ def ToVimComplItem(tag, filter_kinds = set()):
         # TODO
         pass
 
+    # 用于支持 calltips
+    info = ''
+    if tag.has_key('signature'):
+        if tag.IsMacro():
+            info = '%s%s' % (tag['path'], tag['signature'])
+        else:
+            info = '%s %s%s' % (tag.get('extra', ''), tag['path'], tag['signature'])
+
     # 添加必要的属性
     result              = {}
     result['word']      = word
     #result['abbr']      = abbr
     result['menu']      = menu
-    #result['info']      = ''
+    # completeopt-=preview 无效, 没办法
+    #result['info']      = info
     result['kind']      = kind
     result['icase']     = 1
     result['dup']       = 0
+    result['extra']      = info
 
     return result
 

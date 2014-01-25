@@ -121,7 +121,10 @@ let s:status.buffers = {}
 
 " 补全结果, 理论上最好是每缓冲区变量,
 " 但是考虑到复杂度和vim脚本的单线程特征, 直接用一个全局变量即可
-let s:async_compl_result = {}
+let s:async_compl_result = []
+
+" 最近一次的补全结果, 有各种用途
+let s:latest_compl_result = []
 
 " Just For Debug
 let s:compl_count = 0
@@ -325,24 +328,22 @@ function! CCByChar() "{{{2
 endfunction
 "}}}
 " 填充补全结果
-function asynccompl#FillResult(result) "{{{2
+function! asynccompl#FillResult(result) "{{{2
     let result = a:result
-    if type(result) != type(s:async_compl_result)
-        unlet s:async_compl_result
-    endif
     let s:async_compl_result = result
+    let s:latest_compl_result = result
 endfunction
 "}}}
 " 弹出补全结果
-function asynccompl#PopResult() "{{{2
+function! asynccompl#PopResult() "{{{2
     " 清空 s:async_compl_result 是为了辨别同步请求补全还是异步请求补全
     let result = s:async_compl_result
-    if type(s:async_compl_result) == type([])
-        let s:async_compl_result = []
-    else
-        let s:async_compl_result = {}
-    endif
+    let s:async_compl_result = []
     return result
+endfunction
+"}}}
+function! asynccompl#GetLatestResult() "{{{2
+    return s:latest_compl_result
 endfunction
 "}}}
 " 触发条件
@@ -498,7 +499,7 @@ function! asynccompl#BuffInit(...) "{{{2
 
     " 防止重复初始化
     if has_key(s:status.buffers, bufnr)
-        return
+        return 0
     endif
 
     if !exists('##InsertCharPre')
@@ -675,7 +676,6 @@ function! asynccompl#Driver(findstart, base) "{{{2
         call s:UpdateAucmPrevStat(row, col, base, pumvisible())
         call b:config.LaunchComplThreadHook(row, col, base, icase, scase, 1)
 
-        unlet result " result 在下面的返回值可能会不通, [] 或 {}
         " 没有定时器帮忙取结果, 所以只能自己取结果
         " 这里直接获取结果, 不用检查done了
         let [done, result] = b:config.FetchComplResultHook(base)
@@ -709,7 +709,6 @@ function! asynccompl#CSDriver(findstart, base) "{{{2
         call b:config.LaunchComplThreadHook(row, col, base, icase, scase, 1)
 
         " 再取一次结果
-        unlet result
         let result = asynccompl#PopResult()
     endif
 
@@ -747,7 +746,7 @@ function! s:SetOpts() "{{{2
 endfunction
 "}}}
 " 还原临时选项函数
-function s:RestoreOpts() "{{{2
+function! s:RestoreOpts() "{{{2
     if exists('s:bak_cot') && exists('s:bak_lz')
         let &completeopt = s:bak_cot
         unlet s:bak_cot
@@ -796,9 +795,9 @@ function! AsyncComplTimer(...) "{{{2
         return
     endif
 
-    " ret: [0, {}|[]]
+    " ret: [0, []]
     " ret[0]: 0 - 还未得到结果, 1 - 已经得到结果
-    " ret[1]: {}|[] 补全结果, 可能为空
+    " ret[1]: [] 补全结果, 可能为空
     let ret = b:config.FetchComplResultHook(get(s:GetCSDict(), 'base', ''))
     let done = ret[0]
     let result = ret[1]

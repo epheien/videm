@@ -65,9 +65,10 @@ endfunction
 " 回调函数必须接受一个参数，并且必须返回一个列表，项目为函数的完整声明（如上）
 " hook(data) -> [tip1, tip2, ...]
 function! vlcalltips#Register(func, data) "{{{2
-    let Cbk = a:func
     if type(a:func) == type("")
         let Cbk = function(a:func)
+    else
+        let Cbk = a:func
     endif
     silent! unlet s:VLCalltips.callback
     let s:VLCalltips.callback = Cbk

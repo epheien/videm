@@ -369,7 +369,7 @@ function! VIMCCCInit(...) "{{{2
 
     if g:VIMCCC_MapReturnToDispCalltips
         inoremap <silent> <expr> <buffer> <CR> pumvisible() ? 
-                \"\<C-y><C-r>=<SID>StartQucikCalltips()\<Cr>" : 
+                \"\<C-y>\<C-r>=<SID>StartQucikCalltips()\<Cr>" : 
                 \"\<CR>"
     endif
 
@@ -740,8 +740,8 @@ function! s:VIMCCCSmartJump() "{{{2
     let sLine = getline('.')
     if matchstr(sLine, '^\s*#\s*include') !=# ''
         " 跳转到包含的文件
-        if exists(':VLWOpenIncludeFile') == 2
-            VLWOpenIncludeFile
+        if exists(':VOpenIncludeFile') == 2
+            VOpenIncludeFile
         endif
     else
         " 跳转到符号的实现处
