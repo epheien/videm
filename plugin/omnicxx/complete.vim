@@ -94,17 +94,9 @@ def OmniCxxCompleteHook(acthread, args):
     result = ['abc', 'xyz', 'ABC', 'XYZ']
     retmsg = {}
     # 这里开始根据参数来获取补全结果
-    result = OmniCxxCodeComplete(file, buff, row, col, dbfile, retmsg=retmsg)
+    result = OmniCxxCodeComplete(file, buff, row, col, dbfile, base=base,
+                                 icase=icase, scase=scase, retmsg=retmsg)
     acthread.CommonUnlock()
-
-    if base:
-        if scase and re.search('[A-Z]', base):
-            icase = 0
-        if icase:
-            re_base = re.compile(base, re.I) # TODO
-            result = [i for i in result if re_base.match(i['word'])]
-        else:
-            result = [i for i in result if i['word'].startswith(base)]
 
     return result
 

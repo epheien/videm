@@ -168,6 +168,7 @@ def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
     @tagsdb:    数据库文件或数据库实例
     @base:      base, 如果为 None, 则表示根据行和列来自动决定
     @icase:     ignore case
+    @scase:     smart case
     @opt:       选项, 暂未用到
     @retmsg:    反馈信息, 字典 {'error': <error message>, 'info': <information>}
 
@@ -178,6 +179,7 @@ def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
     '''
     base = kwargs.get('base', None)
     icase = kwargs.get('icase', True)
+    scase = kwargs.get('scase', False)
     opt = kwargs.get('opt', None)
     retmsg = kwargs.get('retmsg', {})
     pre_scopes = kwargs.get('pre_scopes', [])
@@ -268,6 +270,8 @@ def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
     result = []
     base_re = None
     if base:
+        if scase and re.search('[A-Z]', base):
+            icase = 0
         try:
             # 模式全部转为16进制, 那就不需要任何转义了
             patstr = ''.join(["\\x%2x" % ord(c) for c in base])
