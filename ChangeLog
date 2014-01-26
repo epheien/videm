@@ -1,3 +1,8 @@
+2014-01-26 fanhe <fanhed@163.com>
+ * all: 使用新的异步补全框架进行补全
+ * wsp: 添加VPlugInfo命令
+ * symdb: 让gtags的更新在后台进行
+
 2013-12-11 fanhe <fanhed@163.com>
  * wsp: 修正linux终端下的vim运行程序时的问题
  * wsp: 修正一个环境变量设置问题

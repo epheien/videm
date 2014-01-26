@@ -250,6 +250,9 @@ Press <F1> in workspace buffer for quick help information.
 
     VSearchSymbolReference {symbol}     Search where reference this symbol.
 
+    VPlugInfo                           Show the information of Videm's
+                                        plugins.
+
 ------------------------------------------------------------------------------
 4.3. Cscope                             *Videm-ProjectManager-Cscope*
 
