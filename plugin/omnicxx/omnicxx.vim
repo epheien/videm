@@ -40,9 +40,15 @@ function! s:InitSettings() "{{{2
 endfunction
 "}}}
 function! s:InstallCommands() "{{{2
+    command! -nargs=0 -bar VOmniCxxParseCurrFile
+            \                           call <SID>AsyncParseCurrentFile(0, 0)
+    command! -nargs=0 -bar VOmniCxxParseCurrFileDeep
+            \                           call <SID>AsyncParseCurrentFile(0, 1)
 endfunction
 "}}}
 function! s:UninstallCommands() "{{{2
+    delcommand VOmniCxxParseCurrFile
+    delcommand VOmniCxxParseCurrFileDeep
 endfunction
 "}}}
 function! videm#plugin#omnicxx#HasEnabled() "{{{2
@@ -64,8 +70,8 @@ function! videm#plugin#omnicxx#Enable() "{{{2
     augroup VidemCCOmniCxx
         autocmd!
         autocmd! FileType c,cpp call omnicxx#complete#BuffInit()
-        "autocmd! BufWritePost * call <SID>AsyncParseCurrentFile()
-        "autocmd! VimLeave     * call <SID>Autocmd_Quit()
+        autocmd! BufWritePost * call <SID>AsyncParseCurrentFile(1, 1)
+        autocmd! VimLeave     * call <SID>Autocmd_Quit()
     augroup END
     " 安装videm菜单项目
     py OmniCxxWMenuAction()
@@ -127,6 +133,19 @@ function! videm#plugin#omnicxx#GetWspDbfile() "{{{2
     py if not videm.wsp.IsOpen(): vim.command("return ''")
     py vim.command("return %s" % ToVimEval(
             \ os.path.splitext(videm.wsp.VLWIns.fileName)[0] + '.vtags'))
+endfunction
+"}}}
+function! s:AsyncParseCurrentFile(ignore_needless, deep) "{{{2
+    let ignore_needless = a:ignore_needless
+    let deep = a:deep
+    let fname = expand('%:p')
+    if !Videm_IsFileInWorkspace(fname)
+        return
+    endif
+    py videm_cc_omnicxx.ParseWorkspace(videm.wsp, [vim.eval('fname')],
+            \                          async=True, quiet=True,
+            \                          deep=int(vim.eval('deep')),
+            \                          ignore_needless=int(vim.eval('ignore_needless')))
 endfunction
 "}}}
 let s:initpy = 0

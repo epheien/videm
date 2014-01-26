@@ -18,20 +18,29 @@ class VimOmniCxx(object):
     def __init__(self, tagmgr):
         self.tagmgr = tagmgr
 
-    def ParseWorkspace(self, wsp, async = True, full = False, deep = True):
+    def ParseWorkspace(self, wsp, files = None, async = True, full = False,
+                       deep = True, quiet = False, ignore_needless = True):
         '''
-        async:  True - 异步, False - 同步
-        full:   True - 全部重新parse, False - 只parse必要的
-        deep:   True - 包括源文件包含的头文件'''
-        vim.command("redraw")
-        vim.command("echo 'Preparing...'")
+        files:  None  - 如果为非None列表, 则只parse列表中的文件, 否则为全部文件
+        async:  True  - 异步, False - 同步
+        full:   True  - 全部重新parse, False - 只parse必要的
+        deep:   True  - 包括源文件包含的头文件
+        quiet:  False - 如果为真, 则不打印任何信息
+        ignore_needless: True - 若为False, 强制parse所有指定的文件'''
+        if not quiet:
+            vim.command("redraw")
+            vim.command("echo 'Preparing...'")
 
         if full:
             self.tagmgr.RecreateDatabase()
 
-        files = wsp.VLWIns.GetAllFiles(True)
-        # 从工作区获取的全部文件，先过滤不是c++的文件
-        files = [f for f in files if IsCppHeaderFile(f) or IsCCppSourceFile(f)]
+        if files is None:
+            files = wsp.VLWIns.GetAllFiles(True)
+            # 从工作区获取的全部文件，先过滤不是c++的文件
+            files = [f for f in files if IsCppHeaderFile(f) or IsCCppSourceFile(f)]
+        else:
+            # 制定文件的话, 不过滤源文件和头文件了, 可由外部处理
+            pass
 
         parseFiles = files[:]
         extraMacros = []
@@ -55,11 +64,13 @@ class VimOmniCxx(object):
             projIncludePaths.sort()
             searchPaths += projIncludePaths
 
-            vim.command("redraw | "
-                        "echo 'Scanning header files need to be parsed...'")
+            if not quiet:
+                vim.command("redraw | "
+                            "echo 'Scanning header files need to be parsed...'")
             for f in files:
                 parseFiles += IncludeParser.GetIncludeFiles(f, searchPaths)
-            vim.command("echo ''")
+            if not quiet:
+                vim.command("echo ''")
 
         # 当前激活状态的项目的预定义宏最优先
         extraMacros.extend(
@@ -72,10 +83,13 @@ class VimOmniCxx(object):
         parseFiles = [ToU(i) for i in set(parseFiles)]
         parseFiles.sort()
         if async:
-            vim.command("redraw | echo 'Start asynchronous parsing...'")
-            self.ParseFilesAsync(wsp, parseFiles, extraMacros=extraMacros)
+            if not quiet:
+                vim.command("redraw | echo 'Start asynchronous parsing...'")
+            self.ParseFilesAsync(wsp, parseFiles, extraMacros=extraMacros,
+                                 ignore_needless = ignore_needless)
         else:
-            self.ParseFiles(wsp, parseFiles, extraMacros=extraMacros)
+            self.ParseFiles(wsp, parseFiles, extraMacros=extraMacros,
+                            ignore_needless = ignore_needless)
 
     def ParseFiles(self, wsp, files, indicate = True, extraMacros = [],
                    ignore_needless = True):

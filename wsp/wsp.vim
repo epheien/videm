@@ -5407,6 +5407,10 @@ function! Videm_GetWorkspaceName() "{{{2
     py vim.command("return %s" % ToVimEval(ws.VLWIns.name))
 endfunction
 "}}}
+function! Videm_IsFileInWorkspace(fname) "{{{2
+    return s:IsWorkspaceFile(a:fname)
+endfunction
+"}}}
 " *DEPRECATED*
 function! VidemVersion() "{{{2
     return Videm_GetVersion()
