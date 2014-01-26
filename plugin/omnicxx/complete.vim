@@ -208,6 +208,8 @@ function! s:GetGotoItems() "{{{2
         call cursor(line('.'), col('.') + 1)
     endif
     let lTags = omnicxx#complete#CodeComplete(line('.'), col('.'), sWord, 1)
+    " 进一步过滤, 因为 base 匹配不是完整匹配
+    call filter(lTags, 'substitute(v:val["word"], "()", "", "") ==# sWord')
 
     if empty(lTags)
         call setpos('.', lOrigPos)
