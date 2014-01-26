@@ -55,9 +55,14 @@ def GetScopeStack(buff, row, col):
 def usage(cmd):
     print 'Usage:\n\t%s {dbfile} {file} {row} {col}' % cmd
 
-def WordToVimComplItem(word, menu, kind, icase):
+def WordToVimComplItem(word, menu, kind, icase, extra_fields = {}):
+    result = {}
+
+    # 可以额外添加一些属性
+    if extra_fields:
+        result.update(extra_fields)
+
     # 添加必要的属性
-    result              = {}
     result['word']      = word
     #result['abbr']      = abbr
     result['menu']      = menu
@@ -67,7 +72,7 @@ def WordToVimComplItem(word, menu, kind, icase):
     result['dup']       = 0
     return result
 
-def ToVimComplItem(tag, filter_kinds = set()):
+def ToVimComplItem(tag, filter_kinds = set(), verbose = False):
     if tag['kind'] in filter_kinds:
         return {}
         return tag
@@ -113,12 +118,19 @@ def ToVimComplItem(tag, filter_kinds = set()):
     result['word']      = word
     #result['abbr']      = abbr
     result['menu']      = menu
-    # completeopt-=preview 无效, 没办法
+    # completeopt-=preview 无效, 没办法, 用 'extra' 代替
     #result['info']      = info
     result['kind']      = kind
     result['icase']     = 1
     result['dup']       = 0
     result['extra']      = info
+
+    if verbose:
+        result['fileid'] = tag['fileid']
+        result['line'] = tag['line']
+        result['path'] = tag['path']
+        if tag.has_key('signature'):
+            result['signature'] = tag['signature']
 
     return result
 
@@ -180,6 +192,7 @@ def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
     @base:      base, 如果为 None, 则表示根据行和列来自动决定
     @icase:     ignore case
     @scase:     smart case
+    @verbose:   会添加附加的信息到补全条目的字典中
     @opt:       选项, 暂未用到
     @retmsg:    反馈信息, 字典 {'error': <error message>, 'info': <information>}
 
@@ -191,6 +204,7 @@ def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
     base = kwargs.get('base', None)
     icase = kwargs.get('icase', True)
     scase = kwargs.get('scase', False)
+    verbose = kwargs.get('verbose', False)
     opt = kwargs.get('opt', None)
     retmsg = kwargs.get('retmsg', {})
     pre_scopes = kwargs.get('pre_scopes', [])
@@ -295,21 +309,28 @@ def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
             return []
 
     if not member_complete:
-        # cxx关键词
+        # 先添加关键词
         cxxkw = GetCxxKeywords()
-        # 局部变量
-        visible_vars = []
-        # NOTE: 现在的变量解析不够准确, 只需要添加最里层的变量就够用了
-        if scope_stack[-1].kind != 'file':
-            visible_vars.extend(scope_stack[-1].vars.keys())
         if base:
             result += [WordToVimComplItem(var, '', 'k', icase) for var in cxxkw
                        if base_re.match(var)]
-            result += [WordToVimComplItem(var, '', 'v', icase) for var in visible_vars
-                       if base_re.match(var)]
         else:
             result += [WordToVimComplItem(var, '', 'k', icase) for var in cxxkw]
-            result += [WordToVimComplItem(var, '', 'v', icase) for var in visible_vars]
+
+        # 再添加局部变量
+        visible_vars = {}
+        # NOTE: 现在的变量解析不够准确, 只需要添加最里层的变量就够用了
+        if scope_stack[-1].kind != 'file':
+            visible_vars.update(scope_stack[-1].vars)
+            for name, info in visible_vars.iteritems():
+                if base and not base_re.match(name):
+                    continue
+                di = {}
+                if verbose:
+                    # 附加信息
+                    di['fileid'] = 0            # 0 代表在本文件中
+                    di['line'] = info['line']
+                result.append(WordToVimComplItem(name, '', 'v', icase, di))
 
     filter_kinds = set()
     if member_complete and not scope_complete:
@@ -322,13 +343,13 @@ def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
         for tag in tags:
             if not base_re.match(tag['name']):
                 continue
-            item = ToVimComplItem(tag, filter_kinds)
+            item = ToVimComplItem(tag, filter_kinds, verbose)
             if not item:
                 continue
             result.append(item)
     else:
         for tag in tags:
-            item = ToVimComplItem(tag, filter_kinds)
+            item = ToVimComplItem(tag, filter_kinds, verbose)
             if not item:
                 continue
             result.append(item)

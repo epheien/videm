@@ -41,6 +41,12 @@ function! s:InitKeymap() "{{{2
                 \"\<C-y>\<C-r>=<SID>StartQucikCalltips()\<Cr>" : 
                 \"\<CR>"
     endif
+
+    exec 'nnoremap <silent> <buffer> '.videm#settings#Get('.videm.cc.omnicxx.GotoDeclKey')
+            \ .' :call omnicxx#complete#GotoDeclaration()<CR>'
+
+    exec 'nnoremap <silent> <buffer> '.videm#settings#Get('.videm.cc.omnicxx.GotoImplKey')
+            \ .' :call omnicxx#complete#GotoImplementation()<CR>'
 endfunction
 "}}}
 function! s:GetCalltips(items, funcname) "{{{2
@@ -163,10 +169,11 @@ function! omnicxx#complete#BuffExit() "{{{2
     call vlcalltips#Unregister('omnicxx#complete#RequestCalltips')
 endfunction
 "}}}
-function! omnicxx#complete#CodeComplete(row, col, base) "{{{2
+function! omnicxx#complete#CodeComplete(row, col, base, ...) "{{{2
     let row = a:row
     let col = a:col
     let base = a:base
+    let verbose = get(a:000, 0, 0)
     let icase = videm#settings#Get('.videm.cc.omnicxx.IgnoreCase')
     let scase = videm#settings#Get('.videm.cc.omnicxx.SmartCase')
     let dbfile = videm#plugin#omnicxx#GetWspDbfile()
@@ -176,9 +183,170 @@ function! omnicxx#complete#CodeComplete(row, col, base) "{{{2
             \                            col=int(vim.eval("col")),
             \                            icase=int(vim.eval("col")),
             \                            scase=int(vim.eval("col")),
+            \                            verbose=int(vim.eval("verbose")),
             \                            base=vim.eval("base"),
             \                            dbfile=vim.eval("dbfile"))))
     return result
+endfunction
+"}}}
+function! s:GetGotoItems() "{{{2
+    let sWord = expand('<cword>')
+    let lOrigPos = getpos('.')
+    let sLine = getline('.')
+    let save_ic = &ignorecase
+    set noignorecase
+
+    if col('.') == 1 || (col('.') > 1 && sLine[col('.')-2] =~# '\W')
+        if sLine[col('.')-1] ==# '~'
+        " 为了支持光标放到 '~' 位置的析构函数. eg. class A { |~A(); }
+            " 右移一格
+            call cursor(line('.'), col('.') + 1)
+        endif
+
+        " 光标在第一列或者光标前面是空格或者 '~'
+        " 右移一格
+        call cursor(line('.'), col('.') + 1)
+    endif
+    let lTags = omnicxx#complete#CodeComplete(line('.'), col('.'), sWord, 1)
+
+    if empty(lTags)
+        call setpos('.', lOrigPos)
+        let &ignorecase = save_ic
+        return []
+    endif
+
+    call setpos('.', lOrigPos)
+    let &ignorecase = save_ic
+
+    return lTags
+endfunction
+"}}}
+function! s:ExpandItemsFileid(items) "{{{2
+    let items = a:items
+    let fidmap = {}
+    call filter(items, 'has_key(v:val, "fileid")')
+    for item in items
+        if item['fileid'] == 0
+            " 0 代表本文件
+            let item['file'] = expand('%:p')
+            let fidmap[0] = item['file']
+            continue
+        endif
+
+        if has_key(fidmap, item['fileid'])
+            let item['file'] = fidmap[item['fileid']]
+            continue
+        endif
+
+        py vim.command("let fname = %s" % ToVimEval(
+                \ videm_cc_omnicxx.tagmgr.GetFileByFileid(
+                \       vim.eval('item["fileid"]'))))
+
+        if empty(fname)
+            " 这一定是一个bug
+            echo 'BUG: Can not resolve fileid'
+            echo item
+            call getchar()
+            continue
+        endif
+
+        let item['file'] = fname
+        let fidmap[item['fileid']] = fname
+    endfor
+    return items
+endfunction
+"}}}2
+function! s:GotoItemPosition(items) "{{{2
+    let items = a:items
+    if empty(items)
+        return []
+    endif
+
+    let result = s:ExpandItemsFileid(items)
+    if empty(result)
+        return []
+    endif
+
+    " 先检查是否 static 的符号，如果是的话直接跳转就好了
+    if len(items) > 1
+        let fname = resolve(expand('%:p'))
+        for item in items
+            if vlutils#IsWindowsOS()
+                if resolve(item.file) ==? fname
+                    let result = [item]
+                    break
+                endif
+            else
+                if resolve(item.file) ==# fname
+                    let result = [item]
+                    break
+                endif
+            endif
+        endfor
+    endif
+
+    if len(result) > 1
+        " 弹出选择菜单
+        let li = []
+        for d in result
+            call add(li, printf("%s, %s:%s",
+                    \           d.path . get(d, 'signature', ''),
+                    \           d.file,
+                    \           d.line))
+        endfor
+        let idx = inputlist(s:GenerateMenuList(['Please select:'] + li)) - 1
+        if idx >= 0 && idx < len(result)
+            let item = result[idx]
+        else
+            " 错误, 返回调试信息
+            return result
+        endif
+    else
+        let item = result[0]
+    endif
+
+    let sSymbol = item.word
+    let sFileName = item.file
+    let sLineNr = item.line
+
+    " 开始跳转
+    if bufnr(sFileName) == bufnr('%')
+        " 跳转的是同一个缓冲区, 仅跳至指定的行号
+        normal! m'
+        exec sLineNr
+    else
+        let sCmd = printf('e +%s %s', sLineNr, fnameescape(sFileName))
+        exec sCmd
+    endif
+
+    let sSearchFlag = 'cW'
+    let sSymbol = '\<'.sSymbol.'\>'
+    call search('\C\V'.sSymbol, sSearchFlag, line('.'))
+endfunction
+"}}}
+" TODO
+function! omnicxx#complete#GotoDeclaration() "{{{2
+    echo 'Sorry, this is not implemented.'
+endfunction
+"}}}
+function! omnicxx#complete#GotoImplementation() "{{{2
+    let items = s:GetGotoItems()
+    if empty(items)
+        return []
+    endif
+
+    if items[0].kind[0] ==# 'p' || items[0].kind[0] ==# 'f'
+    " 请求跳转到函数的实现处
+        " 剔除 items 里面类型为 'p' 的项目
+        call filter(items, 'v:val["kind"][0] !=# "p"')
+    else
+    " 请求跳转到数据结构的实现处
+        " 剔除纯声明式的数据结构。eg. struct a;
+        call filter(items, 'v:val["kind"][0] !=# "x"')
+    endif
+
+    call s:GotoItemPosition(items)
+    return items
 endfunction
 "}}}
 let s:initpy = 0
@@ -226,6 +394,7 @@ def OmniCxxCompleteHook(acthread, args):
     base = args.get('base')
     icase = args.get('icase')
     scase = args.get('scase')
+    verbose = args.get('verbose')
     dbfile = args.get('dbfile') # 数据库文件, 跨线程需要新建数据库连接实例
     opts = args.get('opts')
 
@@ -237,7 +406,8 @@ def OmniCxxCompleteHook(acthread, args):
     retmsg = {}
     # 这里开始根据参数来获取补全结果
     result = OmniCxxCodeComplete(file, buff, row, col, dbfile, base=base,
-                                 icase=icase, scase=scase, retmsg=retmsg)
+                                 icase=icase, scase=scase, verbose=verbose,
+                                 retmsg=retmsg)
     acthread.CommonUnlock()
 
     return result
