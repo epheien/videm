@@ -45,17 +45,16 @@ function! s:exec(cmd)
 endfunction
 "}}}
 
-"全局变量 {{{2
+"全局变量 {{{1
 call s:InitVariable("g:VimDialogActionKey", "<CR>")
 call s:InitVariable("g:VimDialogRestoreValueKey", "R")
 call s:InitVariable("g:VimDialogClearValueKey", "C")
-call s:InitVariable("g:VimDialogSaveKey", "<C-s>")
+call s:InitVariable("g:VimDialogSaveKey", "<C-x><C-y>")
 call s:InitVariable("g:VimDialogQuitKey", "<C-x><C-x>")
-call s:InitVariable("g:VimDialogSaveAndQuitKey", "<C-x><C-s>")
+call s:InitVariable("g:VimDialogSaveAndQuitKey", "<C-x><C-w>")
 call s:InitVariable("g:VimDialogNextEditableCtlKey", "<Tab>")
 call s:InitVariable("g:VimDialogPrevEditableCtlKey", "<S-Tab>")
 call s:InitVariable("g:VimDialogToggleExtraHelpKey", "<F1>")
-
 
 "控件的基本类型 {{{2
 let g:VC_BLANKLINE = 0
