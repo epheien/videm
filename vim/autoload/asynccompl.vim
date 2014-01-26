@@ -545,6 +545,7 @@ function! asynccompl#BuffInit(...) "{{{2
         exec 'autocmd! InsertCharPre <buffer='.bufnr.'> call CommonAsyncComplete()'
         exec 'autocmd! InsertEnter   <buffer='.bufnr.'> call s:AutocmdInsertEnter()'
         exec 'autocmd! InsertLeave   <buffer='.bufnr.'> call s:AutocmdInsertLeave()'
+        exec 'autocmd! BufUnload     <buffer='.bufnr.'> call s:AutocmdBufUnload()'
         " NOTE: 添加销毁python的每缓冲区变量的时机
         "       暂时不需要, 只要每缓冲区的变量都是先初始化再使用的话, 无须清理
     augroup END
@@ -577,6 +578,11 @@ function! s:AutocmdInsertLeave() "{{{2
     endif
 endfunction
 "}}}
+function! s:AutocmdBufUnload() "{{{2
+    call s:AutocmdInsertLeave()
+    call asynccompl#BuffExit(bufnr('%'))
+endfunction
+"}}}
 " 清理函数
 " 无参数表示仅处理本缓冲区，0 - 表示处理全部缓冲区，其他正数值表示指定的缓冲区
 " 由于是清理函数，所以参数处理比较复杂，可以理解
@@ -600,7 +606,8 @@ function! asynccompl#BuffExit(...) "{{{2
             exec printf('autocmd! InsertCharPre    <buffer=%d>', bufnr)
             exec printf('autocmd! InsertEnter      <buffer=%d>', bufnr)
             exec printf('autocmd! InsertLeave      <buffer=%d>', bufnr)
-            if getbufvar(bufnr, 'config').omnifunc
+            exec printf('autocmd! BufUnload        <buffer=%d>', bufnr)
+            if getbufvar(bufnr, 'config')['omnifunc']
                 call setbufvar(bufnr, '&omnifunc', '')
             else
                 call setbufvar(bufnr, '&completefunc', '')
