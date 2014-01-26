@@ -2,20 +2,6 @@
 # -*- coding: utf-8 -*-
 
 cxxkw_text = '''
-adjustfield
-basefield
-boolalpha
-floatfield
-internal
-scientific
-setbase
-setiosflags
-setprecision
-showbase
-showpoint
-showpos
-uppercase
-
 auto
 break
 case
@@ -30,6 +16,7 @@ extern
 float
 goto
 inline
+int
 long
 register
 restrict
@@ -100,6 +87,20 @@ include
 pragma
 undef
 
+adjustfield
+basefield
+boolalpha
+floatfield
+internal
+scientific
+setbase
+setiosflags
+setprecision
+showbase
+showpoint
+showpos
+uppercase
+
 exception
 bad_alloc
 bad_exception
@@ -130,6 +131,7 @@ __STDC_VERSION__
 __TIME__
 __func__
 __cplusplus
+__VA_ARGS__
 
 __BORLANDC__
 __CYGWIN__
