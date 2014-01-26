@@ -85,14 +85,14 @@ class VimOmniCxx(object):
         if async:
             if not quiet:
                 vim.command("redraw | echo 'Start asynchronous parsing...'")
-            self.ParseFilesAsync(wsp, parseFiles, extraMacros=extraMacros,
-                                 ignore_needless = ignore_needless)
+            self._ParseFilesAsync(wsp, parseFiles, extraMacros=extraMacros,
+                                  ignore_needless = ignore_needless)
         else:
-            self.ParseFiles(wsp, parseFiles, extraMacros=extraMacros,
-                            ignore_needless = ignore_needless)
+            self._ParseFiles(wsp, parseFiles, extraMacros=extraMacros,
+                             ignore_needless = ignore_needless)
 
-    def ParseFiles(self, wsp, files, indicate = True, extraMacros = [],
-                   ignore_needless = True):
+    def _ParseFiles(self, wsp, files, indicate = True, extraMacros = [],
+                    ignore_needless = True):
         ds = DirSaver()
         try:
             # 为了 macroFiles 中的相对路径有效
@@ -113,7 +113,7 @@ class VimOmniCxx(object):
         if indicate:
             vim.command("redraw")
             self.tagmgr.ParseFiles(files, macroFiles, IndicateProgress,
-                                   ignore_needless)
+                                    ignore_needless)
             vim.command("redraw | echo 'Done.'")
         else:
             self.tagmgr.ParseFiles(files, macroFiles, None, ignore_needless)
@@ -123,8 +123,8 @@ class VimOmniCxx(object):
         except:
             pass
 
-    def ParseFilesAsync(self, wsp, files, extraMacros = [],
-                        ignore_needless = True):
+    def _ParseFilesAsync(self, wsp, files, extraMacros = [],
+                         ignore_needless = True):
         def RemoveTmp(arg):
             os.close(arg[0])
             os.remove(arg[1])
@@ -135,7 +135,7 @@ class VimOmniCxx(object):
         with open(tmpf, 'wb') as f:
             f.write('\n'.join(macros))
         self.tagmgr.ParseFilesAsync(files, [tmpf], RemoveTmp,
-                                    [tmpfd, tmpf], ignore_needless)
+                                     [tmpfd, tmpf], ignore_needless)
 
 def main(argv):
     pass

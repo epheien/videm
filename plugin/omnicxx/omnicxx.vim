@@ -13,6 +13,16 @@ let s:loaded = 1
 let s:os = vlutils#os
 
 let s:enable = 0
+function! s:SID() "获取脚本 ID {{{2
+    return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
+endfunction
+let s:sid = s:SID()
+
+function! s:GetSFuncRef(sFuncName) " 获取局部于脚本的函数的引用 {{{2
+    let sFuncName = a:sFuncName =~ '^s:' ? a:sFuncName[2:] : a:sFuncName
+    return function('<SNR>'.s:sid.'_'.sFuncName)
+endfunction
+"}}}
 
 " 备用，暂时还没有起作用
 let s:OmniCxxSettings = {
@@ -44,11 +54,22 @@ function! s:InstallCommands() "{{{2
             \                           call <SID>AsyncParseCurrentFile(0, 0)
     command! -nargs=0 -bar VOmniCxxParseCurrFileDeep
             \                           call <SID>AsyncParseCurrentFile(0, 1)
+    command! -nargs=0 -bar VOmniCxxTagsSetttings    call <SID>TagsSettings()
+endfunction
+"}}}
+function! s:InstallMenus() "{{{2
+    anoremenu <silent> 200 &Videm.OmniCxx\ Tags\ Settings\.\.\. 
+            \ :call <SID>TagsSettings()<CR>
 endfunction
 "}}}
 function! s:UninstallCommands() "{{{2
     delcommand VOmniCxxParseCurrFile
     delcommand VOmniCxxParseCurrFileDeep
+    delcommand VOmniCxxTagsSetttings
+endfunction
+"}}}
+function! s:UninstallMenus() "{{{2
+    aunmenu &Videm.OmniCxx\ Tags\ Settings\.\.\.
 endfunction
 "}}}
 function! videm#plugin#omnicxx#HasEnabled() "{{{2
@@ -62,6 +83,8 @@ function! videm#plugin#omnicxx#Enable() "{{{2
     call s:InitPyIf()
     " 命令
     call s:InstallCommands()
+    " 菜单
+    call s:InstallMenus()
     " 注册回调
     py VidemWorkspace.RegDelNodePostHook(DelNodePostHook, 0, videm_cc_omnicxx)
     py VidemWorkspace.RegRnmNodePostHook(RnmNodePostHook, 0, videm_cc_omnicxx)
@@ -75,6 +98,9 @@ function! videm#plugin#omnicxx#Enable() "{{{2
     augroup END
     " 安装videm菜单项目
     py OmniCxxWMenuAction()
+    " 工作区设置
+    call VidemWspSetCreateHookRegister('videm#plugin#omnicxx#WspSetHook',
+            \                          0, s:ctls)
     " 执行一次hook动作
     py if ws.IsOpen(): VidemWspOmniCxxHook('open_post', ws, videm_cc_omnicxx)
     let s:enable = 1
@@ -86,6 +112,8 @@ function! videm#plugin#omnicxx#Disable() "{{{2
     endif
     " 删除命令
     call s:UninstallCommands()
+    " 删除菜单
+    call s:UninstallMenus()
     " 删除回调
     py VidemWorkspace.UnregDelNodePostHook(DelNodePostHook, 0)
     py VidemWorkspace.UnregRnmNodePostHook(RnmNodePostHook, 0)
@@ -97,6 +125,8 @@ function! videm#plugin#omnicxx#Disable() "{{{2
     augroup! VidemCCOmniCxx
     " 删除videm菜单项目
     py OmniCxxWMenuAction(remove=True)
+    " NOTE: 保存工作区的时候可能触发这个事件，然后这里卸载hook，会造成不一致
+    call VidemWspSetCreateHookUnregister('videm#plugin#omnicxx#WspSetHook', 0)
     " 执行一次hook动作
     py if ws.IsOpen(): VidemWspOmniCxxHook('close_post', ws, videm_cc_omnicxx)
     let s:enable = 0
@@ -249,5 +279,196 @@ function! s:Autocmd_Quit() "{{{2
     endwhile
 endfunction
 "}}}
+" =================== tags 设置 ===================
+"{{{1
+"标识用控件 ID {{{2
+let s:ID_TagsSettingsIncludePaths = videm#wsp#TagsSettings_ID_SearchPaths
+let s:ID_TagsSettingsTagsTokens = 11
+let s:ID_TagsSettingsTagsTypes = 12
+
+function! s:TagsSettings() "{{{2
+    let dlg = s:CreateTagsSettingsDialog()
+    call dlg.Display()
+endfunction
+"}}}
+function! s:SaveTagsSettingsCbk(dlg, data) "{{{2
+    py __ins = TagsSettingsST.Get()
+    for ctl in a:dlg.controls
+        if ctl.GetId() == s:ID_TagsSettingsIncludePaths
+            py __ins.includePaths = vim.eval("ctl.values")
+        elseif ctl.GetId() == s:ID_TagsSettingsTagsTokens
+            py __ins.tagsTokens = vim.eval("ctl.values")
+        elseif ctl.GetId() == s:ID_TagsSettingsTagsTypes
+            py __ins.tagsTypes = vim.eval("ctl.values")
+        endif
+    endfor
+    " 保存
+    py __ins.Save()
+    py del __ins
+endfunction
+"}}}
+function! s:GetTagsSettingsHelpText() "{{{2
+    let s = "Run the following command to get gcc search paths:\n"
+    let s .= "  echo \"\" | gcc -v -x c++ -fsyntax-only -\n"
+    return s
+endfunction
+"}}}
+function! s:CreateTagsSettingsDialog() "{{{2
+    let dlg = g:VimDialog.New('== OmniCxx Tags Settings ==')
+    call dlg.SetExtraHelpContent(s:GetTagsSettingsHelpText())
+    py ins = TagsSettingsST.Get()
+
+"===============================================================================
+    "1.Include Files
+    "let ctl = g:VCStaticText.New("Tags Settings")
+    "call ctl.SetHighlight("Special")
+    "call dlg.AddControl(ctl)
+    "call dlg.AddBlankLine()
+
+    " 公用的公共控件
+    let ctls = Videm_GetTagsSettingsControls()
+    for ctl in ctls
+        call dlg.AddControl(ctl)
+    endfor
+
+    "call dlg.AddBlankLine()
+    "call dlg.AddSeparator(4)
+    "let ctl = g:VCStaticText.New('The followings are only for vlctags parser')
+    "call ctl.SetIndent(4)
+    "call ctl.SetHighlight('WarningMsg')
+    "call dlg.AddControl(ctl)
+    "call dlg.AddBlankLine()
+
+    let ctl = g:VCMultiText.New("Macros:")
+    call ctl.SetId(s:ID_TagsSettingsTagsTokens)
+    call ctl.SetIndent(4)
+    py vim.command("let tagsTokens = %s" % ToVimEval(ins.tagsTokens))
+    call ctl.SetValue(tagsTokens)
+    call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "cpp")
+    call dlg.AddControl(ctl)
+    call dlg.AddBlankLine()
+
+    let ctl = g:VCMultiText.New("Types:")
+    call ctl.SetId(s:ID_TagsSettingsTagsTypes)
+    call ctl.SetIndent(4)
+    py vim.command("let tagsTypes = %s" % ToVimEval(ins.tagsTypes))
+    call ctl.SetValue(tagsTypes)
+    call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
+    call dlg.AddControl(ctl)
+    call dlg.AddBlankLine()
+
+    call dlg.ConnectSaveCallback(s:GetSFuncRef("s:SaveTagsSettingsCbk"), "")
+
+    call dlg.AddFooterButtons()
+
+    py del ins
+    return dlg
+endfunction
+"}}}1
+" =================== 工作区设置 ===================
+"{{{1
+let s:ctls = {}
+" 这个函数在工作区设置的时候调用
+function! videm#plugin#omnicxx#WspSetHook(event, data, priv) "{{{2
+    let event = a:event
+    let dlg = a:data
+    let ctls = a:priv
+    "echo event
+    "echo dlg
+    "echo ctls
+    if event ==# 'create'
+        " ======================================================================
+        let ctl = g:VCStaticText.New("OmniCxx Tags Settings")
+        call ctl.SetHighlight("Special")
+        call dlg.AddControl(ctl)
+        call dlg.AddBlankLine()
+
+        " 头文件搜索路径
+        let ctl = g:VCMultiText.New(
+                \ "Add search paths for the vlctags and libclang parser:")
+        let ctls['IncludePaths'] = ctl
+        call ctl.SetIndent(4)
+        py vim.command("let includePaths = %s" %
+                \ ToVimEval(ws.VLWSettings.includePaths))
+        call ctl.SetValue(includePaths)
+        call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
+        call dlg.AddControl(ctl)
+
+        let ctl = g:VCComboBox.New(
+                \ "Use with Global Settings (Only For Search Paths):")
+        let ctls['IncPathFlag'] = ctl
+        call ctl.SetIndent(4)
+        py vim.command("let lItems = %s" %
+                \ ToVimEval(ws.VLWSettings.GetIncPathFlagWords()))
+        for sI in lItems
+            call ctl.AddItem(sI)
+        endfor
+        py vim.command("call ctl.SetValue(%s)" % 
+                \ ToVimEval(ws.VLWSettings.GetCurIncPathFlagWord()))
+        call dlg.AddControl(ctl)
+        call dlg.AddBlankLine()
+
+        " ======================================================================
+        call dlg.AddBlankLine()
+        call dlg.AddSeparator(4) " 分割线
+        let ctl = g:VCStaticText.New(
+                \'The followings are only for vlctags (OmniCxx) parser')
+        call ctl.SetIndent(4)
+        call ctl.SetHighlight('WarningMsg')
+        call dlg.AddControl(ctl)
+        call dlg.AddBlankLine()
+
+        let ctl = g:VCMultiText.New("Prepend Search Scopes (For OmniCxx):")
+        let ctls['PrependNSInfo'] = ctl
+        call ctl.SetIndent(4)
+        py vim.command("let prependNSInfo = %s" %
+                \ ToVimEval(ws.VLWSettings.GetUsingNamespace()))
+        call ctl.SetValue(prependNSInfo)
+        call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
+        call dlg.AddControl(ctl)
+        call dlg.AddBlankLine()
+
+        let ctl = g:VCMultiText.New("Macro Files:")
+        let ctls['MacroFiles'] = ctl
+        call ctl.SetIndent(4)
+        py vim.command("let macroFiles = %s" %
+                \ ToVimEval(ws.VLWSettings.GetMacroFiles()))
+        call ctl.SetValue(macroFiles)
+        call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
+        call dlg.AddControl(ctl)
+        call dlg.AddBlankLine()
+
+        let ctl = g:VCMultiText.New("Macros:")
+        let ctls['TagsTokens'] = ctl
+        call ctl.SetIndent(4)
+        py vim.command("let tagsTokens = %s" %
+                \ ToVimEval(ws.VLWSettings.tagsTokens))
+        call ctl.SetValue(tagsTokens)
+        call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "cpp")
+        call dlg.AddControl(ctl)
+        call dlg.AddBlankLine()
+
+        let ctl = g:VCMultiText.New("Types:")
+        let ctls['TagsTypes'] = ctl
+        call ctl.SetIndent(4)
+        py vim.command("let tagsTypes = %s" %
+                \ ToVimEval(ws.VLWSettings.tagsTypes))
+        call ctl.SetValue(tagsTypes)
+        call ctl.ConnectButtonCallback(function("vlutils#EditTextBtnCbk"), "")
+        call dlg.AddControl(ctl)
+        call dlg.AddBlankLine()
+    elseif event ==# 'save' && !empty(ctls)
+        py ws.VLWSettings.includePaths = vim.eval("ctls['IncludePaths'].values")
+        py ws.VLWSettings.SetIncPathFlag(vim.eval("ctls['IncPathFlag'].GetValue()"))
+
+        py ws.VLWSettings.SetUsingNamespace(
+                \ vim.eval("ctls['PrependNSInfo'].values"))
+        py ws.VLWSettings.SetMacroFiles(vim.eval("ctls['MacroFiles'].values"))
+        py ws.VLWSettings.tagsTokens = vim.eval("ctls['TagsTokens'].values")
+        py ws.VLWSettings.tagsTypes = vim.eval("ctls['TagsTypes'].values")
+    endif
+endfunction
+"}}}
+"}}}1
 
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1
