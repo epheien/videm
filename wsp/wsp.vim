@@ -378,8 +378,8 @@ function! videm#wsp#WspConfSetCurr(conf, ...) "{{{2
     if found_old
         " 显示转换选项帮助
         echohl WarningMsg
-        echo 'Workspace Settings has updated, please convert the old config to new.'
-        echo 'Please read the videm.txt help file for more information.'
+        echo '"Workspace Settings..." has updated, please update your old config.'
+        echo 'Please read the "Extra Help" of "Workspace Settings" for more information.'
         echo 'Press any key to continue...'
         echohl None
         call getchar()
