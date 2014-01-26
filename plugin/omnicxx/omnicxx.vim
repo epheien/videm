@@ -24,6 +24,12 @@ function! s:GetSFuncRef(sFuncName) " 获取局部于脚本的函数的引用 {{{
 endfunction
 "}}}
 
+if vlutils#IsWindowsOS()
+    let s:libname = 'libCxxParser.dll'
+else
+    let s:libname = 'libCxxParser.so'
+endif
+
 " 备用，暂时还没有起作用
 let s:OmniCxxSettings = {
     \ '.videm.cc.omnicxx.Enable'                : 0,
@@ -37,8 +43,10 @@ let s:OmniCxxSettings = {
     \ '.videm.cc.omnicxx.AutoTriggerCharCount'  : 2,
     \ '.videm.cc.omnicxx.InclAllCondCmplBrch'   : 1,
     \ '.videm.cc.omnicxx.LibCxxParserPath'      : s:os.path.join(g:VidemDir,
-    \                                                   '/lib/libCxxParser.so'),
+    \                                                       'lib', s:libname),
 \ }
+
+unlet s:libname
 
 function! s:InitSettings() "{{{2
     if vlutils#IsWindowsOS() &&

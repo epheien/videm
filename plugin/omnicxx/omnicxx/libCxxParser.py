@@ -19,8 +19,8 @@ def GetLibCxxParser():
     try:
         import vim
         import sys
-        #print sys.argv
-        library = sys.argv[1]
+        # TODO 需要优雅的方式
+        library = vim.eval("videm#settings#Get('.videm.cc.omnicxx.LibCxxParserPath')")
         return CDLL(library)
     except:
         return CDLL(os.path.expanduser("~/libCxxParser.so"))
