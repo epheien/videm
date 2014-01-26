@@ -158,8 +158,14 @@ python << PYTHON_EOF
 import sys
 import os.path
 from omnicxx.TagsStorage.TagsManager import TagsManager
+from omnicxx.TagsStorage.TagsManager import AppendCtagsOptions
 from omnicxx.VimOmniCxx import VimOmniCxx
 import Misc
+import vim
+
+# 添加额外的ctags选项. TODO 需要更加优雅的方式
+if int(vim.eval('videm#settings#Get(".videm.cc.omnicxx.InclAllCondCmplBrch")')):
+    AppendCtagsOptions('-m')
 
 # 全局变量
 videm_cc_omnicxx = VimOmniCxx(TagsManager())
