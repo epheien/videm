@@ -196,7 +196,7 @@ class TagEntry():
             m = re.search(r'\btemplate\s*<.*>', temp)
             if m:
                 extra = m.group()
-        elif kind == 'function':
+        elif kind == 'function' or kind == 'prototype':
             '''
             A<B>::C & func(void) {}
             template<> A<B>::C *** func (void) {}
