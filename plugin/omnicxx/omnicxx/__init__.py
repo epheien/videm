@@ -170,7 +170,7 @@ def main(argv):
 def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
                  **kwargs):
     '''返回补全结果, 返回结果应该为字典, 参考vim的complete-items的帮助信息
-    @file:      当前补全的文件名
+    @file:      当前补全的文件名, 暂时未用
     @buff:      缓冲区内容, 最好是字符串列表
     @row:       行
     @col:       列

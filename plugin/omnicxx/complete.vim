@@ -74,7 +74,6 @@ function! s:GetCalltips(items, funcname) "{{{2
     return lCalltips
 endfunction
 "}}}
-" TODO 支持 calltips
 function! omnicxx#complete#RequestCalltips(data) "{{{2
     let use_cache = s:calltips_from_cache
     let s:calltips_from_cache = 0
@@ -82,11 +81,11 @@ function! omnicxx#complete#RequestCalltips(data) "{{{2
     " <<< 普通情况，请求 calltips >>>
     " 确定函数括号开始的位置
     let lOrigCursor = getpos('.')
-    let lStartPos = searchpairpos('(', '', ')', 'nWb', 
-            \'synIDattr(synID(line("."), col("."), 0), "name") =~? "string"')
+    let lStartPos = searchpairpos('(', '', ')', 'nWb',
+            \ 'synIDattr(synID(line("."), col("."), 0), "name") =~? "string"')
     " 考虑刚好在括号内，加 'c' 参数
-    let lEndPos = searchpairpos('(', '', ')', 'nWc', 
-            \'synIDattr(synID(line("."), col("."), 0), "name") =~? "string"')
+    let lEndPos = searchpairpos('(', '', ')', 'nWc',
+            \ 'synIDattr(synID(line("."), col("."), 0), "name") =~? "string"')
     let lCurPos = lOrigCursor[1:2]
 
     " 不在括号内
@@ -113,14 +112,14 @@ function! omnicxx#complete#RequestCalltips(data) "{{{2
     if use_cache
         " 直接使用最近的结果
         let compl_result = asynccompl#GetLatestResult()
+        call vlcalltips#UnkeepCursor()
     else
         " 找到了函数名，开始全能补全
-        let sFileName = expand("%:p")
-        " TODO sFileName, nRow, nCol, sFuncName
-        let compl_result = []
+        let compl_result = omnicxx#complete#CodeComplete(nRow, nCol, sFuncName)
+        call vlcalltips#KeepCursor()
     endif
 
-    " TODO 根据 sFuncName 和 compl_result 提取 calltips
+    " 根据 sFuncName 和 compl_result 提取 calltips
     let lCalltips = s:GetCalltips(compl_result, sFuncName)
 
     " just for test
@@ -128,7 +127,6 @@ function! omnicxx#complete#RequestCalltips(data) "{{{2
     "call add(lCalltips, 'int printf(const char *fmt, int a, int b)')
 
     call setpos('.', lOrigCursor)
-    call vlcalltips#KeepCursor()
     return lCalltips
 endfunction
 "}}}
@@ -165,6 +163,24 @@ function! omnicxx#complete#BuffExit() "{{{2
     call vlcalltips#Unregister('omnicxx#complete#RequestCalltips')
 endfunction
 "}}}
+function! omnicxx#complete#CodeComplete(row, col, base) "{{{2
+    let row = a:row
+    let col = a:col
+    let base = a:base
+    let icase = videm#settings#Get('.videm.cc.omnicxx.IgnoreCase')
+    let scase = videm#settings#Get('.videm.cc.omnicxx.SmartCase')
+    let dbfile = videm#plugin#omnicxx#GetWspDbfile()
+    py vim.command("let result = %s" % ToVimEval(
+            \       OmniCxxCodeCompleteX(buff=vim.current.buffer[:int(vim.eval("row"))],
+            \                            row=int(vim.eval("row")),
+            \                            col=int(vim.eval("col")),
+            \                            icase=int(vim.eval("col")),
+            \                            scase=int(vim.eval("col")),
+            \                            base=vim.eval("base"),
+            \                            dbfile=vim.eval("dbfile"))))
+    return result
+endfunction
+"}}}
 let s:initpy = 0
 function! s:InitPyIf() "{{{2
     if s:initpy
@@ -178,6 +194,10 @@ import os
 import os.path
 import re
 from omnicxx import CodeComplete as OmniCxxCodeComplete
+
+def OmniCxxCodeCompleteX(**kwargs):
+    '''简单的封装以易于使用'''
+    return OmniCxxCompleteHook(AsyncComplThread(None, {}), kwargs)
 
 def OmniCxxArgsHook(kwargs):
     dbfile = vim.eval('videm#plugin#omnicxx#GetWspDbfile()')
@@ -213,7 +233,7 @@ def OmniCxxCompleteHook(acthread, args):
 
     acthread.CommonLock()
     # just for test
-    result = ['abc', 'xyz', 'ABC', 'XYZ']
+    #result = ['abc', 'xyz', 'ABC', 'XYZ']
     retmsg = {}
     # 这里开始根据参数来获取补全结果
     result = OmniCxxCodeComplete(file, buff, row, col, dbfile, base=base,
