@@ -81,7 +81,6 @@ function! s:SID() "获取脚本 ID {{{2
     return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfunction
 let s:sid = s:SID()
-let g:VLWScriptID = s:sid
 
 function! s:GetSFuncRef(sFuncName) " 获取局部于脚本的函数的引用 {{{2
     let sFuncName = a:sFuncName =~ '^s:' ? a:sFuncName[2:] : a:sFuncName
