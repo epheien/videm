@@ -256,6 +256,26 @@ function! s:ExpandItemsFileid(items) "{{{2
     return items
 endfunction
 "}}}2
+" 生成带编号菜单选择列表
+" NOTE: 第一项(即li[0])不会添加编号
+function! s:GenerateMenuList(li) "{{{2
+    let li = a:li
+    let nLen = len(li)
+    let lResult = []
+
+    if nLen > 0
+        call add(lResult, li[0])
+        let l = len(string(nLen -1))
+        let n = 1
+        for str in li[1:]
+            call add(lResult, printf('%*d. %s', l, n, str))
+            let n += 1
+        endfor
+    endif
+
+    return lResult
+endfunction
+"}}}
 function! s:GotoItemPosition(items) "{{{2
     let items = a:items
     if empty(items)
@@ -305,7 +325,7 @@ function! s:GotoItemPosition(items) "{{{2
         let item = result[0]
     endif
 
-    let sSymbol = item.word
+    let sSymbol = substitute(item.word, '()$', '', '')
     let sFileName = item.file
     let sLineNr = item.line
 
