@@ -295,8 +295,9 @@ def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
     if not member_complete:
         # 先添加局部变量
         visible_vars = []
-        for scope in scope_stack[::-1]:
-            visible_vars.extend(scope.vars.keys())
+        # NOTE: 现在的变量解析不够准确, 只需要添加最里层的变量就够用了
+        if scope_stack[-1].kind != 'file':
+            visible_vars.extend(scope_stack[-1].vars.keys())
         if base:
             result += [WordToVimComplItem(var, '', 'v', icase) for var in visible_vars
                        if base_re.match(var)]
