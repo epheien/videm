@@ -1115,6 +1115,8 @@ function! s:InstallCommands() "{{{2
             \               call s:SaveSession(<q-args>)
     command! -nargs=1 -bar -complete=file VLoadSession
             \               call s:LoadSession(<q-args>)
+
+    command! -nargs=0 -bar VPlugInfo call videm#wsp#PlugInfo()
 endfunction
 "}}}
 function! s:InstallMenuBarMenu() "{{{2
@@ -5496,8 +5498,9 @@ function! s:LoadPlugin() "{{{2
     endfor
 endfunction
 "}}}2
-function! videm#wsp#PluginInfo() "{{{2
-    let sPluginPath = s:os.path.join(s:os.path.dirname(s:sfile), 'plugin')
+function! videm#wsp#PlugInfo() "{{{2
+    let enables = []
+    let disables = []
     for name in s:loaded_plugins
         let funcname = printf("videm#plugin#%s#HasEnabled", name)
         let state = 'Unknown'
@@ -5508,7 +5511,22 @@ function! videm#wsp#PluginInfo() "{{{2
                 let state = 'Enabled'
             endif
         endif
-        echo printf("%s\t[%s]", name, state)
+        let msg = printf("%s\t[%s]", name, state)
+        if state ==# 'Enabled'
+            call add(enables, msg)
+        else
+            call add(disables, msg)
+        endif
+    endfor
+
+    " 显示
+    echohl Special
+    for msg in enables
+        echo msg
+    endfor
+    echohl None
+    for msg in disables
+        echo msg
     endfor
     return ''
 endfunction
