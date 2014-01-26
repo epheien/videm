@@ -27,6 +27,8 @@ from CxxSemanticParser import GetComplInfo
 from CxxSemanticParser import ResolveScopeStack
 from CxxSemanticParser import ResolveComplInfo
 
+from CxxKeyword import GetCxxKeywords
+
 _DEBUG = False
 
 def GetTagsMgr(dbfile):
@@ -293,15 +295,20 @@ def CodeComplete(file, buff, row, col, tagsdb = TagsManager(':memory:'),
             return []
 
     if not member_complete:
-        # 先添加局部变量
+        # cxx关键词
+        cxxkw = GetCxxKeywords()
+        # 局部变量
         visible_vars = []
         # NOTE: 现在的变量解析不够准确, 只需要添加最里层的变量就够用了
         if scope_stack[-1].kind != 'file':
             visible_vars.extend(scope_stack[-1].vars.keys())
         if base:
+            result += [WordToVimComplItem(var, '', 'k', icase) for var in cxxkw
+                       if base_re.match(var)]
             result += [WordToVimComplItem(var, '', 'v', icase) for var in visible_vars
                        if base_re.match(var)]
         else:
+            result += [WordToVimComplItem(var, '', 'k', icase) for var in cxxkw]
             result += [WordToVimComplItem(var, '', 'v', icase) for var in visible_vars]
 
     filter_kinds = set()
