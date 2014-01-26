@@ -94,9 +94,9 @@ def ToVimComplItem(tag, filter_kinds = set()):
         word += '()'
         abbr += '()'
     # 把函数形式的宏视为函数
-    elif tag['kind'][0] == 'd':
-        # TODO
-        pass
+    elif tag['kind'][0] == 'd' and tag.has_key('signature'):
+        word += '()'
+        abbr += '()'
 
     # 用于支持 calltips
     info = ''

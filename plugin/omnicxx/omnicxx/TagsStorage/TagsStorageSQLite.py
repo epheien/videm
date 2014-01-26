@@ -550,11 +550,21 @@ class TagsStorageSQLite(object):
 
         entry.kind        = (row[5])
         entry.scope       = ToFullGlobal(row[6])
-        entry.parent_kind = (row[7])
-        entry.access      = (row[8])
-        entry.inherits    = (row[9])
-        entry.signature   = (row[10])
         entry.extra       = (row[11])
+
+        # 这几个字段不一定存在的
+        parent_kind = (row[7])
+        access      = (row[8])
+        inherits    = (row[9])
+        signature   = (row[10])
+        if parent_kind:
+            entry.SetParentKind(parent_kind)
+        if access:
+            entry.SetAccess(access)
+        if inherits:
+            entry.SetInherits(inherits)
+        if signature:
+            entry.SetSignature(signature)
 
         return entry
 
