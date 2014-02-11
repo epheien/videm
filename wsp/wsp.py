@@ -1093,7 +1093,7 @@ class VimLiteWorkspace(object):
         cmd = self.builder.GetBuildCommand(projName, '')
 
         if cmd:
-            if vim.eval("g:VLWorkspaceSaveAllBeforeBuild") != '0':
+            if vim.eval("videm#settings#Get('.videm.wsp.SaveBeforeBuild')") != '0':
                 vim.command("wa")
             tempFile = vim.eval('tempname()')
             if IsWindowsOS():
@@ -1285,7 +1285,7 @@ class VimLiteWorkspace(object):
             if not IsWindowsOS():
                 # 强制设置成英语 locale 以便 quickfix 处理
                 cmd = "export LANG=en_US; " + cmd
-            if vim.eval("g:VLWorkspaceSaveAllBeforeBuild") != '0':
+            if vim.eval("videm#settings#Get('.videm.wsp.SaveBeforeBuild')") != '0':
                 vim.command("wa")
             tempFile = vim.eval('tempname()')
             vim.command("!%s 2>&1 | tee %s" % (cmd, tempFile))

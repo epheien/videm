@@ -519,7 +519,7 @@ function! s:OpenFile(sFile, ...) "优雅地打开一个文件 {{{2
     let bNeedResizeWspWin = (winnr('$') == 1)
 
     let bak_splitright = &splitright
-    if g:VLWorkspaceWinPos ==? 'left'
+    if videm#settings#Get('.videm.wsp.WinPos') ==? 'left'
         set splitright
     else
         set nosplitright
@@ -527,9 +527,9 @@ function! s:OpenFile(sFile, ...) "优雅地打开一个文件 {{{2
     call vlutils#OpenFile(sFile, bKeepCursorPos)
     let &splitright = bak_splitright
 
-    let nWspWinNr = bufwinnr('^'.g:VLWorkspaceBufName.'$')
+    let nWspWinNr = bufwinnr('^'.videm#settings#Get('.videm.wsp.BufName').'$')
     if bNeedResizeWspWin && nWspWinNr != -1
-        exec 'vertical' nWspWinNr 'resize' g:VLWorkspaceWinSize
+        exec 'vertical' nWspWinNr 'resize' videm#settings#Get('.videm.wsp.WinSize')
     endif
 
     if bKeepCursorPos
@@ -568,7 +568,7 @@ function! s:OpenFileVSplit(sFile, ...) "{{{2
     endif
 
     let bak_splitright = &splitright
-    if g:VLWorkspaceWinPos ==? 'left'
+    if videm#settings#Get('.videm.wsp.WinPos') ==? 'left'
         set splitright
     else
         set nosplitright
@@ -852,11 +852,12 @@ endfunction
 " 创建窗口，会确保一个标签页只打开一个工作空间窗口
 function! s:CreateVLWorkspaceWin() "{{{2
     "create the workspace window
-    let splitMethod = g:VLWorkspaceWinPos ==? "left" ? "topleft " : "botright "
-    let splitSize = g:VLWorkspaceWinSize
+    let splitMethod = videm#settings#Get('.videm.wsp.WinPos') ==? "left" ?
+            \ "topleft " : "botright "
+    let splitSize = videm#settings#Get('.videm.wsp.WinSize')
 
     if !exists('t:VLWorkspaceBufName')
-        let t:VLWorkspaceBufName = g:VLWorkspaceBufName
+        let t:VLWorkspaceBufName = videm#settings#Get('.videm.wsp.BufName')
         silent! exec splitMethod . 'vertical ' . splitSize . ' new'
         silent! exec "edit" fnameescape(t:VLWorkspaceBufName)
     else
@@ -880,7 +881,7 @@ function! s:CreateVLWorkspaceWin() "{{{2
     setlocal foldcolumn=0
     setlocal nobuflisted
     setlocal nospell
-    if g:VLWorkspaceShowLineNumbers
+    if videm#settings#Get('.videm.wsp.ShowLineNum')
         setlocal nu
     else
         setlocal nonu
@@ -889,7 +890,7 @@ function! s:CreateVLWorkspaceWin() "{{{2
     "删除所有插入模式的缩写
     iabc <buffer>
 
-    if g:VLWorkspaceHighlightCursorline
+    if videm#settings#Get('.videm.wsp.HlCursorLine')
         setlocal cursorline
     endif
 
@@ -908,6 +909,22 @@ function! s:SetupKeyMappings() "设置键盘映射 {{{2
 
     nnoremap <silent> <buffer> <2-LeftMouse> :call <SID>OnMouseDoubleClick()<CR>
     nnoremap <silent> <buffer> <CR> :call <SID>OnMouseDoubleClick()<CR>
+
+    " NOTE: 这几个全局变量不好改, 先这样吧
+    let g:VLWOpenNodeKey = videm#settings#Get('.videm.wsp.keybind.OpenNode')
+    let g:VLWOpenNode2Key = videm#settings#Get('.videm.wsp.keybind.OpenNode2')
+    let g:VLWOpenNodeInNewTabKey = videm#settings#Get('.videm.wsp.keybind.OpenNodeNewTab')
+    let g:VLWOpenNodeInNewTab2Key = videm#settings#Get('.videm.wsp.keybind.OpenNodeNewTab2')
+    let g:VLWOpenNodeSplitKey = videm#settings#Get('.videm.wsp.keybind.OpenNodeSplit')
+    let g:VLWOpenNodeSplit2Key = videm#settings#Get('.videm.wsp.keybind.OpenNodeSplit2')
+    let g:VLWOpenNodeVSplitKey = videm#settings#Get('.videm.wsp.keybind.OpenNodeVSplit')
+    let g:VLWOpenNodeVSplit2Key = videm#settings#Get('.videm.wsp.keybind.OpenNodeVSplit2')
+    let g:VLWGotoParentKey = videm#settings#Get('.videm.wsp.keybind.GotoParent')
+    let g:VLWGotoRootKey = videm#settings#Get('.videm.wsp.keybind.GotoRoot')
+    let g:VLWGotoNextSibling = videm#settings#Get('.videm.wsp.keybind.GotoNextSibling')
+    let g:VLWGotoPrevSibling = videm#settings#Get('.videm.wsp.keybind.GotoPrevSibling')
+    let g:VLWRefreshBufferKey = videm#settings#Get('.videm.wsp.keybind.RefreshBuffer')
+    let g:VLWToggleHelpInfo = videm#settings#Get('.videm.wsp.keybind.ToggleHelpInfo')
 
     exec 'nnoremap <silent> <buffer>'
             \ videm#settings#Get('.videm.wsp.keybind.OpenNode')
@@ -973,7 +990,7 @@ endfunction
 
 function! s:LocateFile(fileName) "{{{2
     let l:curWinNum = winnr()
-    let l:winNum = bufwinnr(g:VLWorkspaceBufName)
+    let l:winNum = bufwinnr(videm#settings#Get('.videm.wsp.BufName'))
     if l:winNum == -1
         return 1
     endif
@@ -1018,7 +1035,7 @@ function! s:LocateFile(fileName) "{{{2
         normal! zz
     endif
 
-    if g:VLWorkspaceHighlightCursorline
+    if videm#settings#Get('.videm.wsp.HlCursorLine')
         " NOTE: 高亮光标所在行时, 刷新有点问题, 强制刷新
         set nocursorline
         set cursorline
@@ -1247,13 +1264,9 @@ endfunction
 " =================== 工作空间树操作 ===================
 "{{{1
 function! s:OnMouseDoubleClick(...) "{{{2
-    let sKey = ''
-    if a:0 > 0
-        let sKey = a:1
-    endif
+    let sKey = get(a:000, 0, '')
     py ws.OnMouseDoubleClick(vim.eval("sKey"))
 endfunction
-
 
 function! s:OnRightMouseClick() "{{{2
     py ws.OnRightMouseClick()
