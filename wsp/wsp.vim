@@ -989,6 +989,10 @@ endfunction
 
 
 function! s:LocateFile(fileName) "{{{2
+    if empty(a:fileName)
+        return 2
+    endif
+
     let l:curWinNum = winnr()
     let l:winNum = bufwinnr(videm#settings#Get('.videm.wsp.BufName'))
     if l:winNum == -1
