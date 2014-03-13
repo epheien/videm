@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<CodeLite_Workspace Database="./videm.tags" Name="videm">
+<CodeLite_Workspace Database="./videm-tools.tags" Name="videm-tools">
   <Project Active="Yes" Name="vlctags2" Path="vlctags2/vlctags2.vlproject"/>
   <Project Active="No" Name="DataTypes" Path="ftcb/DataTypes/DataTypes.vlproject"/>
   <Project Active="No" Name="IntExpr" Path="IntExpr/IntExpr.vlproject"/>
