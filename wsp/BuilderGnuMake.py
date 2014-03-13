@@ -396,8 +396,11 @@ clean:
             #text += '#-include $(Depends)\n'
             #text += '-include $(OutDir)/*$(DepExt)\n' # 用这句才行，真不懂
             text += '''\
+# Generate and include dependencies if we can
 ifeq ($(shell test -d $(OutDir) && echo yes || echo no),yes)
--include $(Depends)
+  ifeq ($(shell test -f $(word 1,$(Depends)) && echo yes || echo no),yes)
+    include $(Depends)
+  endif
 endif
 '''
             text += '\n'
