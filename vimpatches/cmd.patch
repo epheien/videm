@@ -1,0 +1,20 @@
+--- a/src/ex_docmd.c	2013-01-12 15:14:45.911562001 +0800
++++ b/src/ex_docmd.c	2010-10-24 20:33:43.000000000 +0800
+@@ -2875,7 +2875,7 @@
+ 	if (eap->cmdidx == CMD_SIZE && *eap->cmd >= 'A' && *eap->cmd <= 'Z')
+ 	{
+ 	    /* User defined commands may contain digits. */
+-	    while (ASCII_ISALNUM(*p))
++	    while (ASCII_ISALNUM(*p) || *p == '-' || *p == '_')
+ 		++p;
+ 	    p = find_ucmd(eap, p, full, NULL, NULL);
+ 	}
+@@ -5605,7 +5605,7 @@
+     /* Get the name (if any) and skip to the following argument */
+     name = p;
+     if (ASCII_ISALPHA(*p))
+-	while (ASCII_ISALNUM(*p))
++	while (ASCII_ISALNUM(*p) || *p == '-' || *p == '_')
+ 	    ++p;
+     if (!ends_excmd(*p) && !vim_iswhite(*p))
+     {

@@ -1,0 +1,17 @@
+diff -uNr a/src/mark.c b/src/mark.c
+--- a/src/mark.c	2011-04-02 21:12:50.000000000 +0800
++++ b/src/mark.c	2012-10-19 11:35:22.788347877 +0800
+@@ -160,6 +160,13 @@
+ 	curwin->w_jumplist[0] = tempmark;
+ 	++curwin->w_jumplistidx;
+     }
++# else
++    for (i = curwin->w_jumplistidx; i < curwin->w_jumplistlen; ++i)
++    {
++	vim_free(curwin->w_jumplist[i].fname);
++	curwin->w_jumplist[i].fname = NULL;
++    }
++    curwin->w_jumplistlen = curwin->w_jumplistidx;
+ # endif
+ 
+     /* If jumplist is full: remove oldest entry */

@@ -1,0 +1,74 @@
+diff -uNr a/src/edit.c b/src/edit.c
+--- a/src/edit.c	2010-10-24 20:33:43.000000000 +0800
++++ b/src/edit.c	2013-01-22 00:52:56.859569000 +0800
+@@ -101,6 +101,8 @@
+ static int	  compl_get_longest = FALSE;	/* put longest common string
+ 						   in compl_leader */
+ 
++static int	  compl_noexpand = FALSE;	/* do not expand ins compl */
++
+ static int	  compl_used_match;	/* Selected one of the matches.  When
+ 					   FALSE the match was edited or using
+ 					   the longest common string. */
+@@ -793,6 +795,7 @@
+ 	/* Prepare for or stop CTRL-X mode.  This doesn't do completion, but
+ 	 * it does fix up the text when finishing completion. */
+ 	compl_get_longest = FALSE;
++	compl_noexpand = FALSE;
+ 	if (ins_compl_prep(c))
+ 	    continue;
+ #endif
+@@ -3517,6 +3520,7 @@
+ 				      || (ctrl_x_mode == 0 && !compl_started))
+     {
+ 	compl_get_longest = (vim_strchr(p_cot, 'l') != NULL);
++	compl_noexpand = (vim_strchr(p_cot, 'x') != NULL);
+ 	compl_used_match = TRUE;
+     }
+ 
+@@ -4562,7 +4566,8 @@
+ 
+ 	/* Delete old text to be replaced, since we're still searching and
+ 	 * don't want to match ourselves!  */
+-	ins_compl_delete();
++	if (!compl_noexpand)
++	    ins_compl_delete();
+     }
+ 
+     /* Enter will select a match when the match wasn't inserted and the popup
+@@ -4647,7 +4652,10 @@
+ 	int todo = compl_pending > 0 ? compl_pending : -compl_pending;
+ 
+ 	compl_pending = 0;
+-	(void)ins_compl_next(FALSE, todo, TRUE);
++	if (compl_noexpand)
++	    (void)ins_compl_next(FALSE, todo, FALSE);
++	else
++	    (void)ins_compl_next(FALSE, todo, TRUE);
+     }
+ }
+ 
+@@ -5120,7 +5128,10 @@
+      * Find next match (and following matches).
+      */
+     save_w_wrow = curwin->w_wrow;
+-    n = ins_compl_next(TRUE, ins_compl_key2count(c), ins_compl_use_match(c));
++    if (compl_noexpand)
++	n = ins_compl_next(TRUE, ins_compl_key2count(c), FALSE);
++    else
++	n = ins_compl_next(TRUE, ins_compl_key2count(c), ins_compl_use_match(c));
+ 
+     /* may undisplay the popup menu */
+     ins_compl_upd_pum();
+diff -uNr a/src/option.c b/src/option.c
+--- a/src/option.c	2010-10-24 20:33:43.000000000 +0800
++++ b/src/option.c	2013-01-22 00:33:21.799569000 +0800
+@@ -2972,7 +2972,7 @@
+ static char *(p_fcl_values[]) = {"all", NULL};
+ #endif
+ #ifdef FEAT_INS_EXPAND
+-static char *(p_cot_values[]) = {"menu", "menuone", "longest", "preview", NULL};
++static char *(p_cot_values[]) = {"menu", "menuone", "longest", "preview", "noexpand", NULL};
+ #endif
+ 
+ static void set_option_default __ARGS((int, int opt_flags, int compatible));
