@@ -35,23 +35,23 @@ LibPat = -l$(Lib)
 
 ## ===== Project Variables =====
 WorkspaceName          := videm-tools
-WorkspacePath          := $(CURDIR)/..
-ProjectName            := IntExpr
+WorkspacePath          := $(CURDIR)/../..
+ProjectName            := DataTypes
 ProjectPath            := $(CURDIR)
-ConfigurationName      := lib_release
+ConfigurationName      := Release_SL
 IntermediateDirectory  := $(ConfigurationName)
 OutDir                 := $(IntermediateDirectory)
 User                   := eph
 Date                   := 2014-03-13
-OutputFile             := lib/lib$(ProjectName).a
+OutputFile             := ../lib/lib$(ProjectName).a
 CPPFLAGS               := 
 CCXXFLAGS              := 
 CFLAGS                 := $(CCXXFLAGS)
 CFLAGS                 += -g -Wall
 CXXFLAGS               := $(CCXXFLAGS)
 CXXFLAGS               += -g -Wall
-IncPaths               := .
-Macros                 := _WITH_YACC
+IncPaths               := . . ../include
+Macros                 := 
 LDFLAGS                := 
 LibPaths               := .
 Libraries              := 
@@ -71,13 +71,25 @@ PrePrcFile = $(OutDir)/$(notdir $(basename $(SourceFile)))$(PrpExt)
 
 # ===== Sources and Objects and Depends and PrePrcs =====
 Sources := \
-    IntExpr.c \
-    y.tab.c \
+    src/ftString.c \
+    src/ftHashTable.c \
+    src/ftStack.c \
+    src/ftCMacro.c \
+    src/ftError.c \
+    src/ftSingleList.c \
+    src/ftDoubleList.c \
+    src/ftCommon.c \
 
 
 Objects := \
-    $(OutDir)/IntExpr$(ObjExt) \
-    $(OutDir)/y.tab$(ObjExt) \
+    $(OutDir)/ftString$(ObjExt) \
+    $(OutDir)/ftHashTable$(ObjExt) \
+    $(OutDir)/ftStack$(ObjExt) \
+    $(OutDir)/ftCMacro$(ObjExt) \
+    $(OutDir)/ftError$(ObjExt) \
+    $(OutDir)/ftSingleList$(ObjExt) \
+    $(OutDir)/ftDoubleList$(ObjExt) \
+    $(OutDir)/ftCommon$(ObjExt) \
 
 
 Depends := $(foreach Src,$(Sources),$(OutDir)/$(notdir $(basename $(Src)))$(DepExt))
@@ -120,22 +132,76 @@ clean:
 	$(RM) $(Objects)
 	$(RM) $(OutputFile)
 
-$(OutDir)/IntExpr$(PrpExt): IntExpr.c
+$(OutDir)/ftString$(PrpExt): src/ftString.c
 	$(CPrpCmd)
 
-$(OutDir)/IntExpr$(ObjExt): IntExpr.c $(OutDir)/IntExpr$(DepExt)
+$(OutDir)/ftString$(ObjExt): src/ftString.c $(OutDir)/ftString$(DepExt)
 	$(CCmpCmd)
 
-$(OutDir)/IntExpr$(DepExt): IntExpr.c
+$(OutDir)/ftString$(DepExt): src/ftString.c
 	@$(CDepGenCmd)
 
-$(OutDir)/y.tab$(PrpExt): y.tab.c
+$(OutDir)/ftHashTable$(PrpExt): src/ftHashTable.c
 	$(CPrpCmd)
 
-$(OutDir)/y.tab$(ObjExt): y.tab.c $(OutDir)/y.tab$(DepExt)
+$(OutDir)/ftHashTable$(ObjExt): src/ftHashTable.c $(OutDir)/ftHashTable$(DepExt)
 	$(CCmpCmd)
 
-$(OutDir)/y.tab$(DepExt): y.tab.c
+$(OutDir)/ftHashTable$(DepExt): src/ftHashTable.c
+	@$(CDepGenCmd)
+
+$(OutDir)/ftStack$(PrpExt): src/ftStack.c
+	$(CPrpCmd)
+
+$(OutDir)/ftStack$(ObjExt): src/ftStack.c $(OutDir)/ftStack$(DepExt)
+	$(CCmpCmd)
+
+$(OutDir)/ftStack$(DepExt): src/ftStack.c
+	@$(CDepGenCmd)
+
+$(OutDir)/ftCMacro$(PrpExt): src/ftCMacro.c
+	$(CPrpCmd)
+
+$(OutDir)/ftCMacro$(ObjExt): src/ftCMacro.c $(OutDir)/ftCMacro$(DepExt)
+	$(CCmpCmd)
+
+$(OutDir)/ftCMacro$(DepExt): src/ftCMacro.c
+	@$(CDepGenCmd)
+
+$(OutDir)/ftError$(PrpExt): src/ftError.c
+	$(CPrpCmd)
+
+$(OutDir)/ftError$(ObjExt): src/ftError.c $(OutDir)/ftError$(DepExt)
+	$(CCmpCmd)
+
+$(OutDir)/ftError$(DepExt): src/ftError.c
+	@$(CDepGenCmd)
+
+$(OutDir)/ftSingleList$(PrpExt): src/ftSingleList.c
+	$(CPrpCmd)
+
+$(OutDir)/ftSingleList$(ObjExt): src/ftSingleList.c $(OutDir)/ftSingleList$(DepExt)
+	$(CCmpCmd)
+
+$(OutDir)/ftSingleList$(DepExt): src/ftSingleList.c
+	@$(CDepGenCmd)
+
+$(OutDir)/ftDoubleList$(PrpExt): src/ftDoubleList.c
+	$(CPrpCmd)
+
+$(OutDir)/ftDoubleList$(ObjExt): src/ftDoubleList.c $(OutDir)/ftDoubleList$(DepExt)
+	$(CCmpCmd)
+
+$(OutDir)/ftDoubleList$(DepExt): src/ftDoubleList.c
+	@$(CDepGenCmd)
+
+$(OutDir)/ftCommon$(PrpExt): src/ftCommon.c
+	$(CPrpCmd)
+
+$(OutDir)/ftCommon$(ObjExt): src/ftCommon.c $(OutDir)/ftCommon$(DepExt)
+	$(CCmpCmd)
+
+$(OutDir)/ftCommon$(DepExt): src/ftCommon.c
 	@$(CDepGenCmd)
 
 # Generate and include dependencies if we can
