@@ -1,0 +1,43 @@
+{
+    "INC_PATH_APPEND": 0, 
+    "INC_PATH_DISABLE": 3, 
+    "INC_PATH_FLAG_WORDS": [
+        "Append", 
+        "Replace", 
+        "Prepend", 
+        "Disable"
+    ], 
+    "INC_PATH_PREPEND": 2, 
+    "INC_PATH_REPLACE": 1, 
+    "batchBuild": {
+        "Default": [], 
+        "Release": [
+            "CxxParser", 
+            "DataTypes", 
+            "IntExpr", 
+            "vlctags2"
+        ]
+    }, 
+    "cSrcExts": [], 
+    "cppSrcExts": [], 
+    "editorOptions": [], 
+    "enableLocalConfig": false, 
+    "envVarSetName": "Default", 
+    "excludePaths": [], 
+    "incPathFlag": 0, 
+    "includePaths": [], 
+    "localConfig": {
+        ".videm.cc.omnicpp.Enable": 0, 
+        ".videm.cc.vimccc.Enable": 1, 
+        ".videm.symdb.cscope.Enable": 0, 
+        ".videm.symdb.gtags.Enable": 1
+    }, 
+    "macroFiles": [], 
+    "nsinfo": {
+        "nsalias": {}, 
+        "using": {}, 
+        "usingns": []
+    }, 
+    "tagsTokens": [], 
+    "tagsTypes": []
+}
