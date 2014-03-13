@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<CodeLite_Project InternalType="Console" Name="CxxParser">
+<CodeLite_Project InternalType="Console" Name="CxxParser" Version="100">
   <Description>
 		A project that produces an executable.
 Note that this project is set to work with the GNU toolchain (gdb, g++)
@@ -89,145 +89,18 @@ Note that this project is set to work with the GNU toolchain (gdb, g++)
         <CustomPostBuild/>
       </AdditionalRules>
       <IgnoredFiles>
-        <IgnoredFile Name="src/CxxParser.cpp"/>
-        <IgnoredFile Name="test/Test_CxxHWParser.cpp"/>
-        <IgnoredFile Name="test/Test_CxxParseType.cpp"/>
-        <IgnoredFile Name="include/ftHashTable.h"/>
-        <IgnoredFile Name="include/ftTypes.h"/>
-        <IgnoredFile Name="src/main.cpp"/>
-        <IgnoredFile Name="src/StrMap.cpp"/>
-        <IgnoredFile Name="test/Test_Utils.cpp"/>
-        <IgnoredFile Name="test/Test_StrMap.cpp"/>
-        <IgnoredFile Name="others/cxx.y"/>
-        <IgnoredFile Name="src/ftHashTable.c"/>
+        <IgnoredFile Name="Test_StrMap.cpp"/>
+        <IgnoredFile Name="main.cpp"/>
+        <IgnoredFile Name="CxxParser.cpp"/>
+        <IgnoredFile Name="Test_Utils.cpp"/>
+        <IgnoredFile Name="Test_CxxParseType.cpp"/>
+        <IgnoredFile Name="Test_CxxHWParser.cpp"/>
+        <IgnoredFile Name="cxx.y"/>
+        <IgnoredFile Name="ftHashTable.c"/>
+        <IgnoredFile Name="ftTypes.h"/>
+        <IgnoredFile Name="ftHashTable.h"/>
       </IgnoredFiles>
-    </Configuration>
-    <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Name="Release" Type="Executable">
-      <Compiler C_Cpp_Options="" C_Options="" Options="" PreCompiledHeader="" Required="yes">
-        <IncludePath Value="."/>
-      </Compiler>
-      <Linker Options="-O2" Required="yes"/>
-      <ResourceCompiler Options="" Required="no"/>
-      <General Command="./$(ProjectName)" CommandArguments="" DebugArguments="" IntermediateDirectory="$(ConfigurationName)" OutputFile="$(IntermediateDirectory)/$(ProjectName)" PauseExecWhenProcTerminates="yes" UseSeparateDebugArgs="no" WorkingDirectory="$(IntermediateDirectory)"/>
-      <Environment DbgSetName="&lt;Use Defaults&gt;" EnvVarSetName="&lt;Use Defaults&gt;"/>
-      <Debugger DebuggerPath="" IsRemote="no" RemoteHostName="" RemoteHostPort="">
-        <StartupCommands/>
-        <PostConnectCommands/>
-      </Debugger>
-      <PreBuild/>
-      <PostBuild/>
-      <CustomBuild Enabled="no">
-        <WorkingDirectory/>
-        <ThirdPartyToolName>None</ThirdPartyToolName>
-        <MakefileGenerationCommand/>
-        <SingleFileCommand/>
-        <PreprocessFileCommand/>
-        <BuildCommand/>
-        <CleanCommand/>
-        <RebuildCommand/>
-      </CustomBuild>
-      <AdditionalRules>
-        <CustomPreBuild/>
-        <CustomPostBuild/>
-      </AdditionalRules>
-      <IgnoredFiles/>
-    </Configuration>
-    <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Name="Release_Unix_dll" Type="Dynamic Library">
-      <Compiler C_Cpp_Options="" C_Options="-Wall;-O2;-Wshadow;-fPIC" Options="-Wall;-O2;-Wshadow;-fPIC" PreCompiledHeader="" Required="yes">
-        <IncludePath Value="."/>
-      </Compiler>
-      <Linker Options="" Required="yes"/>
-      <ResourceCompiler Options="" Required="no"/>
-      <General Command="./$(ProjectName)" CommandArguments="" DebugArguments="" IntermediateDirectory="$(ConfigurationName)" OutputFile="$(IntermediateDirectory)/lib$(ProjectName).so" PauseExecWhenProcTerminates="yes" UseSeparateDebugArgs="no" WorkingDirectory="$(IntermediateDirectory)"/>
-      <Environment DbgSetName="&lt;Use Defaults&gt;" EnvVarSetName="&lt;Use Defaults&gt;"/>
-      <Debugger DebuggerPath="" IsRemote="no" RemoteHostName="" RemoteHostPort="">
-        <StartupCommands/>
-        <PostConnectCommands/>
-      </Debugger>
-      <PreBuild>
-        <Command Enabled="no">which yacc &amp;&amp; yacc -d -o CxxParser.cpp cxx.y || :</Command>
-        <Command Enabled="no">which lex &amp;&amp; lex -o CxxLexer.c --header-file=CxxLexer.h cxx.l || :</Command>
-      </PreBuild>
-      <PostBuild>
-        <Command Enabled="yes">@mkdir -p ../videm/lib</Command>
-        <Command Enabled="yes">@cp -v $(OutputFile) ../videm/lib</Command>
-      </PostBuild>
-      <CustomBuild Enabled="no">
-        <WorkingDirectory/>
-        <ThirdPartyToolName>None</ThirdPartyToolName>
-        <MakefileGenerationCommand/>
-        <SingleFileCommand/>
-        <PreprocessFileCommand/>
-        <BuildCommand/>
-        <CleanCommand/>
-        <RebuildCommand/>
-      </CustomBuild>
-      <AdditionalRules>
-        <CustomPreBuild/>
-        <CustomPostBuild/>
-      </AdditionalRules>
-      <IgnoredFiles>
-        <IgnoredFile Name="src/CxxParser.cpp"/>
-        <IgnoredFile Name="src/main.cpp"/>
-        <IgnoredFile Name="src/ftHashTable.c"/>
-        <IgnoredFile Name="include/ftHashTable.h"/>
-        <IgnoredFile Name="include/ftTypes.h"/>
-        <IgnoredFile Name="include/CtagsDatabase.hpp"/>
-        <IgnoredFile Name="test/Test_CxxParseType.cpp"/>
-        <IgnoredFile Name="src/StrMap.cpp"/>
-        <IgnoredFile Name="test/Test_Utils.cpp"/>
-        <IgnoredFile Name="src/CtagsDatabase.cpp"/>
-        <IgnoredFile Name="test/Test_CxxHWParser.cpp"/>
-        <IgnoredFile Name="others/cxx.y"/>
-        <IgnoredFile Name="test/Test_StrMap.cpp"/>
-      </IgnoredFiles>
-    </Configuration>
-    <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Name="mindll" Type="Dynamic Library">
-      <Compiler C_Cpp_Options="-Wall;-O2;-Wshadow;-fPIC" C_Options="" Options="" PreCompiledHeader="" Required="yes">
-        <IncludePath Value="."/>
-      </Compiler>
-      <Linker Options="" Required="yes"/>
-      <ResourceCompiler Options="" Required="no"/>
-      <General Command="./$(ProjectName)" CommandArguments="" DebugArguments="" IntermediateDirectory="$(ConfigurationName)" OutputFile="$(IntermediateDirectory)/lib$(ProjectName).so" PauseExecWhenProcTerminates="yes" UseSeparateDebugArgs="no" WorkingDirectory="$(IntermediateDirectory)"/>
-      <Environment DbgSetName="&lt;Use Defaults&gt;" EnvVarSetName="&lt;Use Defaults&gt;"/>
-      <Debugger DebuggerPath="" IsRemote="no" RemoteHostName="" RemoteHostPort="">
-        <StartupCommands/>
-        <PostConnectCommands/>
-      </Debugger>
-      <PreBuild>
-        <Command Enabled="no">which yacc &amp;&amp; yacc -d -o CxxParser.cpp cxx.y || :</Command>
-        <Command Enabled="no">which lex &amp;&amp; lex -o CxxLexer.c --header-file=CxxLexer.h cxx.l || :</Command>
-      </PreBuild>
-      <PostBuild/>
-      <CustomBuild Enabled="no">
-        <WorkingDirectory/>
-        <ThirdPartyToolName>None</ThirdPartyToolName>
-        <MakefileGenerationCommand/>
-        <SingleFileCommand/>
-        <PreprocessFileCommand/>
-        <BuildCommand/>
-        <CleanCommand/>
-        <RebuildCommand/>
-      </CustomBuild>
-      <AdditionalRules>
-        <CustomPreBuild/>
-        <CustomPostBuild/>
-      </AdditionalRules>
-      <IgnoredFiles>
-        <IgnoredFile Name="src/CxxParser.cpp"/>
-        <IgnoredFile Name="src/main.cpp"/>
-        <IgnoredFile Name="src/ftHashTable.c"/>
-        <IgnoredFile Name="others/cxx.y"/>
-        <IgnoredFile Name="include/ftTypes.h"/>
-        <IgnoredFile Name="include/CtagsDatabase.hpp"/>
-        <IgnoredFile Name="test/Test_CxxParseType.cpp"/>
-        <IgnoredFile Name="test/Test_Utils.cpp"/>
-        <IgnoredFile Name="src/CtagsDatabase.cpp"/>
-        <IgnoredFile Name="test/Test_CxxHWParser.cpp"/>
-        <IgnoredFile Name="include/ftHashTable.h"/>
-        <IgnoredFile Name="test/Test_StrMap.cpp"/>
-        <IgnoredFile Name="src/StrMap.cpp"/>
-      </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
     <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Name="Debug" Type="Executable">
       <Compiler C_Cpp_Options="" C_Options="-g;-Wall;-Wshadow" Options="-g;-Wall;-Wshadow" PreCompiledHeader="" Required="yes">
@@ -264,14 +137,142 @@ Note that this project is set to work with the GNU toolchain (gdb, g++)
         <CustomPostBuild/>
       </AdditionalRules>
       <IgnoredFiles>
-        <IgnoredFile Name="src/ftHashTable.c"/>
-        <IgnoredFile Name="src/CxxParser.cpp"/>
-        <IgnoredFile Name="include/ftHashTable.h"/>
-        <IgnoredFile Name="include/ftTypes.h"/>
-        <IgnoredFile Name="src/StrMap.cpp"/>
-        <IgnoredFile Name="test/Test_StrMap.cpp"/>
-        <IgnoredFile Name="others/cxx.y"/>
+        <IgnoredFile Name="Test_StrMap.cpp"/>
+        <IgnoredFile Name="ftTypes.h"/>
+        <IgnoredFile Name="cxx.y"/>
+        <IgnoredFile Name="ftHashTable.c"/>
+        <IgnoredFile Name="CxxParser.cpp"/>
+        <IgnoredFile Name="ftHashTable.h"/>
       </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
+    </Configuration>
+    <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Name="Release_Unix_dll" Type="Dynamic Library">
+      <Compiler C_Cpp_Options="" C_Options="-Wall;-O2;-Wshadow;-fPIC" Options="-Wall;-O2;-Wshadow;-fPIC" PreCompiledHeader="" Required="yes">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General Command="./$(ProjectName)" CommandArguments="" DebugArguments="" IntermediateDirectory="$(ConfigurationName)" OutputFile="$(IntermediateDirectory)/lib$(ProjectName).so" PauseExecWhenProcTerminates="yes" UseSeparateDebugArgs="no" WorkingDirectory="$(IntermediateDirectory)"/>
+      <Environment DbgSetName="&lt;Use Defaults&gt;" EnvVarSetName="&lt;Use Defaults&gt;"/>
+      <Debugger DebuggerPath="" IsRemote="no" RemoteHostName="" RemoteHostPort="">
+        <StartupCommands/>
+        <PostConnectCommands/>
+      </Debugger>
+      <PreBuild>
+        <Command Enabled="no">which yacc &amp;&amp; yacc -d -o CxxParser.cpp cxx.y || :</Command>
+        <Command Enabled="no">which lex &amp;&amp; lex -o CxxLexer.c --header-file=CxxLexer.h cxx.l || :</Command>
+      </PreBuild>
+      <PostBuild>
+        <Command Enabled="yes">@mkdir -p ../_videm/lib</Command>
+        <Command Enabled="yes">@cp -v $(OutputFile) ../_videm/lib</Command>
+      </PostBuild>
+      <CustomBuild Enabled="no">
+        <WorkingDirectory/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <MakefileGenerationCommand/>
+        <SingleFileCommand/>
+        <PreprocessFileCommand/>
+        <BuildCommand/>
+        <CleanCommand/>
+        <RebuildCommand/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPreBuild/>
+        <CustomPostBuild/>
+      </AdditionalRules>
+      <IgnoredFiles>
+        <IgnoredFile Name="Test_StrMap.cpp"/>
+        <IgnoredFile Name="main.cpp"/>
+        <IgnoredFile Name="ftTypes.h"/>
+        <IgnoredFile Name="Test_Utils.cpp"/>
+        <IgnoredFile Name="Test_CxxParseType.cpp"/>
+        <IgnoredFile Name="Test_CxxHWParser.cpp"/>
+        <IgnoredFile Name="cxx.y"/>
+        <IgnoredFile Name="ftHashTable.c"/>
+        <IgnoredFile Name="CtagsDatabase.hpp"/>
+        <IgnoredFile Name="CxxParser.cpp"/>
+        <IgnoredFile Name="CtagsDatabase.cpp"/>
+        <IgnoredFile Name="ftHashTable.h"/>
+      </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
+    </Configuration>
+    <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Name="mindll" Type="Dynamic Library">
+      <Compiler C_Cpp_Options="-Wall;-O2;-Wshadow;-fPIC" C_Options="" Options="" PreCompiledHeader="" Required="yes">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General Command="./$(ProjectName)" CommandArguments="" DebugArguments="" IntermediateDirectory="$(ConfigurationName)" OutputFile="$(IntermediateDirectory)/lib$(ProjectName).so" PauseExecWhenProcTerminates="yes" UseSeparateDebugArgs="no" WorkingDirectory="$(IntermediateDirectory)"/>
+      <Environment DbgSetName="&lt;Use Defaults&gt;" EnvVarSetName="&lt;Use Defaults&gt;"/>
+      <Debugger DebuggerPath="" IsRemote="no" RemoteHostName="" RemoteHostPort="">
+        <StartupCommands/>
+        <PostConnectCommands/>
+      </Debugger>
+      <PreBuild>
+        <Command Enabled="no">which yacc &amp;&amp; yacc -d -o CxxParser.cpp cxx.y || :</Command>
+        <Command Enabled="no">which lex &amp;&amp; lex -o CxxLexer.c --header-file=CxxLexer.h cxx.l || :</Command>
+      </PreBuild>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <WorkingDirectory/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <MakefileGenerationCommand/>
+        <SingleFileCommand/>
+        <PreprocessFileCommand/>
+        <BuildCommand/>
+        <CleanCommand/>
+        <RebuildCommand/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPreBuild/>
+        <CustomPostBuild/>
+      </AdditionalRules>
+      <IgnoredFiles>
+        <IgnoredFile Name="Test_StrMap.cpp"/>
+        <IgnoredFile Name="main.cpp"/>
+        <IgnoredFile Name="CxxParser.cpp"/>
+        <IgnoredFile Name="Test_Utils.cpp"/>
+        <IgnoredFile Name="Test_CxxParseType.cpp"/>
+        <IgnoredFile Name="Test_CxxHWParser.cpp"/>
+        <IgnoredFile Name="cxx.y"/>
+        <IgnoredFile Name="ftHashTable.c"/>
+        <IgnoredFile Name="CtagsDatabase.hpp"/>
+        <IgnoredFile Name="ftTypes.h"/>
+        <IgnoredFile Name="CtagsDatabase.cpp"/>
+        <IgnoredFile Name="ftHashTable.h"/>
+      </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
+    </Configuration>
+    <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Name="Release" Type="Executable">
+      <Compiler C_Cpp_Options="" C_Options="" Options="" PreCompiledHeader="" Required="yes">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General Command="./$(ProjectName)" CommandArguments="" DebugArguments="" IntermediateDirectory="$(ConfigurationName)" OutputFile="$(IntermediateDirectory)/$(ProjectName)" PauseExecWhenProcTerminates="yes" UseSeparateDebugArgs="no" WorkingDirectory="$(IntermediateDirectory)"/>
+      <Environment DbgSetName="&lt;Use Defaults&gt;" EnvVarSetName="&lt;Use Defaults&gt;"/>
+      <Debugger DebuggerPath="" IsRemote="no" RemoteHostName="" RemoteHostPort="">
+        <StartupCommands/>
+        <PostConnectCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <WorkingDirectory/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <MakefileGenerationCommand/>
+        <SingleFileCommand/>
+        <PreprocessFileCommand/>
+        <BuildCommand/>
+        <CleanCommand/>
+        <RebuildCommand/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPreBuild/>
+        <CustomPostBuild/>
+      </AdditionalRules>
+      <IgnoredFiles/>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
     <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Name="Release_Win32_dll" Type="Dynamic Library">
       <Compiler C_Cpp_Options="" C_Options="-Wall;-O2;-Wshadow" Options="-Wall;-O2;-Wshadow" PreCompiledHeader="" Required="yes">
@@ -308,20 +309,20 @@ Note that this project is set to work with the GNU toolchain (gdb, g++)
         <CustomPostBuild/>
       </AdditionalRules>
       <IgnoredFiles>
-        <IgnoredFile Name="src/CxxParser.cpp"/>
-        <IgnoredFile Name="src/main.cpp"/>
-        <IgnoredFile Name="src/ftHashTable.c"/>
-        <IgnoredFile Name="include/ftHashTable.h"/>
-        <IgnoredFile Name="include/ftTypes.h"/>
-        <IgnoredFile Name="include/CtagsDatabase.hpp"/>
-        <IgnoredFile Name="test/Test_CxxParseType.cpp"/>
-        <IgnoredFile Name="src/StrMap.cpp"/>
-        <IgnoredFile Name="test/Test_Utils.cpp"/>
-        <IgnoredFile Name="src/CtagsDatabase.cpp"/>
-        <IgnoredFile Name="test/Test_CxxHWParser.cpp"/>
-        <IgnoredFile Name="others/cxx.y"/>
-        <IgnoredFile Name="test/Test_StrMap.cpp"/>
+        <IgnoredFile Name="Test_StrMap.cpp"/>
+        <IgnoredFile Name="main.cpp"/>
+        <IgnoredFile Name="CxxParser.cpp"/>
+        <IgnoredFile Name="Test_Utils.cpp"/>
+        <IgnoredFile Name="Test_CxxParseType.cpp"/>
+        <IgnoredFile Name="Test_CxxHWParser.cpp"/>
+        <IgnoredFile Name="cxx.y"/>
+        <IgnoredFile Name="ftHashTable.c"/>
+        <IgnoredFile Name="CtagsDatabase.hpp"/>
+        <IgnoredFile Name="ftTypes.h"/>
+        <IgnoredFile Name="CtagsDatabase.cpp"/>
+        <IgnoredFile Name="ftHashTable.h"/>
       </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
   </Settings>
 </CodeLite_Project>

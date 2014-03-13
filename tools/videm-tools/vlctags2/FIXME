@@ -1,0 +1,4 @@
+#1. using namespace std; void func(); // 连起来了
+2. "" 和 '' 被替换成特殊符号了
+3. namespace { } void func();
+   } 被带入了 void func() 的 text

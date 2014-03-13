@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<CodeLite_Project InternalType="Console" Name="vlctags2">
+<CodeLite_Project InternalType="Console" Name="vlctags2" Version="100">
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
@@ -142,8 +142,9 @@
         <CustomPostBuild/>
       </AdditionalRules>
       <IgnoredFiles>
-        <IgnoredFile Name="src/qaculator.cpp"/>
+        <IgnoredFile Name="qaculator.cpp"/>
       </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
     <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Name="Release_Min_Win32" Type="Executable">
       <Compiler C_Cpp_Options="" C_Options="-g;-Wall;-O0;-DHAVE_REGCOMP -D__USE_GNU -Dbool=int -Dfalse=0 -Dtrue=1 -Dstrcasecmp=stricmp" Options="-g;-Wall;-O0" PreCompiledHeader="" Required="yes">
@@ -183,19 +184,20 @@
         <CustomPostBuild/>
       </AdditionalRules>
       <IgnoredFiles>
-        <IgnoredFile Name="src/qaculator.cpp"/>
+        <IgnoredFile Name="qaculator.cpp"/>
       </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
     <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Name="Release_Unix" Type="Executable">
       <Compiler C_Cpp_Options="" C_Options="-g;-Wall;-O2" Options="-g;-Wall;-O2" PreCompiledHeader="" Required="yes">
         <IncludePath Value="."/>
-        <IncludePath Value="ftcb/include"/>
-        <IncludePath Value="IntExpr"/>
+        <IncludePath Value="../ftcb/include"/>
+        <IncludePath Value="../IntExpr"/>
         <Preprocessor Value="HAVE_CONFIG_H"/>
       </Compiler>
       <Linker Options="" Required="yes">
-        <LibraryPath Value="ftcb/lib"/>
-        <LibraryPath Value="IntExpr/lib"/>
+        <LibraryPath Value="../ftcb/lib"/>
+        <LibraryPath Value="../IntExpr/lib"/>
         <Library Value="DataTypes"/>
         <Library Value="IntExpr"/>
       </Linker>
@@ -208,8 +210,8 @@
       </Debugger>
       <PreBuild/>
       <PostBuild>
-        <Command Enabled="yes">@mkdir -p videm/bin</Command>
-        <Command Enabled="yes">@cp -v $(OutputFile) videm/bin</Command>
+        <Command Enabled="yes">@mkdir -p ../_videm/bin</Command>
+        <Command Enabled="yes">@cp -v $(OutputFile) ../_videm/bin</Command>
       </PostBuild>
       <CustomBuild Enabled="no">
         <WorkingDirectory/>
@@ -226,10 +228,52 @@
         <CustomPostBuild/>
       </AdditionalRules>
       <IgnoredFiles>
-        <IgnoredFile Name="other/regex.h"/>
-        <IgnoredFile Name="other/regex.c"/>
-        <IgnoredFile Name="src/qaculator.cpp"/>
+        <IgnoredFile Name="qaculator.cpp"/>
+        <IgnoredFile Name="gnu_regex/regex.c"/>
+        <IgnoredFile Name="gnu_regex/regex.h"/>
       </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
+    </Configuration>
+    <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Name="Release" Type="Executable">
+      <Compiler C_Cpp_Options="" C_Options="-g;-Wall;-O2" Options="-g;-Wall;$(shell pkg-config --cflags --libs libqalculate);-I/usr/include/libqalculate;-O2" PreCompiledHeader="" Required="yes">
+        <IncludePath Value="."/>
+        <IncludePath Value="ftcb/include"/>
+        <Preprocessor Value="HAVE_CONFIG_H"/>
+        <Preprocessor Value="HAVE_QACULATOR"/>
+      </Compiler>
+      <Linker Options="$(shell pkg-config --cflags --libs libqalculate)" Required="yes">
+        <LibraryPath Value="ftcb/lib"/>
+        <Library Value="DataTypes"/>
+        <Library Value="stdc++"/>
+      </Linker>
+      <ResourceCompiler Options="" Required="no"/>
+      <General Command="./$(ProjectName)" CommandArguments="--excmd=pattern --sort=no --fields=aKmSsnit --c-kinds=+px --C++-kinds=+px -f - x.h" DebugArguments="--excmd=pattern --sort=no --fields=aKmSsnit --c-kinds=+p --C++-kinds=+p" IntermediateDirectory="$(ConfigurationName)" OutputFile="$(IntermediateDirectory)/$(ProjectName)" PauseExecWhenProcTerminates="yes" UseSeparateDebugArgs="no" WorkingDirectory="$(IntermediateDirectory)"/>
+      <Environment DbgSetName="&lt;Use Defaults&gt;" EnvVarSetName="&lt;Use Defaults&gt;"/>
+      <Debugger DebuggerPath="" IsRemote="no" RemoteHostName="" RemoteHostPort="">
+        <StartupCommands/>
+        <PostConnectCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <WorkingDirectory/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <MakefileGenerationCommand/>
+        <SingleFileCommand/>
+        <PreprocessFileCommand/>
+        <BuildCommand/>
+        <CleanCommand/>
+        <RebuildCommand/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPreBuild/>
+        <CustomPostBuild/>
+      </AdditionalRules>
+      <IgnoredFiles>
+        <IgnoredFile Name="gnu_regex/regex.c"/>
+        <IgnoredFile Name="gnu_regex/regex.h"/>
+      </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
     <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Name="Debug" Type="Executable">
       <Compiler C_Cpp_Options="" C_Options="-g;-Wall" Options="-g;-Wall" PreCompiledHeader="" Required="yes">
@@ -270,50 +314,11 @@
         <CustomPostBuild/>
       </AdditionalRules>
       <IgnoredFiles>
-        <IgnoredFile Name="other/regex.h"/>
-        <IgnoredFile Name="other/regex.c"/>
-        <IgnoredFile Name="src/qaculator.cpp"/>
+        <IgnoredFile Name="qaculator.cpp"/>
+        <IgnoredFile Name="gnu_regex/regex.c"/>
+        <IgnoredFile Name="gnu_regex/regex.h"/>
       </IgnoredFiles>
-    </Configuration>
-    <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Name="Release" Type="Executable">
-      <Compiler C_Cpp_Options="" C_Options="-g;-Wall;-O2" Options="-g;-Wall;$(shell pkg-config --cflags --libs libqalculate);-I/usr/include/libqalculate;-O2" PreCompiledHeader="" Required="yes">
-        <IncludePath Value="."/>
-        <IncludePath Value="ftcb/include"/>
-        <Preprocessor Value="HAVE_CONFIG_H"/>
-        <Preprocessor Value="HAVE_QACULATOR"/>
-      </Compiler>
-      <Linker Options="$(shell pkg-config --cflags --libs libqalculate)" Required="yes">
-        <LibraryPath Value="ftcb/lib"/>
-        <Library Value="DataTypes"/>
-        <Library Value="stdc++"/>
-      </Linker>
-      <ResourceCompiler Options="" Required="no"/>
-      <General Command="./$(ProjectName)" CommandArguments="--excmd=pattern --sort=no --fields=aKmSsnit --c-kinds=+px --C++-kinds=+px -f - x.h" DebugArguments="--excmd=pattern --sort=no --fields=aKmSsnit --c-kinds=+p --C++-kinds=+p" IntermediateDirectory="$(ConfigurationName)" OutputFile="$(IntermediateDirectory)/$(ProjectName)" PauseExecWhenProcTerminates="yes" UseSeparateDebugArgs="no" WorkingDirectory="$(IntermediateDirectory)"/>
-      <Environment DbgSetName="&lt;Use Defaults&gt;" EnvVarSetName="&lt;Use Defaults&gt;"/>
-      <Debugger DebuggerPath="" IsRemote="no" RemoteHostName="" RemoteHostPort="">
-        <StartupCommands/>
-        <PostConnectCommands/>
-      </Debugger>
-      <PreBuild/>
-      <PostBuild/>
-      <CustomBuild Enabled="no">
-        <WorkingDirectory/>
-        <ThirdPartyToolName>None</ThirdPartyToolName>
-        <MakefileGenerationCommand/>
-        <SingleFileCommand/>
-        <PreprocessFileCommand/>
-        <BuildCommand/>
-        <CleanCommand/>
-        <RebuildCommand/>
-      </CustomBuild>
-      <AdditionalRules>
-        <CustomPreBuild/>
-        <CustomPostBuild/>
-      </AdditionalRules>
-      <IgnoredFiles>
-        <IgnoredFile Name="other/regex.h"/>
-        <IgnoredFile Name="other/regex.c"/>
-      </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
     <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Name="Release_Min" Type="Executable">
       <Compiler C_Cpp_Options="" C_Options="-g;-Wall;-O2" Options="-g;-Wall;-O2" PreCompiledHeader="" Required="yes">
@@ -352,10 +357,11 @@
         <CustomPostBuild/>
       </AdditionalRules>
       <IgnoredFiles>
-        <IgnoredFile Name="other/regex.h"/>
-        <IgnoredFile Name="other/regex.c"/>
-        <IgnoredFile Name="src/qaculator.cpp"/>
+        <IgnoredFile Name="qaculator.cpp"/>
+        <IgnoredFile Name="gnu_regex/regex.c"/>
+        <IgnoredFile Name="gnu_regex/regex.h"/>
       </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
   </Settings>
 </CodeLite_Project>
