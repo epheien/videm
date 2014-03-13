@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<CodeLite_Project InternalType="Console" Name="DataTypes">
+<CodeLite_Project InternalType="Console" Name="DataTypes" Version="100">
   <Description>A project that produces an executable.
 Note that this project is set to work with the GNU toolchain (gdb, gcc)</Description>
   <Dependencies/>
@@ -27,7 +27,7 @@ Note that this project is set to work with the GNU toolchain (gdb, gcc)</Descrip
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
-      <Compiler C_Options="" Options="">
+      <Compiler C_Cpp_Options="" C_Options="" Options="">
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="">
@@ -36,7 +36,7 @@ Note that this project is set to work with the GNU toolchain (gdb, gcc)</Descrip
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Name="Debug" Type="Executable">
-      <Compiler C_Options="-g;-Wall" Options="-g;-Wall" PreCompiledHeader="" Required="yes">
+      <Compiler C_Cpp_Options="" C_Options="-g;-Wall" Options="-g;-Wall" PreCompiledHeader="" Required="yes">
         <IncludePath Value="."/>
         <IncludePath Value="include"/>
       </Compiler>
@@ -65,9 +65,10 @@ Note that this project is set to work with the GNU toolchain (gdb, gcc)</Descrip
         <CustomPostBuild/>
       </AdditionalRules>
       <IgnoredFiles/>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
     <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Name="Release" Type="Executable">
-      <Compiler C_Options="" Options="" PreCompiledHeader="" Required="yes">
+      <Compiler C_Cpp_Options="" C_Options="" Options="" PreCompiledHeader="" Required="yes">
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="-O2" Required="yes"/>
@@ -95,11 +96,12 @@ Note that this project is set to work with the GNU toolchain (gdb, gcc)</Descrip
         <CustomPostBuild/>
       </AdditionalRules>
       <IgnoredFiles/>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
     <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Name="Debug_SL" Type="Static Library">
-      <Compiler C_Options="-g;-Wall;-std=c89" Options="-g;-Wall" PreCompiledHeader="" Required="yes">
+      <Compiler C_Cpp_Options="" C_Options="-g;-Wall;-std=c89" Options="-g;-Wall" PreCompiledHeader="" Required="yes">
         <IncludePath Value="."/>
-        <IncludePath Value="include"/>
+        <IncludePath Value="../include"/>
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
@@ -128,11 +130,12 @@ Note that this project is set to work with the GNU toolchain (gdb, gcc)</Descrip
       <IgnoredFiles>
         <IgnoredFile Name="src/main.c"/>
       </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
     <Configuration BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Name="Release_SL" Type="Static Library">
-      <Compiler C_Options="-g;-Wall" Options="-g;-Wall" PreCompiledHeader="" Required="yes">
+      <Compiler C_Cpp_Options="" C_Options="-g;-Wall" Options="-g;-Wall" PreCompiledHeader="" Required="yes">
         <IncludePath Value="."/>
-        <IncludePath Value="include"/>
+        <IncludePath Value="../include"/>
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
@@ -161,6 +164,7 @@ Note that this project is set to work with the GNU toolchain (gdb, gcc)</Descrip
       <IgnoredFiles>
         <IgnoredFile Name="src/main.c"/>
       </IgnoredFiles>
+      <CodeCompleteEngine IncludePaths="" PredefineMacros="" UseSeparateArguments="no"/>
     </Configuration>
   </Settings>
 </CodeLite_Project>
