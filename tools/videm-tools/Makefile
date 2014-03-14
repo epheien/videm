@@ -1,6 +1,9 @@
 PHONY := all clean install
 
 DIRS := ~/.vim/_videm ~/.vim/bundle/videm/_videm
+ifneq ($(DESTDIR),)
+  DIRS := $(DESTDIR)
+endif
 
 all:
 	@echo "----------Building Project:[ CxxParser - Release_Unix_dll ]----------"

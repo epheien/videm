@@ -195,22 +195,14 @@ linkfile "$__dir__/wsp/tools"/* "$VIDEM_DIR"
 
 linkfile "$__dir__"/videm.txt "$DESTDIR/doc"
 
-if [ ! -d ~/.vim/bundle ]; then
-cat << EOF
-~/.vim/bundle folder not found
-please run "cd tools/videm-tools && make && make install" after install pathogen
-EOF
-    exit 0
-fi
-
-ln -sv "$DESTDIR" ~/.vim/bundle
-
 # build videm-tools
-cd tools/videm-tools && make && make install
+cd tools/videm-tools && make && make install DESTDIR="$VIDEM_DIR"
 cd - >/dev/null
 
-echo "========================================"
-echo "Done."
-echo "Go to develop :)"
+cat << EOF
+========================================
+Done. Just run the following command to install with pathogen:
+    ln -s "$DESTDIR" ~/.vim/bundle
+EOF
 
 # vi:set et sts=4 sw=4 ts=8:
