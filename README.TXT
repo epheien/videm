@@ -22,12 +22,12 @@ Dependencies for vim
 Dependencies for software
 =========================
     * python
-    * python-lxml   (optional)
     * make
-    * cscope
-    * global        (gnu global)
     * gcc
     * gdb
+    * cscope
+    * global        (gnu global)
+    * python-lxml   (optional)
     * libclang      (version 3.0 or later, required by VIMCCC)
     * pywin32       (required by pyclewn on Windows)
 
