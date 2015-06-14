@@ -16,9 +16,10 @@ USAGE:
     $cmd [options] [arguments]
 
 OPTIONS:
-    -h          this help information
+    -a          just package asynccompl plugin
     -w          make a package for Windows 32bit
     -t          also make a package of videm-tools
+    -h          this help information
 EOF
 }
 
@@ -31,8 +32,13 @@ EOF
 opt_win32=0
 # 1 - 表示也打包videm-tools
 opt_tools=0
-while getopts "wti:h" opt; do
+# 1 - 打包独立的asynccompl插件
+opt_async=0
+while getopts "awti:h" opt; do
     case "$opt" in
+    "a")
+        opt_async=1
+        ;;
     "i")
         opt_optarg="$OPTARG"
         ;;
@@ -55,9 +61,66 @@ while getopts "wti:h" opt; do
 done
 shift $((OPTIND - 1))
 
+asynccompl_files=(
+    vim/plugin/asynccompl.vim
+    plugin/asynccompl.vim
+
+    vim/autoload/asynccompl.vim
+    autoload/asynccompl.vim
+
+    vim/autoload/asyncpy.vim
+    autoload/asyncpy.vim
+
+    vim/autoload/holdtimer.vim
+    autoload/holdtimer.vim
+
+    vim/autoload/vpymod/driver.vim
+    autoload/vpymod/driver.vim
+
+    common/iskconv.py
+    autoload/vpymod/iskconv.py
+
+    common/Utils.py
+    autoload/vpymod/Utils.py
+
+    common/VimUtils.py
+    autoload/vpymod/VimUtils.py
+
+    lib/IncludeParser.py
+    autoload/vpymod/IncludeParser.py
+
+    lib/Misc.py
+    autoload/vpymod/Misc.py
+
+    lib/Notifier.py
+    autoload/vpymod/Notifier.py
+)
+
+function pkg_ac()
+{
+    local outdir=asynccompl
+    local i=0
+    rm -rf "$outdir"
+    for ((; i < ${#asynccompl_files[@]}; i += 2)); do
+        local src=${asynccompl_files[i]}
+        local dst=${asynccompl_files[i+1]}
+        #echo "$src -> $dst"
+        local folder="$outdir"/$(dirname "$dst")
+        mkdir -p "$folder" || exit $?
+        cp -v "$src" "$folder" || exit $?
+    done
+    tar -cjf "asynccompl.tar.bz2" "$outdir"
+    return $?
+}
+
 ## 流程开始
 SCRIPT_DIR="$__dir__"
 cd "$SCRIPT_DIR"
+
+if ((opt_async)); then
+    pkg_ac
+    exit $?
+fi
 
 VERSION=`grep '^VIDEM_VER' "$SCRIPT_DIR/wsp/Macros.py" | awk '{print $3}'`
 TIMESTAMP=$(date +%Y%m%d)
