@@ -1,8 +1,8 @@
-" Async Complete Test
+" Async Complete plugin for vim 7.3.196 or later
 " Author:   fanhe <fanhed@163.com>
 " License:  GPLv2
 " Create:   2013-12-13
-" Change:   2014-01-11
+" Change:   2015-06-21
 
 " 这个插件暂时只支持 ASCII 码的补全, 其他的都不支持
 
@@ -11,13 +11,47 @@ if get(s:, 'loaded', 0)
 endif
 let s:loaded = 1
 
+if !has('python')
+    echohl ErrorMsg
+    echomsg 'asynccompl need Vim compiled with +python feature'
+    echohl None
+    finish
+endif
+if !exists('##InsertCharPre')
+    echohl ErrorMsg
+    echomsg 'Vim does not support InsertCharPre autocmd,'
+    echomsg 'so asynccompl plugin will not work'
+    echomsg 'Please update your Vim to version 7.3.196 or later'
+    echohl None
+    finish
+endif
+
 " 版本号 1001 -> 1.001
 let s:version = "0.100"
 
+" 全局使用 - 正向选择全部
+" 仅某些类型使用
+"       - 正向选择(优先)
+"       - 反向选择
+let g:asynccompl_autostart_filetype =
+        \ get(g:, 'asynccompl_autostart_filetype', ['all'])
+let g:asynccompl_autostop_filetype =
+        \ get(g:, 'asynccompl_autostop_filetype', [])
+
 let s:sfile = expand('<sfile>')
-function! InitKeywordsComplete() "{{{2
+function! s:InitKeywordsComplete() "{{{2
     " 防止重复初始化
     if exists('#AsyncCompl#InsertCharPre#<buffer>')
+        return
+    endif
+
+    if index(g:asynccompl_autostart_filetype, 'all') >= 0 || empty(&ft)
+        " nothing to be done
+    elseif index(g:asynccompl_autostart_filetype, &ft) >= 0
+        " nothing to be done
+    elseif index(g:asynccompl_autostop_filetype, &ft) >= 0
+        return
+    else
         return
     endif
 
@@ -41,6 +75,9 @@ function! InitKeywordsComplete() "{{{2
     py CommonCompleteArgsHookRegister(CurrFileKeywordsCompleteArgs, None)
     py del __kw_pat
     call asynccompl#BuffInit()
+
+    command! -nargs=0 AsyncComplBuffInit call asynccompl#BuffInit()
+    command! -nargs=0 AsyncComplBuffExit call asynccompl#BuffExit()
 endfunction
 "}}}
 
@@ -90,6 +127,9 @@ PYTHON_EOF
 endfunction
 "}}}
 
-autocmd BufNewFile,BufReadPost * call InitKeywordsComplete()
+augroup AsyncComplStart
+    autocmd!
+    autocmd BufNewFile,BufReadPost * call <SID>InitKeywordsComplete()
+augroup END
 
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1
