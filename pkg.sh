@@ -61,6 +61,14 @@ while getopts "awti:h" opt; do
 done
 shift $((OPTIND - 1))
 
+SCRIPT_DIR="$__dir__"
+cd "$SCRIPT_DIR"
+
+VERSION=`grep '^VIDEM_VER' "$SCRIPT_DIR/wsp/Macros.py" | awk '{print $3}'`
+TIMESTAMP=$(date +%Y%m%d)
+AC_VERSION=$(grep '^let s:version ' vim/plugin/asynccompl.vim | awk '{print $4}')
+eval AC_VERSION=$AC_VERSION
+
 asynccompl_files=(
     vim/plugin/asynccompl.vim
     plugin/asynccompl.vim
@@ -107,23 +115,21 @@ function pkg_ac()
         #echo "$src -> $dst"
         local folder="$outdir"/$(dirname "$dst")
         mkdir -p "$folder" || exit $?
-        cp -v "$src" "$folder" || exit $?
+        cp "$src" "$folder" || exit $?
     done
-    tar -cjf "asynccompl.tar.bz2" "$outdir"
+    local output="asynccompl-${AC_VERSION}-build${TIMESTAMP}.tar.bz2"
+    tar -cjf "$output" "$outdir" && {
+        echo "$output is ready"
+    }
     return $?
 }
 
 ## 流程开始
-SCRIPT_DIR="$__dir__"
-cd "$SCRIPT_DIR"
 
 if ((opt_async)); then
     pkg_ac
     exit $?
 fi
-
-VERSION=`grep '^VIDEM_VER' "$SCRIPT_DIR/wsp/Macros.py" | awk '{print $3}'`
-TIMESTAMP=$(date +%Y%m%d)
 
 rm -rf "videm"
 make --no-print-directory install

@@ -11,6 +11,9 @@ if get(s:, 'loaded', 0)
 endif
 let s:loaded = 1
 
+" 版本号 1001 -> 1.001
+let s:version = "0.100"
+
 let s:sfile = expand('<sfile>')
 function! InitKeywordsComplete() "{{{2
     " 防止重复初始化
