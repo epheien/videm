@@ -76,8 +76,10 @@ function! s:InitKeywordsComplete() "{{{2
     py del __kw_pat
     call asynccompl#BuffInit()
 
-    command! -nargs=0 AsyncComplBuffInit call asynccompl#BuffInit()
-    command! -nargs=0 AsyncComplBuffExit call asynccompl#BuffExit()
+    if exists(':AsyncComplBuffExit') != 2
+        command! -nargs=0 AsyncComplBuffInit call asynccompl#BuffInit()
+        command! -nargs=0 AsyncComplBuffExit call asynccompl#BuffExit()
+    endif
 endfunction
 "}}}
 
@@ -131,5 +133,8 @@ augroup AsyncComplStart
     autocmd!
     autocmd BufNewFile,BufReadPost * call <SID>InitKeywordsComplete()
 augroup END
+
+" 初始的触发命令, 跟之后的是有区别的
+command! -nargs=0 AsyncComplBuffInit call <SID>InitKeywordsComplete()
 
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1
