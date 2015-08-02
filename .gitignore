@@ -1,1 +1,8 @@
 *.pyc
+/*.tar.bz2
+/*.zip
+# 这个目录下很多临时目录, 编译时生成, 新增目录是需要注意
+/tools/videm-tools/*/
+# 打包使用的中间目录
+/videm/
+/asynccompl/
