@@ -5505,6 +5505,13 @@ function! s:InitPythonInterfaces() "{{{2
     py from Macros import VIMLITE_VER
 endfunction
 "}}}2
+" NOTE: 以下是插件必须遵守的约定
+" o videm#plugin#<plugin>#Init() 返回非零表示初始化失败, 会提示载入失败的信息,
+"   插件初始化失败, 必须确保不添加任何可能导致后续执行的 hook 之类的设施
+" o 插件的脚本开头可以检查依赖, 不符合依赖执行 'finish', videm 会负责处理这种
+"   情况
+" o 如果插件检查依赖放到了最后, 即仅在需要时才运行, 如挂了 hook, 则脚本须自身
+"   处理好不符合依赖的情况, videm 不负责处理/提示这些错误信息
 function! s:LoadPlugin() "{{{2
     let sPluginPath = s:os.path.join(s:os.path.dirname(s:sfile), 'plugin')
     let lPlugin = split(globpath(sPluginPath, "*.vim"), '\n')
