@@ -15,8 +15,8 @@ try:
     import libCxxParser
 except:
     print 'Failed to import libCxxParser, libCxxParser not found?'
-    traceback.print_exc()
-    #raise
+    #traceback.print_exc()
+    raise
 
 from CppTokenizer import CPP_KEYOWORD
 from CppTokenizer import CPP_WORD

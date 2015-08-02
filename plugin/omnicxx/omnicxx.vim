@@ -88,7 +88,9 @@ function! videm#plugin#omnicxx#Enable() "{{{2
     if s:enable
         return
     endif
-    call s:InitPyIf()
+    if s:InitPyIf()
+        return 1
+    endif
     " 命令
     call s:InstallCommands()
     " 菜单
@@ -144,7 +146,7 @@ function! videm#plugin#omnicxx#Init() "{{{2
     call s:InitSettings()
     call videm#settings#RegisterHook('videm#plugin#omnicxx#SettingsHook', 0, 0)
     if videm#settings#Get('.videm.cc.omnicxx.Enable', 0)
-        call videm#plugin#omnicxx#Enable()
+        return videm#plugin#omnicxx#Enable()
     endif
 endfunction
 "}}}
@@ -192,14 +194,27 @@ function! s:InitPyIf() "{{{2
         return
     endif
     let s:initpy = 1
+    let res = 0
 python << PYTHON_EOF
 import sys
 import os.path
+import traceback
+import Misc
+import vim
+# 这里加载 libCxxParser
+try:
+    import omnicxx
+except:
+    traceback.print_exc()
+    vim.command('let res = 1')
+PYTHON_EOF
+    if res != 0
+        return res
+    endif
+python << PYTHON_EOF
 from omnicxx.TagsStorage.TagsManager import TagsManager
 from omnicxx.TagsStorage.TagsManager import AppendCtagsOptions
 from omnicxx.VimOmniCxx import VimOmniCxx
-import Misc
-import vim
 
 # 添加额外的ctags选项. TODO 需要更加优雅的方式
 if int(vim.eval('videm#settings#Get(".videm.cc.omnicxx.InclAllCondCmplBrch")')):

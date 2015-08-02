@@ -5510,7 +5510,15 @@ function! s:LoadPlugin() "{{{2
     let lPlugin = split(globpath(sPluginPath, "*.vim"), '\n')
     for sFile in lPlugin
         let sName = fnamemodify(sFile, ':t:r')
-        exec printf('call videm#plugin#%s#Init()', sName)
+        try
+            exec printf('let rc = videm#plugin#%s#Init()', sName)
+        catch
+            let rc = 1
+        endtry
+        if rc != 0
+            call s:echow('Failed to load plugin '. sName)
+            continue
+        endif
         call add(s:loaded_plugins, sName)
     endfor
 endfunction
