@@ -50,13 +50,12 @@ Videm is a C/C++ IDE based on vim.
 
 Videm mainly consists of the following modules:
 
-    * Project Manager:                  The project manager module is 
-                                        compatible with CodeLite. It can
-                                        generates makefile for you.
+    * Project Manager:                  The project manager module can
+                                        generate makefile for your project.
 
-    * Code Completion:                  An enhanced OmniCpp plugin and a clang 
+    * Code Completion:                  An enhanced OmniCpp and a VIMCCC 
                                         code completion plugin. Generally,
-                                        Code completion engine can also supply
+                                        code completion engine can also supply
                                         code navigation such as "Goto Symbol
                                         Definition" and "Goto Symbol
                                         Declaration".
