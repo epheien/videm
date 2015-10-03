@@ -150,9 +150,9 @@ Also, a project contains no information about the workspace, and thus one
 project can be part of multiple workspaces. The workspace holds pointers to
 the projects which are members of that workspace.
 
-The workspace information file is <workspace-name>.vlworkspace.
+The workspace information file is <workspace-name>.vworkspace.
 
-The project information file is <project-name>.vlproject.
+The project information file is <project-name>.vproject.
 
 Configurations~
 

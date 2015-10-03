@@ -42,7 +42,7 @@ from Utils import IsCCppSourceFile, \
                   ExpandAllVariables_SList
 from Utils import IsCppSourceFile, GetIncludesFromArgs, GetMacrosFromArgs
 from Macros import CPP_HEADER_EXT, C_SOURCE_EXT, CPP_SOURCE_EXT, WSP_PATH_SEP
-from Macros import PROJECT_FILE_SUFFIX
+from Macros import VALID_WORKSPACE_FILE_EXTS, VALID_PROJECT_FILE_EXTS
 from Notifier import Notifier
 from VidemSession import VidemSession
 
@@ -887,7 +887,7 @@ class VimLiteWorkspace(object):
 
     def AddProjectNode(self, row, projFile):
         ext = os.path.splitext(projFile)[1]
-        if ext != os.path.extsep + PROJECT_FILE_SUFFIX and ext != '.project':
+        if not ext in VALID_PROJECT_FILE_EXTS:
             print 'Not a valid project file: %s' % projFile
             return
 

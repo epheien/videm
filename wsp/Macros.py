@@ -18,8 +18,12 @@ VIDEM_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VIMLITE_VER = VIDEM_VER
 VIMLITE_DIR = VIDEM_DIR
 
-WORKSPACE_FILE_SUFFIX   = 'vlworkspace'
-PROJECT_FILE_SUFFIX     = 'vlproject'
+WORKSPACE_FILE_SUFFIX   = 'vworkspace'
+PROJECT_FILE_SUFFIX     = 'vproject'
+VALID_WORKSPACE_FILE_EXTS  = set(['.workspace', '.vlworkspace',
+                                  '.' + WORKSPACE_FILE_SUFFIX])
+VALID_PROJECT_FILE_EXTS    = set(['.project', '.vlproject',
+                                  '.' + PROJECT_FILE_SUFFIX])
 
 # nodepath和wsppath的路径分隔符
 WSP_PATH_SEP = '/'

@@ -97,9 +97,9 @@ call s:InitVariable("g:VLWorkspaceTemplatesPath",
         \           s:os.path.join(g:VidemDir, 'templates', 'projects'))
 
 " 工作区文件后缀名
-call s:InitVariable("g:VLWorkspaceWspFileSuffix", "vlworkspace")
+call s:InitVariable("g:VLWorkspaceWspFileSuffix", "vworkspace")
 " 项目文件后缀名
-call s:InitVariable("g:VLWorkspacePrjFileSuffix", "vlproject")
+call s:InitVariable("g:VLWorkspacePrjFileSuffix", "vproject")
 
 " ============================================================================
 " 后向兼容选项处理
@@ -761,6 +761,7 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
         if fnamemodify(sFile, ":e") ==? 'workspace'
             let bNeedConvertWspFileFormat = 1
         elseif fnamemodify(sFile, ":e") !=? g:VLWorkspaceWspFileSuffix
+                \ && fnamemodify(sFile, ":e") !=? 'vlworkspace'
             call s:echow("Is it a valid workspace file?")
             return
         endif
