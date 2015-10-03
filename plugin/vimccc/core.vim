@@ -810,6 +810,7 @@ function! s:InitPythonInterfaces() "{{{2
     if !s:bFirstInit
         return
     endif
+    call vpymod#driver#Init()
 
 python << PYTHON_EOF
 import sys
