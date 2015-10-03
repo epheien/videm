@@ -26,7 +26,8 @@ function! vlutils#InitVariable(sVarName, defaultVal) "{{{2
     if exists(a:sVarName)
         return 1
     endif
-    let {a:sVarName} = a:defaultVal
+    "let {a:sVarName} = a:defaultVal
+    exec "let" a:sVarName "=" string(a:defaultVal)
     return 0
 endfunction
 "}}}
