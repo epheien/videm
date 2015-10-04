@@ -1,4 +1,5 @@
 # vi:set ts=8 sts=4 sw=4 et tw=72:
+# -*- coding:utf-8 -*-
 #
 # Copyright (C) 2007 Xavier de Gaye.
 #
@@ -795,8 +796,6 @@ class Debugger(object):
         Return the file object of the vim script.
 
         """
-        # MOD1
-        #return open(os.path.expanduser("~/pyclewn_script.vim"), "rb")
         # create the vim script in a temporary file
         prefix = options.prefix.capitalize()
         f = None
@@ -812,8 +811,8 @@ class Debugger(object):
                 f = open(options.cargs[0], 'w')
             else:
                 # MOD3
-                #f = misc.TmpFile('vimscript')
-                f = open(os.path.expanduser("~/pyclewn_script.vim"), "wb")
+                f = misc.TmpFile('vimscript')
+                #f = open(os.path.expanduser("~/pyclewn_script.vim"), "wb")
 
             # set 'cpo' option to its vim default value
             f.write('let s:cpo_save=&cpo\n')
@@ -906,7 +905,8 @@ class Debugger(object):
             f.write('let &cpo = s:cpo_save\n')
 
             # delete the vim script after it has been sourced
-            f.write('\n"call delete(expand("<sfile>"))\n')
+            # NOTE: Windows 下会失败
+            f.write('\ncall delete(expand("<sfile>"))\n')
         finally:
             if f:
                 f.close()
