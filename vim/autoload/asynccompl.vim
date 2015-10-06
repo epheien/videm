@@ -739,11 +739,9 @@ function! s:SetOpts() "{{{2
         if s:has_noexpand
             " 支持 noexpand 就最好了
             set completeopt+=noexpand
-            set completeopt-=longest
-        else
-            set completeopt-=menu,longest
-            set completeopt+=menuone
         endif
+        set completeopt-=menu,longest
+        set completeopt+=menuone
     else
         set completeopt-=menu
         set completeopt+=menuone,longest
