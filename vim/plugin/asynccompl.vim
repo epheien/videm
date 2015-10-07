@@ -34,7 +34,7 @@ let s:version = "0.100"
 "       - 正向选择(优先)
 "       - 反向选择
 let g:asynccompl_autostart_filetype =
-        \ get(g:, 'asynccompl_autostart_filetype', ['all'])
+        \ get(g:, 'asynccompl_autostart_filetype', ['__ALL__'])
 let g:asynccompl_autostop_filetype =
         \ get(g:, 'asynccompl_autostop_filetype', [])
 
@@ -45,8 +45,8 @@ function! s:InitKeywordsComplete() "{{{2
         return
     endif
 
-    if index(g:asynccompl_autostart_filetype, 'all') >= 0
-        " all 需要特殊处理, 需要检查 g:asynccompl_autostop_filetype
+    if index(g:asynccompl_autostart_filetype, '__ALL__') >= 0
+        " __ALL__ 需要特殊处理, 需要检查 g:asynccompl_autostop_filetype
         if index(g:asynccompl_autostop_filetype, &ft) >= 0
             return
         else
