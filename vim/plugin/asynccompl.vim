@@ -45,8 +45,13 @@ function! s:InitKeywordsComplete() "{{{2
         return
     endif
 
-    if index(g:asynccompl_autostart_filetype, 'all') >= 0 || empty(&ft)
-        " nothing to be done
+    if index(g:asynccompl_autostart_filetype, 'all') >= 0
+        " all 需要特殊处理, 需要检查 g:asynccompl_autostop_filetype
+        if index(g:asynccompl_autostop_filetype, &ft) >= 0
+            return
+        else
+            " nothing to be done
+        endif
     elseif index(g:asynccompl_autostart_filetype, &ft) >= 0
         " nothing to be done
     elseif index(g:asynccompl_autostop_filetype, &ft) >= 0
