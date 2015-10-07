@@ -580,7 +580,10 @@ endfunction
 "}}}
 function! s:AutocmdBufUnload() "{{{2
     call s:AutocmdInsertLeave()
-    call asynccompl#BuffExit(bufnr('%'))
+    " NOTE: 对于 BufUnload 事件, 执行 :bw 时, bufnr('%') != expand('<abuf>')
+    "       实测(7.3.923), bufnr('%') 为轮换的缓冲区, expand('<abuf>') 才正确
+    "call asynccompl#BuffExit(bufnr('%'))
+    call asynccompl#BuffExit(expand('<abuf>'))
 endfunction
 "}}}
 " 清理函数
@@ -614,7 +617,7 @@ function! asynccompl#BuffExit(...) "{{{2
             endif
         endfor
     augroup END
-    call filter(s:status.buffers, 0)
+    call filter(s:status.buffers, 'index(bufs, v:val) == -1')
 endfunction
 "}}}
 function! s:Funcref(Func) "{{{2
