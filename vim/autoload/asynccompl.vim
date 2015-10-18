@@ -733,17 +733,20 @@ function! s:SetOpts() "{{{2
     "set lazyredraw
 
     if     b:config.item_select_mode == 0 " 不选择
-        set completeopt-=menu,longest
+        set completeopt-=menu
+        set completeopt-=longest
         set completeopt+=menuone
     elseif b:config.item_select_mode == 1 " 选择并插入文本
-        set completeopt-=menuone,longest
+        set completeopt-=menuone
+        set completeopt-=longest
         set completeopt+=menu
     elseif b:config.item_select_mode == 2 " 选择但不插入文本
         if s:has_noexpand
             " 支持 noexpand 就最好了
             set completeopt+=noexpand
         endif
-        set completeopt-=menu,longest
+        set completeopt-=menu
+        set completeopt-=longest
         set completeopt+=menuone
     else
         set completeopt-=menu
