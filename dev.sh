@@ -155,6 +155,7 @@ linkfile "$__dir__/plugin/vimccc"/clang "$VIDEM_PYDIR"
 # vim folder
 linkfile "$__dir__"/vim/autoload/vpymod/*.vim "$VPYMOD_DIR"
 linkfile "$__dir__"/vim/autoload/*.vim "$DESTDIR/autoload"
+linkfile "$__dir__"/vim/plugin/*.vim "$DESTDIR/plugin"
 
 # wsp folder
 files=(
