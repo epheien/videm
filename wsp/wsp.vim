@@ -824,7 +824,7 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     py ws.OpenWorkspace(vim.eval('sFile'))
     py ws.RefreshBuffer()
     if videm#settings#Get('.videm.wsp.ShowBriefHelp')
-        call s:ToggleBriefHelp()
+        call s:ToggleBriefHelp(1)
     endif
 
     " 用于项目设置的全局变量
