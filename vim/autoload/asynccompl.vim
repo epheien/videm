@@ -489,6 +489,9 @@ function! s:StopAsyncComplete() "{{{2
     endif
 endfunction
 "}}}
+function! asynccompl#Dump()
+    echo s:status
+endfunction
 " 这个初始化是每个缓冲区都要调用一次的
 " 无参数或<=0表示仅处理本缓冲区，其他正数值表示指定的缓冲区
 function! asynccompl#BuffInit(...) "{{{2
@@ -583,7 +586,7 @@ function! s:AutocmdBufUnload() "{{{2
     " NOTE: 对于 BufUnload 事件, 执行 :bw 时, bufnr('%') != expand('<abuf>')
     "       实测(7.3.923), bufnr('%') 为轮换的缓冲区, expand('<abuf>') 才正确
     "call asynccompl#BuffExit(bufnr('%'))
-    call asynccompl#BuffExit(expand('<abuf>'))
+    call asynccompl#BuffExit(str2nr(expand('<abuf>')))
 endfunction
 "}}}
 " 清理函数
@@ -600,24 +603,24 @@ function! asynccompl#BuffExit(...) "{{{2
         let bufs = [bufnr]
     endif
 
-    augroup AsyncCompl
-        for bufnr in bufs
-            if !bufloaded(bufnr)
-                continue
-            endif
+    for bufnr in bufs
+        exec printf('autocmd! AsyncCompl InsertCharPre    <buffer=%d>', bufnr)
+        exec printf('autocmd! AsyncCompl InsertEnter      <buffer=%d>', bufnr)
+        exec printf('autocmd! AsyncCompl InsertLeave      <buffer=%d>', bufnr)
+        exec printf('autocmd! AsyncCompl BufUnload        <buffer=%d>', bufnr)
 
-            exec printf('autocmd! InsertCharPre    <buffer=%d>', bufnr)
-            exec printf('autocmd! InsertEnter      <buffer=%d>', bufnr)
-            exec printf('autocmd! InsertLeave      <buffer=%d>', bufnr)
-            exec printf('autocmd! BufUnload        <buffer=%d>', bufnr)
-            if getbufvar(bufnr, 'config')['omnifunc']
-                call setbufvar(bufnr, '&omnifunc', '')
-            else
-                call setbufvar(bufnr, '&completefunc', '')
-            endif
-        endfor
-    augroup END
-    call filter(s:status.buffers, 'index(bufs, v:val) == -1')
+        " NOTE: :bd 之后, 局部于缓冲区的选项会被重置, 但是自动命令不会被重置
+        if !bufexists(bufnr)
+            continue
+        endif
+
+        if getbufvar(bufnr, 'config')['omnifunc']
+            call setbufvar(bufnr, '&omnifunc', '')
+        else
+            call setbufvar(bufnr, '&completefunc', '')
+        endif
+    endfor
+    call filter(s:status.buffers, 'index(bufs, str2nr(v:key)) == -1')
 endfunction
 "}}}
 function! s:Funcref(Func) "{{{2
