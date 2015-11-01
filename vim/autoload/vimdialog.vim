@@ -2219,14 +2219,8 @@ function! g:VimDialog._CreateWin() "{{{2
 endfunction
 
 function! g:VimDialog._RefreshStatusLine() "{{{2
-    let modFlag = ''
-    "if self.isModified
-        "let modFlag = '\ [+]'
-    "endif
-
     "设置状态栏
-    exec "setlocal statusline=" . substitute(self.bufName, ' ', '\\ ', "g") 
-                \. modFlag
+    call setwinvar(winnr(), '&statusline', self.bufName)
 
     if self.asTextCtrl
         let statusStr = getwinvar(winnr(), '&statusline') 
