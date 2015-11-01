@@ -2436,7 +2436,6 @@ function! g:VimDialog.Action(...) "响应动作 {{{2
                     if !ctl.ignoreModify
                         let self.isModified = 1
                     endif
-                    call self._RefreshStatusLine()
                 endif
             endif
         endif
