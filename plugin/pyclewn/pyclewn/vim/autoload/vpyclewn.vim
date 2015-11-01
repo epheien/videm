@@ -10,6 +10,10 @@ let s:did_pyclewn = 1
 
 " import os
 let s:os = vlutils#os
+let s:sfile = expand('<sfile>')
+let s:vp = s:os.path.join(
+        \   s:os.path.dirname(s:os.path.dirname(s:sfile)),
+        \   '_videm', 'bin', 'pyclewn')
 
 let s:start_err = "Error: pyclewn failed to start, "
 let s:start_err .= "run the 'pyclewn' program to get the cause of the problem."
@@ -21,6 +25,8 @@ let s:start_err .= "run the 'pyclewn' program to get the cause of the problem."
 if !exists('g:VPyclewnProgram')
     if exists('g:VidemDir')
         let g:VPyclewnProgram = s:os.path.join(g:VidemDir, 'bin', 'pyclewn')
+    elseif executable(s:vp)
+        let g:VPyclewnProgram = s:vp
     else
         let g:VPyclewnProgram = 'pyclewn'
     endif
