@@ -27,7 +27,7 @@ if !exists('##InsertCharPre')
 endif
 
 " 版本号 1001 -> 1.001
-let s:version = "0.100"
+let s:version = "0.110"
 
 " 全局使用 - 正向选择全部
 " 仅某些类型使用
