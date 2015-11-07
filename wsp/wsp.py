@@ -1656,7 +1656,7 @@ class VimLiteWorkspace(object):
                 li2.append('*' + elm)
         filters = JoinToSmclStr(li2)
         filters = vim.eval(
-            'inputdialog("\nFile extension to import '\
+            'inputdialog("File extension to import '\
             '(\\".\\" means no extension):\n", \'%s\', "None")' \
             % filters)
         if filters == 'None':
@@ -1695,7 +1695,7 @@ class VimLiteWorkspace(object):
                 name = os.path.abspath(name)
         else:
             name = vim.eval(
-                'inputdialog("\nEnter the File Name to be created:\n'
+                'inputdialog("Enter the File Name to be created:\n'
                 '(CWD is: ".%s.")\n")' % ToVimEval(project.dirName))
 
         if IsFileNameIllegal(name):
@@ -1762,7 +1762,7 @@ class VimLiteWorkspace(object):
 
         if not useGui:
             # inputlist() 返回后, 如果再有字符输出, 不会开启新行, 这里手动开启
-            vim.command(r'echo "\n"')
+            vim.command(r'echo "\n" | redraw')
 
         # 先处理插件的菜单
         elem = None
@@ -1793,8 +1793,9 @@ class VimLiteWorkspace(object):
                         % self.VLWIns.dirName)
                 else:
                     fileName = vim.eval(
-                        'input("\nPlease Enter the file name:\n", '\
+                        'input("Please Enter the file name:\n", '\
                         '"%s/", "file")' % (os.getcwd(),))
+                    vim.command(r'echo "\n" | redraw')
                 if fileName:
                     self.AddProjectNode(row, fileName)
             elif choice == 'New Workspace...':
@@ -1805,8 +1806,9 @@ class VimLiteWorkspace(object):
                         'browse("", "Open Workspace", getcwd(), "")')
                 else:
                     fileName = vim.eval(
-                        'input("\nPlease enter the file name:\n", '\
+                        'input("Please enter the file name:\n", '\
                         '"%s/", "file")' % (os.getcwd(),))
+                    vim.command(r'echo "\n" | redraw')
                 if fileName:
                     self.CloseWorkspace()
                     self.OpenWorkspace(fileName)
@@ -1823,14 +1825,15 @@ class VimLiteWorkspace(object):
                         % self.VLWIns.dirName)
                 else:
                     fileName = vim.eval(
-                        'input("\nPlease enter the session file name:\n", '\
+                        'input("Please enter the session file name:\n", '\
                         '"%s/", "file")' % (os.getcwd(),))
+                    vim.command(r'echo "\n" | redraw')
                 if fileName:
                     vim.command("call s:LoadSession(%s)" % ToVimEval(fileName))
             elif choice == 'Save Session...':
                 # NOTE: gnome3中的browse()函数无法输入文件名，换inputdialog()
                 name = vim.eval(
-                    'inputdialog("\nEnter the session file name to be created:\n'
+                    'inputdialog("Enter the session file name to be created:\n'
                     '(CWD is: ".%s.")\n")' % ToVimEval(self.VLWIns.dirName))
                 if name:
                     vim.command("call s:SaveSession(%s)" % ToVimEval(
@@ -1875,7 +1878,7 @@ class VimLiteWorkspace(object):
                 self.__MenuOper_AddExistingFiles(row, useGui)
             elif choice == 'New Virtual Folder...':
                 name = vim.eval(
-                    'inputdialog("\nEnter the Virtual Directory Name:\n")')
+                    'inputdialog("Enter the Virtual Directory Name:\n")')
                 if IsVDirNameIllegal(name):
                     VPrint("'%s' is not a valid name" % name)
                     return
@@ -1893,7 +1896,7 @@ class VimLiteWorkspace(object):
             elif choice == 'Swap Enabling (Non-Recursive)':
                 self.SetEnablingOfVirDir(row, choice)
             elif choice == 'Remove Project':
-                input = vim.eval('confirm("\nAre you sure to remove project '\
+                input = vim.eval('confirm("Are you sure to remove project '\
                 '\\"%s\\" ?", ' '"&Yes\n&No\n&Cancel")' % EscStr4DQ(projName))
                 if input == '1':
                     self.DeleteNode(row)
@@ -1943,7 +1946,7 @@ class VimLiteWorkspace(object):
                 self.__MenuOper_AddExistingFiles(row, useGui)
             elif choice == 'New Virtual Folder...':
                 name = vim.eval(
-                    'inputdialog("\nEnter the Virtual Directory Name:\n")')
+                    'inputdialog("Enter the Virtual Directory Name:\n")')
                 if IsVDirNameIllegal(name):
                     VPrint("'%s' is not a valid name" % name)
                     return
@@ -1956,7 +1959,7 @@ class VimLiteWorkspace(object):
                 del ds
             elif choice == 'Rename...':
                 oldName = self.VLWIns.GetDispNameByLineNum(row)
-                newName = vim.eval('inputdialog("\nEnter new name:", "%s")' \
+                newName = vim.eval('inputdialog("Enter new name:", "%s")' \
                     % oldName)
                 if newName and newName != oldName:
                     self.VLWIns.RenameNodeByLineNum(row, newName)
@@ -1982,7 +1985,7 @@ class VimLiteWorkspace(object):
             elif choice == 'Rename...': # TODO: 等于先删，再添加
                 absFile = self.VLWIns.GetFileByLineNum(row, True) # 真实文件
                 oldName = self.VLWIns.GetDispNameByLineNum(row)
-                newName = vim.eval('inputdialog("\nEnter new name:", "%s")' 
+                newName = vim.eval('inputdialog("Enter new name:", "%s")' 
                     % oldName)
                 if newName != oldName and newName:
                     nodePath = self.GetNodePathByFileName(absFile)
@@ -1994,7 +1997,7 @@ class VimLiteWorkspace(object):
                                               absFile, newAbsFile)
             elif choice == 'Remove':
                 absFile = self.VLWIns.GetFileByLineNum(row, True) # 真实文件
-                input = vim.eval('confirm("\nAre you sure to remove file' \
+                input = vim.eval('confirm("Are you sure to remove file' \
                     ' \\"%s\\" ?", ' '"&Yes\n&No\n&Cancel")' \
                         % self.VLWIns.GetDispNameByLineNum(row))
                 if input == '1':
