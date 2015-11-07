@@ -1575,6 +1575,7 @@ class VimLiteWorkspace(object):
             if choice > 0 and choice < len(popupMenuW):
                 if popupMenuW[choice].startswith('Batch Builds ->')\
                         or popupMenuW[choice].startswith('Batch Cleans ->'):
+                    vim.command(r'echo "\n"') # 开启新行
                     BBMenu = ['Please select an operation:']
                     for name in names:
                         BBMenu.append(name)
