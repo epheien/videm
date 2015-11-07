@@ -1759,6 +1759,10 @@ class VimLiteWorkspace(object):
         if not choice:
             return
 
+        if not useGui:
+            # inputlist() 返回后, 如果再有字符输出, 不会开启新行, 这里手动开启
+            vim.command(r'echo "\n"')
+
         # 先处理插件的菜单
         elem = None
         if   nodeType == VLWorkspace.TYPE_WORKSPACE:
