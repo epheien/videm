@@ -245,6 +245,7 @@ class VLWorkspace(object):
         self.fileName = ''
         self.dirName = ''
         self.baseName = ''
+        # 从第一个项目开始, 即 vimLineData[0] = "第一个项目的节点"
         self.vimLineData = []
         # 从 vim 的行号转为 vimLineData 编号的偏移量
         self.lineOffset = CONSTANT_OFFSET
@@ -567,6 +568,19 @@ class VLWorkspace(object):
                              and self.DoGetTypeByIndex(i) == TYPE_FILE:
                         # 先还原flag
                         self.vimLineData[i]['deepFlag'][newDeep - 1] = save_flag
+
+                        # 之后的深度 <= newDeep 的节点肯定都是文件节点
+                        # 也要检查是否重名
+                        for j in xrange(i + 1, len(self.vimLineData)):
+                            curDeep = len(self.vimLineData[j]['deepFlag'])
+                            if curDeep < newDeep: # 到达最后
+                                break
+                            s2 = os.path.basename(
+                                self.vimLineData[j]['node'].\
+                                    getAttribute('Name').encode('utf-8'))
+                            if cmp(s1.lower(), s2.lower()) == 0:
+                                # 名字冲突!
+                                return 0
 
                         datum['deepFlag'] = parent['deepFlag'][:]
                         datum['deepFlag'].append(1)
