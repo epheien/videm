@@ -4527,7 +4527,8 @@ function! s:ProjectSettings_OperateContents(dlg, bIsSave, bUsePreValue) "{{{2
             else
                 "call ctl.SetValue(confDict['ignFiles'])
                 py vim.command("call ctl.SetValue(%s)" % ToVimEval(
-                        \        PrettyIgnoredFiles(vim.eval('sProjectName'),
+                        \        PrettyIgnoredFiles(ws,
+                        \               vim.eval('sProjectName'),
                         \               vim.eval("confDict['ignFiles']"))))
             endif
         elseif ctlId == s:ID_PSCtl_Cmpl_UseWithGlb

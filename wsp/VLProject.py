@@ -15,26 +15,26 @@ class VLProject(Project):
     def __init__(self, fileName = ''):
         Project.__init__(self, fileName)
 
-    def GetTypeByIndex(self, index):
-        return self.GetTypeOfNode(self.vimLineData[index]['node'])
-
-    def GetDispTextByIndex(self, index):
-        type = self.GetTypeByIndex(index)
-        text = ''
-        
-        if type == TYPE_FILE:
-            expandText = FILE_PREFIX
-        elif type == TYPE_VIRTUALDIRECTORY or type == TYPE_PROJECT:
-            if self.vimLineData[index]['expand']:
-                expandText = EXPAND_PREFIX
-            else:
-                expandText = FOLD_PREFIX
-        
-        text = MakeLevelPreStrDependList(self.vimLineData[index]['deepFlag']) + \
-            expandText + \
-            os.path.basename(self.vimLineData[index]['node'].getAttribute('Name'))
-        
-        return text
+#    def GetTypeByIndex(self, index):
+#        return self.GetTypeOfNode(self.vimLineData[index]['node'])
+#
+#    def GetDispTextByIndex(self, index):
+#        type = self.GetTypeByIndex(index)
+#        text = ''
+#        
+#        if type == TYPE_FILE:
+#            expandText = FILE_PREFIX
+#        elif type == TYPE_VIRTUALDIRECTORY or type == TYPE_PROJECT:
+#            if self.vimLineData[index]['expand']:
+#                expandText = EXPAND_PREFIX
+#            else:
+#                expandText = FOLD_PREFIX
+#        
+#        text = MakeLevelPreStrDependList(self.vimLineData[index]['deepFlag']) + \
+#            expandText + \
+#            os.path.basename(self.vimLineData[index]['node'].getAttribute('Name'))
+#        
+#        return text
 
     def GetFilesIndex(self):
         '''文件索引需要用canonical文件名，即os.path.realpath'''

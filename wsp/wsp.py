@@ -55,11 +55,11 @@ def ToAbsPath(project, path):
     os.chdir(project.dirName)
     return os.path.abspath(path)
 
-def PrettyIgnoredFiles(projName, ignFiles):
-    project = ws.VLWIns.FindProjectByName(projName)
+def PrettyIgnoredFiles(wsp, projName, ignFiles):
+    project = wsp.VLWIns.FindProjectByName(projName)
     result = []
     for igf in ignFiles:
-        wp = ws.VLWIns.GetWspFilePathByFileName(ToAbsPath(project, igf))
+        wp = wsp.VLWIns.GetWspFilePathByFileName(ToAbsPath(project, igf))
         if not wp:
             continue
         wp = wp.partition(WSP_PATH_SEP)[2].partition(WSP_PATH_SEP)[2]

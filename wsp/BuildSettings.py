@@ -82,7 +82,7 @@ class BuildSettings:
 
     def SetBuilderByName(self, bder, name):
         if isinstance(bder, dict):
-            bder = Builder(bder)
+            bder = Builder.Builder(bder)
         dstIdx = -1
         for idx, elm in enumerate(self.builders):
             if elm["name"] == name:

@@ -63,7 +63,7 @@ def SetNodeContent(node, text):
     text node?'''
     contentNode = None
     for i in node.childNodes:
-        if i.nodeType == i.TEXT_NODE or i.nodeType == CDATA_SECTION_NODE:
+        if i.nodeType == i.TEXT_NODE or i.nodeType == i.CDATA_SECTION_NODE:
             contentNode = i
             break
     
@@ -103,7 +103,7 @@ def ReadLong(node, attrName, defaultValue = -1):
     else:
         return defaultValue
 
-def ReadLongIfExists(node, attrName):
+def ReadLongIfExists(node, attrName, defaultValue = -1):
     ret = node.getAttribute(attrName).encode('utf-8')
     if not ret:
         return False, defaultValue

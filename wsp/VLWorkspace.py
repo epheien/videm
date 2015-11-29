@@ -1141,7 +1141,7 @@ class VLWorkspace(object):
         if oldName == newName:
             return
         if self.DoCheckNameConflict(xmlNode.parentNode, newName):
-            print 'Name Conflict: %s' % name
+            print 'Name Conflict: %s' % newName
             return
         if type == TYPE_FILE:
             absOldFile = self.GetFileByLineNum(lineNum, True)

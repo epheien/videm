@@ -928,8 +928,8 @@ class BuildConfig:
     def SetLibraries(self, libs):
         self.commonConfig.SetLibraries(libs)
 
-    def SetLibPath(self, path):
-        self.commonConfig.SetLibPath(path)
+    def SetLibPath(self, paths):
+        self.commonConfig.SetLibPath(paths)
 
     def SetCompileOptions(self, opts):
         self.commonConfig.SetCompileOptions(opts)
@@ -948,12 +948,6 @@ class BuildConfig:
 
     def SetPostBuildCommands(self, cmds):
         self.postBuildCommands = cmds
-
-    def SetLibraries(self, libs):
-        self.commonConfig.SetLibraries(libs)
-
-    def SetLibPath(self, paths):
-        self.commonConfig.SetLibPath(paths)
 
     def SetName(self, name):
         self.name = name
