@@ -5,6 +5,7 @@ import sys
 import subprocess
 
 def main():
+    ret = None
     if len(sys.argv) <= 1:
         ret = 0
     else:
@@ -13,5 +14,4 @@ def main():
     return ret
 
 if __name__ == '__main__':
-    ret = main()
-    sys.exit(ret)
+    sys.exit(main())
