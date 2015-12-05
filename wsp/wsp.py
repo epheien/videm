@@ -2087,7 +2087,13 @@ class VimLiteWorkspace(object):
     def GetProjectGlbCnfDict(self, projName):
         projInst = self.VLWIns.FindProjectByName(projName)
         settings = projInst.GetSettings()
-        return settings.GetGlobalSettings().ToDict()
+        d = settings.GetGlobalSettings().ToDict()
+
+        d['direList'] = settings.direList # 返回引用, 已知不会修改, 暂无问题
+        d['inclGlob'] = settings.inclGlob
+        d['exclGlob'] = settings.exclGlob
+
+        return d
 
     def SaveProjectSettings(self, projName, projConfName, confDict, glbCnfDict):
         '''从两个字典保存项目设置'''
@@ -2098,6 +2104,11 @@ class VimLiteWorkspace(object):
         bldCnf.FromDict(confDict)
         settings.SetBuildConfiguration(bldCnf)
         settings.globalSettings.FromDict(glbCnfDict)
+
+        settings.direList = glbCnfDict['direList'] # 直接引用即可
+        settings.inclGlob = glbCnfDict['inclGlob']
+        settings.exclGlob = glbCnfDict['exclGlob']
+
         projInst.SetSettings(settings)
 
     def CutNodes(self, row, length):

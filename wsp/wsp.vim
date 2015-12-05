@@ -4214,6 +4214,10 @@ let s:IDS_PSCtls = [
             \'s:ID_PSCtl_Glb_Link_Opts',
             \'s:ID_PSCtl_Glb_Link_LibPaths',
             \'s:ID_PSCtl_Glb_Link_Libs',
+            \
+            \'s:ID_PSCtl_FIG_Inc',
+            \'s:ID_PSCtl_FIG_Exc',
+            \'s:ID_PSCtl_FIG_Dir',
             \]
 call s:InitEnum(s:IDS_PSCtls, 10)
 let s:GIDS_PSCtls = [
@@ -4311,6 +4315,36 @@ function! s:EditBuildTblLineCbk(ctl, data) "{{{2
     if input !=# '' && input !=# value
         call a:ctl.SetCellValue(a:ctl.selection, 2, input)
     endif
+endfunction
+"}}}2
+" 文件导入通配的表格的回调
+function! s:FIGDirTblAddCbk(ctl, data) "{{{2
+    let ctl = a:ctl
+    echohl Question
+    let input = input("Directory to Import:\n")
+    echohl None
+    if empty(input)
+        return
+    endif
+
+    " 不允许绝对路径
+    if input =~# '^/'
+        echohl ErrorMsg
+        echo "\nDirectory must not be a absolute path"
+        echohl None
+        call getchar()
+    endif
+
+    " 检查同名
+    for lLine in ctl.table
+        if lLine[0] ==# input
+            echohl ErrorMsg
+            echo "\nDirectory '" . input . "' already exists!"
+            echohl None
+            return
+        endif
+    endfor
+    call ctl.AddLineByValues(input, input)
 endfunction
 "}}}2
 function! s:CustomBuildTblAddCbk(ctl, data) "{{{2
@@ -4722,6 +4756,34 @@ function! s:ProjectSettings_OperateContents(dlg, bIsSave, bUsePreValue) "{{{2
                 let glbCnfDict['libs'] = ctl.GetValue()
             else
                 call ctl.SetValue(glbCnfDict['libs'])
+            endif
+        elseif ctlId == s:ID_PSCtl_FIG_Inc
+            if bIsSave
+                let glbCnfDict['inclGlob'] = ctl.GetValue()
+            else
+                call ctl.SetValue(glbCnfDict['inclGlob'])
+            endif
+        elseif ctlId == s:ID_PSCtl_FIG_Exc
+            if bIsSave
+                let glbCnfDict['exclGlob'] = ctl.GetValue()
+            else
+                call ctl.SetValue(glbCnfDict['exclGlob'])
+            endif
+        elseif ctlId == s:ID_PSCtl_FIG_Dir
+            if bIsSave
+                " 这个要清空
+                let glbCnfDict['direList'] = []
+                for line in ctl.table
+                    let di = {'Enable': 1, 
+                            \ 'RealPath': line[0], 'VirtPath': line[1]}
+                    call add(glbCnfDict['direList'], di)
+                endfor
+            else
+                call ctl.DeleteAllLines()
+                for di in glbCnfDict['direList']
+                    let li = [get(di, 'RealPath', ''), get(di, 'VirtPath', '')]
+                    call ctl.AddLine(li)
+                endfor
             endif
         " ====== End =====
         else
@@ -5160,6 +5222,37 @@ function! s:ProjectSettings_CreateDialog(sProjectName) "{{{2
     call ctl.SetId(s:ID_PSCtl_Glb_Link_Libs)
     call ctl.SetIndent(8)
     call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditPSOptBtnCbk"), '')
+    call dlg.AddControl(ctl)
+    call dlg.AddBlankLine()
+
+    " --------------------------------------------------------------------------
+    " File Import Glob
+    " --------------------------------------------------------------------------
+    let ctl = g:VCStaticText.New("File Import Glob")
+    call ctl.SetHighlight("Identifier")
+    call ctl.SetIndent(4)
+    call dlg.AddControl(ctl)
+
+    let ctl = g:VCSingleText.New('File Include Glob:')
+    call ctl.SetId(s:ID_PSCtl_FIG_Inc)
+    call ctl.SetIndent(8)
+    call dlg.AddControl(ctl)
+    call dlg.AddBlankLine()
+
+    let ctl = g:VCSingleText.New('File Exclude Glob:')
+    call ctl.SetId(s:ID_PSCtl_FIG_Exc)
+    call ctl.SetIndent(8)
+    call dlg.AddControl(ctl)
+    call dlg.AddBlankLine()
+
+    let ctl = g:VCTable.New('', 2)
+    call ctl.SetId(s:ID_PSCtl_FIG_Dir)
+    call ctl.SetIndent(8)
+    call ctl.SetColTitle(1, 'Real Path')
+    call ctl.SetColTitle(2, 'Virtual Path')
+    call ctl.ConnectBtnCallback(0, s:GetSFuncRef('s:FIGDirTblAddCbk'), '')
+    call ctl.DisableButton(2)
+    call ctl.DisableButton(5)
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
 

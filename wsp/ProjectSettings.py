@@ -15,6 +15,11 @@ class ProjectSettings:
         self.configs = {}           # 构建设置，即 xml 中的 Configuration 元素
         self.globalSettings = None  # 全局构建设置，一个 BuildConfigCommon
         self.projectType = ''       # 项目类型，可运行、静态库、动态库三种
+
+        # 文件自动导入的设置
+        self.direList = []  # 实际目录路径(相对) -> 项目虚拟目录路径
+        self.inclGlob = ''  # 通配模式, ; 相隔, ;; 表示单个分号
+        self.exclGlob = ''  # 同上
         
         if node:
             # load configurations
@@ -29,6 +34,16 @@ class ProjectSettings:
                 elif i.nodeName == 'GlobalSettings':
                     self.globalSettings = BuildConfig.BuildConfigCommon(
                         i, 'GlobalSettings')
+                elif i.nodeName == 'FileImportGlob':
+                    self.inclGlob = XmlUtils.ReadString(i, 'IncludeGlob')
+                    self.exclGlob = XmlUtils.ReadString(i, 'ExcludeGlob')
+                    for j in i.childNodes:
+                        if j.nodeName == 'Directory':
+                            d = {}
+                            d['Enable'] = int(XmlUtils.ReadBool(j, 'Enable'))
+                            d['RealPath'] = XmlUtils.ReadString(j, 'RealPath')
+                            d['VirtPath'] = XmlUtils.ReadString(j, 'VirtPath')
+                            self.direList.append(d)
         else:
             # create new settings with default values
             # 默认为可运行类型项目
@@ -53,6 +68,18 @@ class ProjectSettings:
         node.appendChild(self.globalSettings.ToXmlNode())
         for k, v in self.configs.items():
             node.appendChild(v.ToXmlNode())
+
+        fnode = minidom.Document().createElement('FileImportGlob')
+        fnode.setAttribute('IncludeGlob', self.inclGlob.decode('utf-8'))
+        fnode.setAttribute('ExcludeGlob', self.exclGlob.decode('utf-8'))
+        for item in self.direList:
+            dnode = minidom.Document().createElement('Directory')
+            dnode.setAttribute('Enable', 'yes' if item['Enable'] else 'no')
+            dnode.setAttribute('RealPath', item['RealPath'])
+            dnode.setAttribute('VirtPath', item['VirtPath'])
+            fnode.appendChild(dnode)
+        node.appendChild(fnode)
+
         return node
     
     def GetBuildConfiguration(self, configName = '', merge = False):
@@ -63,7 +90,7 @@ class ProjectSettings:
         buildConf = None
         if self.configs.has_key(configName):
             buildConf = self.configs[configName]
-        
+
         if not merge or not buildConf:
             return buildConf
         
