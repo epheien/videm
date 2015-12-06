@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CodeLite_Workspace Database="./videm.tags" Name="videm">
+  <Project Active="Yes" Name="core" Path="core.vproject"/>
+  <BuildMatrix>
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
+      <Project ConfigName="Debug" Name="core"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Release" Selected="no">
+      <Project ConfigName="Release" Name="core"/>
+    </WorkspaceConfiguration>
+  </BuildMatrix>
+</CodeLite_Workspace>
