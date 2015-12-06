@@ -1559,6 +1559,7 @@ function! g:VCTable.Action(...) "可选参数指示是否 clear 操作 {{{2
                     let l:ret = 1
                 elseif self.cellEditable
                     let tmpLine = self.GetLine(lineIndex)
+                    " TODO: 添加 callback 检查输入是否合法
                     if bIsClearAction
                         let tmpLine[index] = ''
                         let l:ret = 1
@@ -2882,7 +2883,7 @@ function! g:VimDialog.SetupSyntaxHighlight()
     "syn match VCButton '\V[\.\{-2,}]'
     " NOTE: 因为尾部的ID字符串可能为']'，所以需要处理这种情况，
     "       不知道非行尾如何表示？
-    syn match VCButton '\V[\.\{-2,}]\ze\.'
+    syn match VCButton '\[[0-9A-Za-z_ .]\{-2,}\]\ze.'
 
     "字符串过长时的提示符号
     syn match VCExtend '\V@\ze|'
