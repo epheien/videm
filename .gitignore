@@ -11,3 +11,7 @@
 GTAGS
 GRTAGS
 GPATH
+
+# specify
+*_gtags.files
+/videm-dev/
