@@ -6,3 +6,8 @@
 # 打包使用的中间目录
 /videm/
 /asynccompl/
+
+# gtags files
+GTAGS
+GRTAGS
+GPATH
