@@ -88,19 +88,28 @@ def GetWspPathByNode(node):
 
     return WSP_PATH_SEP + WSP_PATH_SEP.join(wspPathList)
 
-def Glob(sDir, filters):
+def Glob(sDir, filters, exclGlob=None):
     '''展开通配符的文件
 
     sDir: 所在的目录, 会添加到通配符前
     lFilters: 通配符字符串列表, 支持匹配无后缀名的文件('.')'''
     import glob
+    import fnmatch
     lFiles = []
     lFilters = filters
+    exclGlobList = exclGlob
     if isinstance(filters, str):
         lFilters = [i for i in SplitSmclStr(filters)]
+    if isinstance(exclGlob, str):
+        exclGlobList = SplitSmclStr(exclGlob)
+
     for sFilter in lFilters:
         if sFilter != '.':
-            lFiles.extend(glob.glob(os.path.join(sDir, sFilter)))
+            names = glob.glob(os.path.join(sDir, sFilter))
+            if exclGlobList: # 效率暂不考虑, 满足需求最重要
+                for pattern in exclGlobList:
+                    names = [n for n in names if not fnmatch.fnmatch(n, pattern)]
+            lFiles.extend(names)
         else:
             # 自定义的匹配无后缀名文件的模式 '.'
             sCurDir = sDir
@@ -108,17 +117,25 @@ def Glob(sDir, filters):
                 sCurDir = '.'
             for sFile in os.listdir(sCurDir):
                 if not '.' in sFile:
-                    lFiles.append(os.path.join(sDir, sFile))
+                    names = os.path.join(sDir, sFile)
+                    if exclGlobList:
+                        for pattern in exclGlobList:
+                            names = [n for n in names if fnmatch.fnmatch(n, pattern)]
+                    lFiles.append(names)
     return lFiles
 
-def DirectoryToXmlNode(sDir, filters,
+# FIXME: 有 BUG!
+def DirectoryToXmlNode(sDir, inclGlob, exclGlob,
                        relStartPath = os.path.realpath(os.path.curdir),
                        _doc = minidom.getDOMImplementation().createDocument(
                            None, None, None),
-                       files = []):
+                       recursive=True,
+                       files=None):
     '''广度优先获取指定导入目录的文件'''
     if not sDir or not os.path.isdir(sDir):
         return
+    if files is None:
+        files = []
 
     doc = _doc
     xmlNode = doc.createElement('VirtualDirectory')
@@ -127,23 +144,21 @@ def DirectoryToXmlNode(sDir, filters,
     # 标识当前目录是否拥有至少一个子文件/目录以决定是否返回 None
     bHasChild = False
 
-    if not sDir:
-        lFileList = os.listdir('.')
-    else:
-        lFileList = os.listdir(sDir)
+    lFileList = os.listdir(sDir)
+    #lFileList.sort(CmpIC)
     for sFile in lFileList:
         sFile = os.path.join(sDir, sFile)
-        if os.path.isdir(sFile):
-            newXmlNode = DirectoryToXmlNode(sFile, filters, relStartPath,
+        if os.path.isdir(sFile) and recursive:
+            newXmlNode = DirectoryToXmlNode(sFile, inclGlob, exclGlob,
+                                            relStartPath, recursive=recursive,
                                             files=files)
             if newXmlNode:
                 xmlNode.appendChild(newXmlNode)
                 bHasChild = True
 
-    lFiles = Glob(sDir, filters)
+    lFiles = Glob(sDir, inclGlob, exclGlob)
     # 防止重复文件
-    filesSet = set(lFiles)
-    lFiles = list(filesSet)
+    lFiles = list(set(lFiles))
     lFiles.sort(CmpIC) # 排序不分大小写
     for sFile in lFiles:
         if not os.path.isfile(sFile):
@@ -979,6 +994,15 @@ class VLWorkspace(object):
             except:
                 pass
 
+    def ClearChildrenCache(self, lineNum):
+        datum = self.GetDatumByLineNum(lineNum)
+        if not datum:
+            return
+        try:
+            del datum['children']
+        except:
+            pass
+
     def GetRootLineNum(self, lineNum = 0):#
         '''获取根节点的行号, 参数仅仅用于保持形式, 除此以外别无他用'''
         return 1 + self.lineOffset - 2
@@ -1261,12 +1285,54 @@ class VLWorkspace(object):
         '''添加文件节点，不保存'''
         return self.DoAddVdirOrFileNode(lineNum, TYPE_FILE, name, False)
 
-    def ImportFilesFromDirectory(self, lineNum, directory, filters, files = []):
+    def ImportFilesForProject(self, projname, realpath, virtpath, inclGlob,
+                              exclGlob=None, recursive=True, save=True):
+        '''为项目导入文件, 导入前需要清空项目原有的文件'''
+        project = self.FindProjectByName(projname)
+        if not project:
+            print "Project %s not found" % projname
+            return -1
+        if not realpath or not virtpath:
+            print 'Invalid Path'
+            return -1
+
+        realpath = os.path.normpath(realpath)
+        virtpath = os.path.normpath(virtpath)
+        rootNode = project.rootNode
+        files = []
+        xmlNode = DirectoryToXmlNode(os.path.normpath(os.path.join(project.dirName, realpath)),
+                                     inclGlob, exclGlob,
+                                     project.dirName, recursive=recursive,
+                                     files=files)
+        if not xmlNode:
+            return -1
+        if realpath == '.': # 当前目录需要特殊处理, 直接展开里面的节点
+            # 避免直接读取 .childNodes, 因为从其删除节点会影响迭代过程
+            nodes = [n for n in xmlNode.childNodes]
+            for n in nodes:
+                errmsg = []
+                if project.InsertNode(n, rootNode, virtpath, errmsg=errmsg) < 0:
+                    print errmsg.pop()
+                    continue
+        else:
+            errmsg = []
+            xmlNode.setAttribute('Name', os.path.basename(virtpath).decode('utf-8'))
+            if project.InsertNode(xmlNode, rootNode, virtpath, vnode=xmlNode,
+                                  errmsg=errmsg) < 0:
+                print errmsg.pop()
+                return -1
+
+        if save:
+            project.Save()
+        return 0
+
+    def ImportFilesFromDirectory(self, lineNum, directory, inclGlob,
+                                 exclGlob=None, recursive=True, files=None):
         '''从指定目录递归导入指定匹配的文件
 
         lineNum: 请求操作的行号，一般只允许在项目和虚拟目录节点时请求
         directory: 需要导入的目录
-        filters: 匹配的文件，如 "*.cpp;*.cc;*.cxx;*.h;*.hpp;*.c;*.c++;*.tcc"
+        inclGlob: 匹配的文件，如 "*.cpp;*.cc;*.cxx;*.h;*.hpp;*.c;*.c++;*.tcc"
         '''
         # 为了实现的简单性，directory 不允许是已经存在的虚拟目录
         datum = self.GetDatumByLineNum(lineNum)
@@ -1278,7 +1344,8 @@ class VLWorkspace(object):
         directory = os.path.abspath(directory)
         project = datum['project']
         rootNode = datum['node']
-        xmlNode = DirectoryToXmlNode(directory, filters, project.dirName,
+        xmlNode = DirectoryToXmlNode(directory, inclGlob, exclGlob,
+                                     project.dirName, recursive=recursive,
                                      files=files)
         if xmlNode:
             #print directory
@@ -1844,12 +1911,13 @@ class VLWorkspace(object):
             errmsg = 'Invalid operation'
             return False, errmsg
 
-        # 现时最简单的处理，只支持剪切同类型同深度的节点
+        # 现时最简单的处理，只支持剪切同深度的节点
         for i in range(1, length):
             ln = lineNum + i
             nodeType = self.GetNodeTypeByLineNum(ln)
             nodeDepth = self.GetNodeDepthByLineNum(ln)
-            if not (nodeType == baseNodeType and nodeDepth == baseNodeDepth):
+            #if not (nodeType == baseNodeType and nodeDepth == baseNodeDepth):
+            if nodeDepth != baseNodeDepth:
                 errmsg = 'Invalid operation'
                 return False, errmsg
         else:
@@ -1941,18 +2009,10 @@ class VLWorkspace(object):
         result = 0
         # ok，所有检查已经过关，粘贴
         nodeType = self.DoGetTypeOfNode(v[0])
-        if   nodeType == TYPE_FILE:
+        if nodeType == TYPE_FILE or nodeType == TYPE_VIRTUALDIRECTORY:
             vlen = len(v)
             for idx, node in enumerate(v):
-                save = False
-                if idx == vlen - 1:
-                    save = True
-                name = node.getAttribute('Name').encode('utf-8')
-                result += self.DoAddVdirOrFileNode(lineNum, nodeType, name,
-                                                   save, insertingNode = node)
-        elif nodeType == TYPE_VIRTUALDIRECTORY:
-            vlen = len(v)
-            for idx, node in enumerate(v):
+                nodeType = self.DoGetTypeOfNode(node)
                 save = False
                 if idx == vlen - 1:
                     save = True
@@ -1964,6 +2024,24 @@ class VLWorkspace(object):
 
         # FIXME: 现在这个返回值毫无意义
         return result
+
+    def ClearProjectNodes(self, lineNum):
+        '''清除项目的所有文件, 慎用!'''
+        projName = self.GetProjectNameByLineNum(lineNum)
+        lineType = self.GetNodeTypeByLineNum(lineNum)
+        if lineType != TYPE_PROJECT:
+            return
+
+        self.Expand(lineNum)
+        count = 0
+        for nextLineNum in xrange(lineNum + 1, self.GetLastLineNum() + 1):
+            nodeType = self.GetNodeTypeByLineNum(nextLineNum)
+            if nodeType in set([TYPE_PROJECT, TYPE_WORKSPACE, TYPE_INVALID]):
+                break
+            self.Fold(nextLineNum)
+            count += 1
+        if count:
+            self.CutNodes(lineNum + 1, count)
 
 #=====
 

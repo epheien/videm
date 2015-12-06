@@ -235,7 +235,6 @@ class VimLiteWorkspace(object):
 
         # 项目右键菜单列表
         self.popupMenuP = ['Please select an operation:', 
-#            'Import Files From Directory... (Unrealized)', 
             'Build', 
             'Rebuild', 
             'Clean', 
@@ -253,6 +252,7 @@ class VimLiteWorkspace(object):
             '-Sep7-',
             'New Virtual Folder...', 
             'Import Files From Directory...', 
+            'Import Files From Settings...', 
             '-Sep4-', 
             'Enable Files (Non-Recursive)',
             'Disable Files (Non-Recursive)',
@@ -926,14 +926,17 @@ class VimLiteWorkspace(object):
                                   self.VLWIns.FindProjectByName(projName).\
                                     GetAllFiles(True))
 
-    def ImportFilesFromDirectory(self, row, importDir, filters, files = []):
+    def ImportFilesFromDirectory(self, row, importDir, inclGlob, exclGlob=None,
+                                 recursive=True, files=None):
         '''
         files:  输出添加成功的文件列表，绝对路径'''
         if not importDir:
             return
         self.ExpandNode()
-        ret = self.VLWIns.ImportFilesFromDirectory(row, importDir, filters,
-                                                   files)
+        ret = self.VLWIns.ImportFilesFromDirectory(row, importDir, inclGlob,
+                                                   exclGlob,
+                                                   recursive=recursive,
+                                                   files=files)
         if ret:
             # 只需刷新添加的节点的上一个兄弟节点到添加的节点之间的显示
             se = StartEdit()
@@ -1889,6 +1892,23 @@ class VimLiteWorkspace(object):
                 os.chdir(project.dirName)
                 self.__MenuOper_ImportFilesFromDirectory(row, useGui)
                 del ds
+            elif choice == 'Import Files From Settings...':
+                input = vim.eval('confirm("This action will remove all files from project '
+                                 'and import files according to your settings, confirm?", '
+                                 '"&Yes\n&No\n&Cancel")')
+                if input != '1':
+                    return
+                self.VLWIns.ClearProjectNodes(row)
+                self.VLWIns.Fold(row)
+                self.VLWIns.ClearChildrenCache(row)
+                self.ImportFilesFromSettings(row)
+                self.RefreshBuffer()
+                vim.command('%d' % row)
+                self.ExpandNode()
+                # TODO: 让所有缓存失效(VIMCCC缓存?)
+                vim.command('echohl WarningMsg | '
+                            'echo "You need to update your Symbol Database or Cache manually" '
+                            '| echohl None')
             elif choice == 'Enable Files (Non-Recursive)':
                 self.SetEnablingOfVirDir(row, choice)
             elif choice == 'Disable Files (Non-Recursive)':
@@ -2105,7 +2125,15 @@ class VimLiteWorkspace(object):
         settings.SetBuildConfiguration(bldCnf)
         settings.globalSettings.FromDict(glbCnfDict)
 
-        settings.direList = glbCnfDict['direList'] # 直接引用即可
+        settings.direList = []
+        for i in glbCnfDict['direList']:
+            item = {}
+            # NOTE: vim 字典转换过来, 数字都变成字符串了
+            item['Enable'] = int(i['Enable'])
+            item['Recursive'] = int(i['Recursive'])
+            item['RealPath'] = i['RealPath']
+            item['VirtPath'] = i['VirtPath']
+            settings.direList.append(item)
         settings.inclGlob = glbCnfDict['inclGlob']
         settings.exclGlob = glbCnfDict['exclGlob']
 
@@ -2143,6 +2171,30 @@ class VimLiteWorkspace(object):
             vim.command("call s:RefreshBuffer()")
             # 粘贴成功的话，顺便展开
             self.ExpandNode()
+
+    def ImportFilesFromSettings(self, row):
+        projName = self.VLWIns.GetProjectNameByLineNum(row)
+        project = self.VLWIns.FindProjectByName(projName)
+        if not project:
+            return
+        settings = project.GetSettings()
+        if not settings:
+            return
+        save = False
+        for d in settings.direList:
+            if not d.get('Enable'):
+                continue
+            rc = self.VLWIns.ImportFilesForProject(projName,
+                                                   d.get('RealPath', ''),
+                                                   d.get('VirtPath', ''),
+                                                   settings.inclGlob,
+                                                   settings.exclGlob,
+                                                   d.get('Recursive'),
+                                                   save=False)
+            if not rc < 0:
+                save = True
+        if save:
+            project.Save()
 
     #===========================================================================
     # 基本操作 ===== 结束

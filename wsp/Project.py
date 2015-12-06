@@ -13,6 +13,42 @@ from Misc import GetMTime, DirSaver, IsWindowsOS
 # 项目配置文件的版本
 PROJECT_VERSION = 100
 
+def _mkdir_one(node, name, vnode=None):
+    for n in node.childNodes:
+        if n.nodeType != n.ELEMENT_NODE:
+            continue
+        if n.getAttribute('Name').encode('utf-8') == name:
+            if n.nodeName == 'VirtualDirectory':
+                if vnode:
+                    # 名字冲突
+                    return None
+                else:
+                    return n
+            else:
+                # 名字冲突
+                return None
+
+    # 到此, 没有找到同名的, 新建一个即可
+    if not vnode:
+        n = minidom.Document().createElement('VirtualDirectory')
+        n.setAttribute('Name', name.decode('utf-8'))
+    else:
+        n = vnode
+    node.appendChild(n)
+    return n
+
+def _mkdir(node, path, vnode=None, errmsg=None):
+    if path == '.':
+        return node
+    pathdirs = path.split('/')
+    nextNode = node
+    for name in pathdirs:
+        nextNode = _mkdir_one(nextNode, name, vnode=vnode)
+        if not nextNode:
+            errmsg.append('Name Conflict: %s' % path)
+            return None
+    return nextNode
+
 def _GetNodeByIgnoredPath(project, path):
     ps = path.split('/')
     node = project.rootNode
@@ -386,6 +422,33 @@ class Project:
                 if os.path.abspath(i) == os.path.abspath(relFileName):
                     return True
         return False
+
+    def InsertNode(self, node, parent, virtpath, vnode=None, errmsg=None):
+        if errmsg is None:
+            errmsg = []
+        path = os.path.normpath(virtpath)
+        if path == '..' or os.path.dirname(path) == '..' or os.path.isabs(path):
+            errmsg.append('Invalid Virtual Path: %s' % virtpath)
+            return -1
+
+        target = _mkdir(parent, path, vnode=vnode, errmsg=errmsg)
+        if not target:
+            return -1
+        if vnode: # 如果有 vnode, 就不需要再操作了
+            return 0
+
+        # 这里再检查是否有同名的节点
+        name = node.getAttribute('Name').encode('utf-8')
+        for n in target.childNodes:
+            if n.nodeType != n.ELEMENT_NODE:
+                continue
+            if n.nodeName != 'VirtualDirectory' and n.nodeName != 'File':
+                continue
+            if n.getAttribute('Name').encode('utf-8') == name:
+                errmsg.append('Name Conflict: %s' % name)
+                return -1
+        target.appendChild(node)
+        return 0
 
     def IsModified(self):
         return self.isModified

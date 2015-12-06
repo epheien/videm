@@ -41,6 +41,7 @@ class ProjectSettings:
                         if j.nodeName == 'Directory':
                             d = {}
                             d['Enable'] = int(XmlUtils.ReadBool(j, 'Enable'))
+                            d['Recursive'] = int(XmlUtils.ReadBool(j, 'Recursive'))
                             d['RealPath'] = XmlUtils.ReadString(j, 'RealPath')
                             d['VirtPath'] = XmlUtils.ReadString(j, 'VirtPath')
                             self.direList.append(d)
@@ -75,6 +76,7 @@ class ProjectSettings:
         for item in self.direList:
             dnode = minidom.Document().createElement('Directory')
             dnode.setAttribute('Enable', 'yes' if item['Enable'] else 'no')
+            dnode.setAttribute('Recursive', 'yes' if item['Recursive'] else 'no')
             dnode.setAttribute('RealPath', item['RealPath'])
             dnode.setAttribute('VirtPath', item['VirtPath'])
             fnode.appendChild(dnode)
@@ -179,15 +181,3 @@ class ProjectSettings:
 
 if __name__ == '__main__':
     print 'hello'
-
-
-
-
-
-
-
-
-
-
-
-
