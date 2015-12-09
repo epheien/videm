@@ -16,10 +16,17 @@ class ProjectSettings:
         self.globalSettings = None  # 全局构建设置，一个 BuildConfigCommon
         self.projectType = ''       # 项目类型，可运行、静态库、动态库三种
 
-        # 文件自动导入的设置
-        self.direList = []  # 实际目录路径(相对) -> 项目虚拟目录路径
-        self.inclGlob = ''  # 通配模式, ; 相隔, ;; 表示单个分号
-        self.exclGlob = ''  # 同上
+        ### 文件自动导入的设置 ###
+        # 实际目录路径(相对) -> 项目虚拟目录路径
+        self.direList = []
+        # 通配模式, ; 相隔, ;; 表示单个分号
+        self.inclGlob = '*.c;*.cpp;*.cxx;*.c++;*.cc;*.h;*.hpp;*.hxx;Makefile'
+        # 同上
+        self.exclGlob = '*.mod.c'
+
+        # 示例
+        self.direList.append({'Enable': 1, 'Recursive': 0,
+                              'RealPath': '.', 'VirtPath': '.'})
         
         if node:
             # load configurations
@@ -37,6 +44,7 @@ class ProjectSettings:
                 elif i.nodeName == 'FileImportGlob':
                     self.inclGlob = XmlUtils.ReadString(i, 'IncludeGlob')
                     self.exclGlob = XmlUtils.ReadString(i, 'ExcludeGlob')
+                    del self.direList[:]
                     for j in i.childNodes:
                         if j.nodeName == 'Directory':
                             d = {}
