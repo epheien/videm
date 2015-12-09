@@ -6,6 +6,7 @@ import sys
 import os
 import os.path
 import shutil
+import traceback
 import XmlUtils
 
 from VLProject import VLProject
@@ -144,7 +145,11 @@ def DirectoryToXmlNode(sDir, inclGlob, exclGlob,
     # 标识当前目录是否拥有至少一个子文件/目录以决定是否返回 None
     bHasChild = False
 
-    lFileList = os.listdir(sDir)
+    try:
+        lFileList = os.listdir(sDir)
+    except:
+        print traceback.format_exc()
+        return None
     #lFileList.sort(CmpIC)
     for sFile in lFileList:
         sFile = os.path.join(sDir, sFile)
@@ -156,7 +161,11 @@ def DirectoryToXmlNode(sDir, inclGlob, exclGlob,
                 xmlNode.appendChild(newXmlNode)
                 bHasChild = True
 
-    lFiles = Glob(sDir, inclGlob, exclGlob)
+    try:
+        lFiles = Glob(sDir, inclGlob, exclGlob)
+    except:
+        print traceback.format_exc()
+        return None
     # 防止重复文件
     lFiles = list(set(lFiles))
     lFiles.sort(CmpIC) # 排序不分大小写
