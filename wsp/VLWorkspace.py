@@ -125,7 +125,6 @@ def Glob(sDir, filters, exclGlob=None):
                     lFiles.append(names)
     return lFiles
 
-# FIXME: 有 BUG!
 def DirectoryToXmlNode(sDir, inclGlob, exclGlob,
                        relStartPath = os.path.realpath(os.path.curdir),
                        _doc = minidom.getDOMImplementation().createDocument(
