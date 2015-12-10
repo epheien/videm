@@ -242,7 +242,7 @@ class VimLiteWorkspace(object):
             '-Sep1-', 
             'Export Makefile' ,
             '-Sep2-', 
-            'Set As Active', 
+            'Set as Active',
             '-Sep3-', 
 #            'Build Order... (Unrealized)', 
 #            'Re-Tag Project (Unrealized)', 
@@ -252,7 +252,7 @@ class VimLiteWorkspace(object):
             '-Sep7-',
             'New Virtual Folder...', 
             'Import Files From Directory...', 
-            'Import Files From Settings...', 
+            'Import Files by Filter',
             '-Sep4-', 
             'Enable Files (Non-Recursive)',
             'Disable Files (Non-Recursive)',
@@ -1872,7 +1872,7 @@ class VimLiteWorkspace(object):
                 vim.command("call s:CleanProject('%s')" % ToVimStr(projName))
             elif choice == 'Export Makefile':
                 self.builder.Export(projName, '', force = True)
-            elif choice == 'Set As Active':
+            elif choice == 'Set as Active':
                 self.VLWIns.SetActiveProjectByLineNum(row)
                 vim.command("call s:RefreshBuffer()")
             elif choice == 'Add a New File...':
@@ -1892,7 +1892,7 @@ class VimLiteWorkspace(object):
                 os.chdir(project.dirName)
                 self.__MenuOper_ImportFilesFromDirectory(row, useGui)
                 del ds
-            elif choice == 'Import Files From Settings...':
+            elif choice == 'Import Files by Filter':
                 input = vim.eval('confirm("This action will remove all files from project '
                                  'and import files according to your settings, confirm?", '
                                  '"&Yes\n&No\n&Cancel")')
@@ -1901,7 +1901,7 @@ class VimLiteWorkspace(object):
                 self.VLWIns.ClearProjectNodes(row)
                 self.VLWIns.Fold(row)
                 self.VLWIns.ClearChildrenCache(row)
-                self.ImportFilesFromSettings(row)
+                self.ImportFilesByFilter(row)
                 self.RefreshBuffer()
                 vim.command('%d' % row)
                 self.ExpandNode()
@@ -2172,7 +2172,7 @@ class VimLiteWorkspace(object):
             # 粘贴成功的话，顺便展开
             self.ExpandNode()
 
-    def ImportFilesFromSettings(self, row):
+    def ImportFilesByFilter(self, row):
         projName = self.VLWIns.GetProjectNameByLineNum(row)
         project = self.VLWIns.FindProjectByName(projName)
         if not project:

@@ -5229,7 +5229,7 @@ function! s:ProjectSettings_CreateDialog(sProjectName) "{{{2
     " --------------------------------------------------------------------------
     " File Import Glob
     " --------------------------------------------------------------------------
-    let ctl = g:VCStaticText.New("File Import Glob")
+    let ctl = g:VCStaticText.New('File Import Glob (for "Import Files by Filter")')
     call ctl.SetHighlight("Identifier")
     call ctl.SetIndent(4)
     call dlg.AddControl(ctl)
