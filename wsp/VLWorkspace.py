@@ -42,11 +42,14 @@ class WspCpbdData(object):
 
 class WorkspaceClipboard(object):
     '''工作空间的剪切板，暂时只支持工作空间的虚拟目录节点和文件节点'''
-    def __init__(self):
-        self.container = []
+    def __init__(self, capacity=3):
+        self.container = [] # 栈, 后入先出
+        self.capacity = capacity if capacity > 0 else 1
 
     def Push(self, v):
         self.container.append(v)
+        if len(self.container) > self.capacity:
+            del self.container[0]
 
     def Pop(self):
         if self.container:
