@@ -163,6 +163,7 @@ class VimLiteWorkspace(object):
         '-Sep_Workspace-',
         'New Workspace...',
         'Open Workspace...',
+        'Rename Workspace...',
         'Close Workspace',
         'Reload Workspace',
         '-Sep_Session-',
@@ -392,6 +393,14 @@ class VimLiteWorkspace(object):
         self.OpenWorkspace(fileName)
         self.RefreshBuffer()
         VidemWorkspace.wsp_ntf.CallChain('reload_post', self)
+
+    def RenameWorkspace(self):
+        oldName = self.VLWIns.GetName()
+        newName = vim.eval(
+            'inputdialog("Enter new name:", %s)' % ToVimEval(oldName))
+        if newName and newName != oldName:
+            self.VLWIns.RenameWorkspace(newName)
+            self.RefreshLines(self.window.cursor[0])
 
     def UpdateBuildMTime(self):
         self.buildMTime = time.time()
@@ -1005,9 +1014,12 @@ class VimLiteWorkspace(object):
         hlname = vim.eval('videm#settings#Get(".videm.wsp.ActProjHlGroup")')
         vim.command("hi link VLWActiveProject %s" % hlname)
 
-    def RefreshLines(self, start, end):
+    def RefreshLines(self, start, end=None):
         '''刷新数行，不包括 end 行'''
         se = StartEdit()
+
+        if end is None:
+            end = start + 1
 
         start = int(start)
         end = int(end)
@@ -1821,6 +1833,8 @@ class VimLiteWorkspace(object):
                 self.RefreshBuffer()
             elif choice == 'Reload Workspace':
                 self.ReloadWorkspace()
+            elif choice == 'Rename Workspace...':
+                self.RenameWorkspace()
             elif choice == 'Load Session...':
                 if useGui and vim.eval('has("browse")') != '0':
                     fileName = vim.eval(
@@ -1979,8 +1993,8 @@ class VimLiteWorkspace(object):
                 del ds
             elif choice == 'Rename...':
                 oldName = self.VLWIns.GetDispNameByLineNum(row)
-                newName = vim.eval('inputdialog("Enter new name:", "%s")' \
-                    % oldName)
+                newName = vim.eval('inputdialog("Enter new name:", %s)' \
+                    % ToVimEval(oldName))
                 if newName and newName != oldName:
                     self.VLWIns.RenameNodeByLineNum(row, newName)
                     self.RefreshLines(row, row + 1)

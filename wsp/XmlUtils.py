@@ -23,8 +23,6 @@ def GetChildElemAttrValuesNR(node, tagName, attrName):
             li.append(i.attributes[attrName].value)
     return li
 
-
-
 #'''用于兼容 codelite 项目文件的 xml 工具集'''
     
 def FindNodeByName(parent, tagName, name):
@@ -57,6 +55,12 @@ def FindLastByTagName(parent, tagName):
         if i.nodeType == i.ELEMENT_NODE and i.tagName == tagName:
             node = i
     return node
+
+def SetAttr(node, name, attr):
+    node.setAttribute(name, attr.decode('utf-8'))
+
+def GetAttr(node, name):
+    return node.getAttribute(name).encode('utf-8')
 
 def SetNodeContent(node, text):
     '''Set the content of node. This function replaces any existing content of node

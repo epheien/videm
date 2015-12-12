@@ -1609,6 +1609,13 @@ class VLWorkspace(object):
     def ReloadWorkspace(self):
         self.OpenWorkspace(self.fileName)
 
+    def RenameWorkspace(self, newName):
+        self.name = newName
+        # 这个属性没什么用, 这里改只是为了一致性
+        XmlUtils.SetAttr(self.rootNode, 'Database', './%s.tags' % newName)
+        XmlUtils.SetAttr(self.rootNode, 'Name', newName)
+        self.Save()
+
     def CreateProject(self, name, path, type, cmpType = '', 
                       addToBuildMatrix = True):
         if not self.rootNode:
