@@ -4337,14 +4337,14 @@ function! s:FIGDirTblAddCbk(ctl, data) "{{{2
 
     " 检查同名
     for lLine in ctl.table
-        if lLine[1] ==# input
+        if lLine[2] ==# input
             echohl ErrorMsg
             echo "\nDirectory '" . input . "' already exists!"
             echohl None
             return
         endif
     endfor
-    call ctl.AddLineByValues(1, input, input, 1)
+    call ctl.AddLineByValues(1, 1, input, input)
 endfunction
 "}}}2
 function! s:CustomBuildTblAddCbk(ctl, data) "{{{2
@@ -4774,15 +4774,19 @@ function! s:ProjectSettings_OperateContents(dlg, bIsSave, bUsePreValue) "{{{2
                 " 这个要清空
                 let glbCnfDict['direList'] = []
                 for line in ctl.table
-                    let di = {'Enable': line[0], 'Recursive': line[3],
-                            \ 'RealPath': line[1], 'VirtPath': line[2]}
+                    let di = {'Enable'      : line[0],
+                            \ 'Recursive'   : line[1],
+                            \ 'RealPath'    : line[2],
+                            \ 'VirtPath'    : line[3]}
                     call add(glbCnfDict['direList'], di)
                 endfor
             else
                 call ctl.DeleteAllLines()
                 for di in glbCnfDict['direList']
-                    let li = [get(di, 'Enable', 0), get(di, 'RealPath', ''),
-                            \ get(di, 'VirtPath', ''), get(di, 'Recursive', 0)]
+                    let li = [get(di, 'Enable', 0),
+                            \ get(di, 'Recursive', 0),
+                            \ get(di, 'RealPath', ''),
+                            \ get(di, 'VirtPath', '')]
                     call ctl.AddLine(li)
                 endfor
             endif
@@ -5250,11 +5254,11 @@ function! s:ProjectSettings_CreateDialog(sProjectName) "{{{2
     call ctl.SetId(s:ID_PSCtl_FIG_Dir)
     call ctl.SetIndent(8)
     call ctl.SetColType(1, ctl.CT_CHECK)
+    call ctl.SetColType(2, ctl.CT_CHECK)
     call ctl.SetColTitle(1, ' E ')
-    call ctl.SetColTitle(2, 'Real Path')
-    call ctl.SetColTitle(3, 'Virtual Path')
-    call ctl.SetColTitle(4, ' R ')
-    call ctl.SetColType(4, ctl.CT_CHECK)
+    call ctl.SetColTitle(2, ' R ')
+    call ctl.SetColTitle(3, 'Real Path')
+    call ctl.SetColTitle(4, 'Virtual Path')
     call ctl.ConnectBtnCallback(0, s:GetSFuncRef('s:FIGDirTblAddCbk'), '')
     call ctl.DisableButton(2)
     call ctl.DisableButton(5)

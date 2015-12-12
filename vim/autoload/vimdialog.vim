@@ -1268,25 +1268,39 @@ function! g:VCTable.GetDispText() "{{{2
     let s = s . '+' . repeat('-', tblCtlLen - 2) . '+' . "\n"
     let off += 1
 
-    let avrWidth = (tblCtlLen - self.columns - 1) / self.columns
-    let colWidths = repeat([avrWidth], self.columns)
-    "余数算进最后列的宽度
-    let colWidths[-1] = (tblCtlLen - self.columns - 1) 
-                \- avrWidth * (self.columns - 1)
+    " 初次计算宽度, 平均分配
+    let contWidths = tblCtlLen - (self.columns + 1)
+    let n = contWidths / self.columns
+    let r = contWidths % self.columns
+    let colWidths = repeat([n], self.columns)
+    for idx in range(self.columns)
+        if r > 0
+            let r -= 1
+            let colWidths[idx] += 1
+        endif
+    endfor
 
-    "根据类型调整宽度
+    " 根据 CT_CHECK 控件计算空余宽度
+    let freeWidths = 0
+    let normalCols = 0
     for index in range(self.columns)
         if self.header[index].type == self.CT_CHECK
-            if index + 1 < self.columns 
-                        \&& self.header[index + 1].type != self.CT_CHECK
-                let colWidths[index + 1] += colWidths[index] - 3
-                let colWidths[index] = 3
-            elseif index - 1 > 0 
-                        \&& self.header[index - 1].type != self.CT_CHECK
-                let colWidths[index - 1] += colWidths[index] - 3
-                let colWidths[index] = 3
-            else
-                "不变
+            let freeWidths += colWidths[index] - 3
+            let colWidths[index] = 3
+        else
+            let normalCols += 1
+        endif
+    endfor
+
+    " 把空余的宽度分配出去, 假定不可能全部都是 CT_CHECK 类型, 否则排版出错
+    let n = freeWidths / normalCols
+    let r = freeWidths % normalCols
+    for index in range(self.columns)
+        if self.header[index].type != self.CT_CHECK
+            let colWidths[index] += n
+            if r > 0
+                let r -= 1
+                let colWidths[index] += 1
             endif
         endif
     endfor
