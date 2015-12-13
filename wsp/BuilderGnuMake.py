@@ -110,7 +110,7 @@ class BuilderGnuMake(Builder):
             projBldConfIns = VLWorkspaceST.Get().GetProjBuildConf(
                 projName, projConfName)
 
-            projMakefile = projName + ".mk"
+            projMakefile = projInst.GetBase() + ".mk"
             cddir = os.path.relpath(projInst.dirName,
                                     VLWorkspaceST.Get().dirName)
 
@@ -207,7 +207,7 @@ class BuilderGnuMake(Builder):
         os.chdir(projInst.dirName)
 
         absProjMakefile = os.path.join(ToU(projInst.dirName),
-                                       ToU(projName) + '.mk')
+                                       ToU(projInst.GetBase()) + '.mk')
         # 如果已存在 makefile，且非强制，且项目文件没有修改，跳过
         if not force and not projInst.IsModified() \
            and os.path.exists(absProjMakefile):
@@ -452,7 +452,7 @@ endif
         os.chdir(projInst.dirName)
         if os.path.isabs(fileName):
             fileName = os.path.relpath(fileName)
-        mkFile = '%s.mk' % projName
+        mkFile = '%s.mk' % projInst.GetBase()
         bwd = projBldConfIns.GetIntermediateDirectory() or '.'
         # 展开所有变量
         bwd = ExpandAllVariables(bwd, wspIns, projName, projBldConfIns.name)
