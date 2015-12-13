@@ -115,15 +115,15 @@ function! s:VIMCCCInitExt() "{{{2
 
 python << PYTHON_EOF
 # 使用关联的 clang index
-if ws.clangIndices.has_key(project.name):
+if ws.clangIndices.has_key(project.GetID()):
     # 使用已经存在的
-    VIMCCCIndex = ws.clangIndices[project.name]
+    VIMCCCIndex = ws.clangIndices[project.GetID()]
     HandleHeaderIssue(vim.eval("sFile"))
 else:
     # 新建并关联
     VIMCCCIndex = VIMClangCCIndex()
     UpdateVIMCCCIndexArgs(VIMCCCIndex, project.name)
-    ws.clangIndices[project.name] = VIMCCCIndex
+    ws.clangIndices[project.GetID()] = VIMCCCIndex
     HandleHeaderIssue(vim.eval("sFile"))
 PYTHON_EOF
 
@@ -152,7 +152,7 @@ function! s:UpdateClangCodeCompletion() "{{{2
     py projInst = ws.VLWIns.GetProjectByFileName(vim.eval("expand('%:p')"))
     py if not projInst: vim.command("return")
     " 把当前 index 设置为正确的实例
-    py VIMCCCIndex = ws.clangIndices.get(projInst.name, OrigVIMCCCIndex)
+    py VIMCCCIndex = ws.clangIndices.get(projInst.GetID(), OrigVIMCCCIndex)
 
     if bNeedUpdate
         py UpdateVIMCCCIndexArgs(VIMCCCIndex, projInst.name)
