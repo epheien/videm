@@ -613,7 +613,7 @@ function! s:SanityCheck() "{{{2
 endfunction
 "}}}
 function! VLWStatusLine() "{{{2
-    return printf('%s[%s]', GetWspName(), GetWspConfName())
+    return printf('%s[%s]', Videm_GetWorkspaceName(), GetWspConfName())
 endfunction
 "}}}2
 function! videm#wsp#InitWorkspace(sWspFile) "{{{2
@@ -713,7 +713,7 @@ function! s:OnceInit() "{{{2
 
     " 设置标题栏
     if videm#settings#Get('.videm.wsp.ShowWspName')
-        set titlestring=%(<%{GetWspName()}>\ %)%t%(\ %M%)
+        set titlestring=%(<%{Videm_GetWorkspaceName()}>\ %)%t%(\ %M%)
                 \%(\ (%{expand(\"%:~:h\")})%)%(\ %a%)%(\ -\ %{v:servername}%)
     endif
 
@@ -839,11 +839,6 @@ function! s:InitVLWorkspace(file) " 初始化 {{{2
     setlocal nomodifiable
 
     let s:bHadInited = 1
-endfunction
-"}}}
-" *DEPRECATED*
-function! GetWspName() "{{{2
-    py vim.command("return %s" % ToVimEval(ws.VLWIns.name))
 endfunction
 "}}}
 function! GetWspConfName() "{{{2
@@ -5362,7 +5357,7 @@ endfunction
 function! s:SymdbInited() "{{{2
     let output = vlutils#GetCmdOutput('cs show')
     let lines = split(output, '\n')
-    let wspname = GetWspName()
+    let wspbase = Videm_GetWorkspaceBase()
     for line in lines
         if empty(line) || line =~# '^\s\+#'
             continue
@@ -5372,7 +5367,7 @@ function! s:SymdbInited() "{{{2
         " 只取basename检查
         let bname = fnamemodify(s, ':t')
         " 工作空间名字就是特征
-        if stridx(bname, wspname) == 0 || bname ==# 'GTAGS'
+        if stridx(bname, wspbase) == 0 || bname ==# 'GTAGS'
             return 1
         endif
     endfor
@@ -5528,6 +5523,10 @@ endfunction
 "}}}
 function! Videm_GetWorkspaceName() "{{{2
     py vim.command("return %s" % ToVimEval(ws.VLWIns.name))
+endfunction
+"}}}
+function! Videm_GetWorkspaceBase() "{{{2
+    py vim.command("return %s" % ToVimEval(ws.VLWIns.GetBase()))
 endfunction
 "}}}
 function! Videm_IsFileInWorkspace(fname) "{{{2

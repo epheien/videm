@@ -196,6 +196,14 @@ class Project:
     def GetFileName(self):
         return self.fileName
 
+    def GetID(self):
+        '''获取项目唯一标识(字符串), 暂时用 fileName 实现, 因为项目名称可能会变
+        用于各种需要标识项目的场合, 如缓存'''
+        return self.fileName
+
+    def GetBase(self):
+        return os.path.splitext(self.baseName)[0]
+
     def SetFiles(self, projectIns):
         '''copy files (and virtual directories) from src project to this project
         note that this call replaces the files that exists under this project'''

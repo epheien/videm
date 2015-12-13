@@ -1407,6 +1407,16 @@ class VLWorkspace(object):
     def GetName(self):
         return self.name
 
+    def GetBase(self):
+        ''' /a/b/c/videm.vworkspace (name = 'videm-1.0')
+        fileName    -> /a/b/c/videm.vworkspace
+        dirName     -> /a/b/c
+        baseName    -> videm.vworkspace
+        GetBase()   -> videm
+        name        -> videm-1.0
+        '''
+        return os.path.splitext(self.baseName)[0]
+
     def GetWorkspaceFileName(self):
         return self.fileName
 

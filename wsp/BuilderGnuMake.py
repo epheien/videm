@@ -88,7 +88,7 @@ class BuilderGnuMake(Builder):
             force = True # 不使用默认设置，就肯定要强制
 
         # 工作区的 Makefile
-        wspMakefile = VLWorkspaceST.Get().GetName() + '_wsp.mk'
+        wspMakefile = VLWorkspaceST.Get().GetBase() + '_wsp.mk'
         # 转为绝对路径
         wspMakefile = os.path.join(ToU(VLWorkspaceST.Get().dirName),
                                    ToU(wspMakefile))
@@ -431,7 +431,7 @@ endif
         self.Exports(projNames, wspConfName)
         blderCmd = self.command
         blderCmd = EnvVarSettingsST.Get().ExpandVariables(blderCmd)
-        wspMakefile = '%s_wsp.mk' % wspIns.GetName()
+        wspMakefile = '%s_wsp.mk' % wspIns.GetBase()
         return 'cd %s && %s %s' % (EscStr4MkSh(wspIns.dirName), blderCmd,
                                    EscStr4MkSh(wspMakefile))
 

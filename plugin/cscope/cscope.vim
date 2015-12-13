@@ -77,9 +77,9 @@ function! s:InitVLWCscopeDatabase(...) "{{{2
     py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
 
     let lFiles = []
-    let sWspName = GetWspName()
-    let sCsFilesFile = sWspName . videm#settings#Get('.videm.symdb.cscope.FilesFile')
-    let sCsOutFile = sWspName . videm#settings#Get('.videm.symdb.cscope.OutFile')
+    let sBase = Videm_GetWorkspaceBase()
+    let sCsFilesFile = sBase . videm#settings#Get('.videm.symdb.cscope.FilesFile')
+    let sCsOutFile = sBase . videm#settings#Get('.videm.symdb.cscope.OutFile')
 
 python << PYTHON_EOF
 def InitVLWCscopeDatabase():
@@ -270,8 +270,7 @@ function! videm#plugin#cscope#ConnectCscopeDatabase(...) "{{{2
     " 默认的文件名...
     py l_ds = DirSaver()
     py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
-    let sWspName = GetWspName()
-    let sCsOutFile = sWspName . videm#settings#Get('.videm.symdb.cscope.OutFile')
+    let sCsOutFile = Videm_GetWorkspaceBase() . videm#settings#Get('.videm.symdb.cscope.OutFile')
 
     let sCsOutFile = a:0 > 0 ? a:1 : sCsOutFile
     if filereadable(sCsOutFile)
@@ -368,7 +367,7 @@ function! videm#plugin#cscope#Disable() "{{{2
     call Videm_UnregisterSymdbInitHook('videm#plugin#cscope#InitDatabase')
     call Videm_UnregisterSymdbUpdateHook('videm#plugin#cscope#UpdateDatabase')
     " kill symdb
-    let sCsOutFile = GetWspName() . videm#settings#Get('.videm.symdb.cscope.OutFile')
+    let sCsOutFile = Videm_GetWorkspaceBase() . videm#settings#Get('.videm.symdb.cscope.OutFile')
     py if ws.IsOpen(): vim.command("exec 'silent! cs kill' fnameescape(sCsOutFile)")
     " 尽量还原选项
     if exists('s:opts_bak')

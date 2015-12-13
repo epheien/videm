@@ -66,8 +66,7 @@ function! s:InitVLWGtagsDatabase(bIncremental) "{{{2
     py vim.command('let lFiles = %s' % json.dumps(l_files, ensure_ascii=False))
     py del l_files
 
-    let sWspName = GetWspName()
-    let sGlbFilesFile = sWspName . g:VLWorkspaceGtagsFilesFile
+    let sGlbFilesFile = Videm_GetWorkspaceBase() . g:VLWorkspaceGtagsFilesFile
     let sGlbOutFile = 'GTAGS'
     let sGtagsProgram = g:VLWorkspaceGtagsProgram
 
@@ -131,7 +130,7 @@ function! s:Autocmd_UpdateGtagsDatabase(sFile, ...) "{{{2
     let sync = get(a:000, 0, 0)
 
     if exists('s:bHadConnGtagsDb') && s:bHadConnGtagsDb
-        let sGlbFilesFile = GetWspName() . g:VLWorkspaceGtagsFilesFile
+        let sGlbFilesFile = Videm_GetWorkspaceBase() . g:VLWorkspaceGtagsFilesFile
         py vim.command("let sWspDir = %s" % ToVimEval(ws.VLWIns.dirName))
         let sGlbFilesFile = g:vlutils#os.path.join(sWspDir, sGlbFilesFile)
 
