@@ -259,7 +259,7 @@ class VimLiteWorkspace(object):
             'Disable Files (Non-Recursive)',
             'Swap Enabling (Non-Recursive)',
             '-Sep8-',
-#            'Rename Project... (Unrealized)', 
+            #'Rename Project...',
             'Remove Project', 
             '-Sep5-', 
             'Edit PCH Header For Clang...', 
@@ -397,9 +397,20 @@ class VimLiteWorkspace(object):
     def RenameWorkspace(self):
         oldName = self.VLWIns.GetName()
         newName = vim.eval(
-            'inputdialog("Enter new name:", %s)' % ToVimEval(oldName))
+            'inputdialog("New Workspace Name:", %s)' % ToVimEval(oldName))
         if newName and newName != oldName:
             self.VLWIns.RenameWorkspace(newName)
+            self.RefreshLines(self.window.cursor[0])
+
+    def RenameProject(self):
+        row, col = self.window.cursor
+        project = self.VLWIns.GetDatumByLineNum(row)['project']
+        oldName = project.GetName()
+        newName = vim.eval(
+            'inputdialog("New Project Name:", %s)' % ToVimEval(oldName))
+        if newName and newName != oldName:
+            if self.VLWIns.RenameProject(oldName, newName) < 0:
+                return
             self.RefreshLines(self.window.cursor[0])
 
     def UpdateBuildMTime(self):
@@ -1929,6 +1940,8 @@ class VimLiteWorkspace(object):
                 self.SetEnablingOfVirDir(row, choice)
             elif choice == 'Swap Enabling (Non-Recursive)':
                 self.SetEnablingOfVirDir(row, choice)
+            elif choice == 'Rename Project...':
+                self.RenameProject()
             elif choice == 'Remove Project':
                 input = vim.eval('confirm("Are you sure to remove project '\
                 '\\"%s\\" ?", ' '"&Yes\n&No\n&Cancel")' % EscStr4DQ(projName))

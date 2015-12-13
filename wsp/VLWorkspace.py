@@ -1620,11 +1620,24 @@ class VLWorkspace(object):
         self.OpenWorkspace(self.fileName)
 
     def RenameWorkspace(self, newName):
+        if not newName:
+            return
         self.name = newName
         # 这个属性没什么用, 这里改只是为了一致性
         XmlUtils.SetAttr(self.rootNode, 'Database', './%s.tags' % newName)
         XmlUtils.SetAttr(self.rootNode, 'Name', newName)
         self.Save()
+
+    def RenameProject(self, oldName, newName):
+        if not newName or oldName == newName:
+            return
+        for projName in self.GetProjectList():
+            if projName == newName:
+                print 'Project Name Conflict: %s' % projName
+                return -1
+
+        # TODO:
+        print 'Project Rename: %s -> %s' % (oldName, newName)
 
     def CreateProject(self, name, path, type, cmpType = '', 
                       addToBuildMatrix = True):
