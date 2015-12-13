@@ -150,6 +150,15 @@ class VLWorkspaceSettings:
         li.sort()
         return li
 
+    def RenameProject(self, oldName, newName):
+        if not newName or oldName == newName:
+            return
+        for key, val in enumerate(self.batchBuild):
+            for idx, name in enumerate(val):
+                if name == oldName:
+                    val[idx] = newName
+                    return
+
     def GetUsingNamespace(self):
         return self.nsinfo['usingns']
 

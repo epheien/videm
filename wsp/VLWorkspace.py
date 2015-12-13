@@ -1630,14 +1630,33 @@ class VLWorkspace(object):
 
     def RenameProject(self, oldName, newName):
         if not newName or oldName == newName:
-            return
-        for projName in self.GetProjectList():
+            return 0
+
+        project = self.FindProjectByName(oldName)
+        if not project:
+            return -1
+
+        for projName, ins in enumerate(self.projects):
             if projName == newName:
                 print 'Project Name Conflict: %s' % projName
                 return -1
 
-        # TODO:
-        print 'Project Rename: %s -> %s' % (oldName, newName)
+        project.Rename(newName)
+        self.projects[newName] = self.projects[oldName]
+        del self.projects[oldName]
+        if self.activeProject == oldName:
+            self.activeProject = newName
+
+        for node in self.rootNode.childNodes:
+            if node.nodeType != node.ELEMENT_NODE:
+                continue
+            if XmlUtils.GetAttr(node, 'Name') == oldName:
+                XmlUtils.SetAttr(node, 'Name', newName)
+
+        # TODO: 修正 BuildMatrix 的项目名称
+        # TODO: 修正 BatchBuild 的项目名称
+        self.Save()
+        return 0
 
     def CreateProject(self, name, path, type, cmpType = '', 
                       addToBuildMatrix = True):

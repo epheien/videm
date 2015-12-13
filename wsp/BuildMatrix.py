@@ -159,7 +159,7 @@ class BuildMatrix:
                 return i
         return None
 
-
-
-
-
+    def RenameProject(self, oldName, newName):
+        if not oldName or oldName == newName:
+            return
+        # TODO

@@ -409,9 +409,9 @@ class VimLiteWorkspace(object):
         newName = vim.eval(
             'inputdialog("New Project Name:", %s)' % ToVimEval(oldName))
         if newName and newName != oldName:
-            if self.VLWIns.RenameProject(oldName, newName) < 0:
+            if self.VLWIns.RenameProject(oldName, newName):
                 return
-            self.RefreshLines(self.window.cursor[0])
+            self.RefreshLines(row)
 
     def UpdateBuildMTime(self):
         self.buildMTime = time.time()

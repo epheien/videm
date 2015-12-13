@@ -230,6 +230,13 @@ class Project:
         self.name = name
         self.rootNode.setAttribute('Name', name.decode('utf-8'))
 
+    def Rename(self, newName):
+        if not newName or self.name == newName:
+            return
+        XmlUtils.SetAttr(self.rootNode, 'Name', newName)
+        self.name = newName
+        self.Save()
+
     def GetDescription(self):
         rootNode = XmlUtils.GetRoot(self.doc)
         if rootNode:
