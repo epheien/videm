@@ -995,7 +995,7 @@ function! s:LocateFile(fileName) "{{{2
         return 1
     endif
 
-    py vim.command("let l:path = '%s'" % ToVimStr(
+    py vim.command("let l:path = %s" % ToVimEval(
                 \ws.VLWIns.GetWspFilePathByFileName(vim.eval('a:fileName'))))
     if l:path ==# ''
         " 文件不属于工作空间, 返回
@@ -1907,7 +1907,7 @@ name = vim.eval('l:templateName')
 template = {}
 for template in templates[key]:
     if template['name'] == name:
-        vim.command("let l:templateFile = '%s'" % ToVimStr(template['file']))
+        vim.command("let l:templateFile = %s" % ToVimEval(template['file']))
 templates.clear()
 del templates, template, key, name
 PYTHON_EOF
@@ -1987,7 +1987,7 @@ PYTHON_EOF
     call ctl.SetValue(getcwd())
 
     if g:VLWorkspaceHasStarted
-        py vim.command("call ctl.SetValue('%s')" % ToVimStr(ws.VLWIns.dirName))
+        py vim.command("call ctl.SetValue(%s)" % ToVimEval(ws.VLWIns.dirName))
     endif
 
     call ctl.SetId(1)
@@ -2156,7 +2156,7 @@ function! s:OpenIncludeFile() "{{{2
                 \l_project.GetName())
     " 如果没有所属的项目, 就用当前活动的项目的头文件搜索路径
     py if not l_project: l_searchPaths += ws.GetActiveProjectIncludePaths()
-    py vim.command("let sFile = '%s'" % ToVimStr(IncludeParser.ExpandIncludeFile(
+    py vim.command("let sFile = %s" % ToVimEval(IncludeParser.ExpandIncludeFile(
                 \l_searchPaths,
                 \vim.eval('sInclude'),
                 \int(vim.eval('bUserInclude')))))
@@ -3053,7 +3053,7 @@ def GetVLWProjectCompileOpts(projName):
         if i:
             opts.append('-D%s' % i)
 
-    vim.command("let l:ret = '%s'" % ToVimStr(' '.join(opts).encode('utf-8')))
+    vim.command("let l:ret = %s" % ToVimEval(' '.join(opts).encode('utf-8')))
 GetVLWProjectCompileOpts(vim.eval('a:projName'))
 PYTHON_EOF
     return l:ret
@@ -3068,7 +3068,7 @@ function! s:InitVLWProjectClangPCH(projName) "{{{2
     py project = ws.VLWIns.FindProjectByName(vim.eval('a:projName'))
     py if project and os.path.exists(project.dirName): os.chdir(project.dirName)
 
-    py vim.command("let l:pchHeader = '%s'" % ToVimStr(
+    py vim.command("let l:pchHeader = %s" % ToVimEval(
                 \os.path.join(project.dirName, project.name) + '_VLWPCH.h'))
     if filereadable(l:pchHeader)
         let cmpOpts = s:GetVLWProjectCompileOpts(a:projName)
@@ -3669,8 +3669,8 @@ PYTHON_EOF
             for ctl in dlg.controls
                 if ctl.gId == s:BuildMatrixMappingGID
                     let projName = ctl.data
-                    py vim.command("call ctl.SetValue('%s')" 
-                                \% ToVimStr(matrix.GetProjectSelectedConf(
+                    py vim.command("call ctl.SetValue(%s)" 
+                                \% ToVimEval(matrix.GetProjectSelectedConf(
                                 \vim.eval("wspSelConfName"), 
                                 \vim.eval("projName"))))
                     "echo ctl.GetData()
@@ -3784,8 +3784,8 @@ def CreateWspBuildConfDialog():
     vim.command("call ctl.SetId(s:WspConfigurationCtlID)")
     vim.command("call wspBCMDlg.AddControl(ctl)")
     for wspConf in matrix.configurationList:
-        vim.command("call ctl.AddItem('%s')" % ToVimStr(wspConf.name))
-    vim.command("call ctl.SetValue('%s')" % ToVimStr(wspSelConfName))
+        vim.command("call ctl.AddItem(%s)" % ToVimEval(wspConf.name))
+    vim.command("call ctl.SetValue(%s)" % ToVimEval(wspSelConfName))
     vim.command("call ctl.AddItem('<New...>')")
     vim.command("call ctl.AddItem('<Edit...>')")
     vim.command("call ctl.ConnectActionCallback("\
@@ -3801,18 +3801,18 @@ def CreateWspBuildConfDialog():
     projectNameList.sort(CmpIC)
     for projName in projectNameList:
         project = ws.VLWIns.FindProjectByName(projName)
-        vim.command("let ctl = g:VCComboBox.New('%s')" % ToVimStr(projName))
+        vim.command("let ctl = g:VCComboBox.New(%s)" % ToVimEval(projName))
         vim.command("call ctl.SetGId(s:BuildMatrixMappingGID)")
-        vim.command("call ctl.SetData('%s')" % ToVimStr(projName))
+        vim.command("call ctl.SetData(%s)" % ToVimEval(projName))
         vim.command("call ctl.SetIndent(4)")
         vim.command("call ctl.ConnectActionPostCallback("\
                 "s:GetSFuncRef('s:WspBCMActionPostCbk'), '')")
         vim.command("call wspBCMDlg.AddControl(ctl)")
         for confName in project.GetSettings().configs.keys():
-            vim.command("call ctl.AddItem('%s')" % ToVimStr(confName))
+            vim.command("call ctl.AddItem(%s)" % ToVimEval(confName))
         projSelConfName = matrix.GetProjectSelectedConf(wspSelConfName, 
                                                         projName)
-        vim.command("call ctl.SetValue('%s')" % ToVimStr(projSelConfName))
+        vim.command("call ctl.SetValue(%s)" % ToVimEval(projSelConfName))
         vim.command("call ctl.AddItem('<New...>')")
         vim.command("call ctl.AddItem('<Edit...>')")
         vim.command("call wspBCMDlg.AddBlankLine()")

@@ -85,12 +85,6 @@ def UseVIMCCC():
     判断是否使用 VIMCCC 补全引擎'''
     return vim.eval("g:VLWorkspaceCodeCompleteEngine").lower() == 'vimccc'
 
-def ToVimStr(s):
-    '''把单引号翻倍，用于安全把字符串传到 vim
-    NOTE: vim.command 里面必须是 '%s' 的形式
-    DEPRECATED: 用 ToVimEval() 代替，只须用 %s 形式即可'''
-    return s.replace("'", "''")
-
 def System(cmd):
     '''更完备的 system，不会调用 shell，会比较快
     返回列表，[returncode, stdout, stderr]'''
@@ -534,8 +528,8 @@ class VimLiteWorkspace(object):
         #string = self.VLWIns.GetName() + '[' + \
             #self.VLWIns.GetBuildMatrix().GetSelectedConfigName() \
             #+ ']'
-        #vim.command("call setwinvar(bufwinnr(%d), '&statusline', '%s')" 
-            #% (self.bufNum, ToVimStr(string)))
+        #vim.command("call setwinvar(bufwinnr(%d), '&statusline', %s)" 
+            #% (self.bufNum, ToVimEval(string)))
         self.cache_confName = \
                 self.VLWIns.GetBuildMatrix().GetSelectedConfigName()
 
@@ -635,7 +629,7 @@ class VimLiteWorkspace(object):
                 #'input("Type number and <Enter> (empty cancels): ")')
             choice = int(choice) - 1
             if choice >= 0 and choice < len(questionList):
-                vim.command("call s:OpenFile('%s')" % ToVimStr(results[choice]))
+                vim.command("call s:OpenFile(%s)" % ToVimEval(results[choice]))
         except:
             pass
 
@@ -677,22 +671,23 @@ class VimLiteWorkspace(object):
                 self.ExpandNode()
         elif nodeType == VLWorkspace.TYPE_FILE:
             absFile = self.VLWIns.GetFileByLineNum(lnum, True).replace("'", "''")
+            q_absFile = ToVimEval(absFile)
             if not key or key == vim.eval("g:VLWOpenNodeKey"):
-                vim.command('call s:OpenFile(\'%s\', 0)' % absFile)
+                vim.command('call s:OpenFile(%s, 0)' % q_absFile)
             elif key == vim.eval("g:VLWOpenNode2Key"):
-                vim.command('call s:OpenFile(\'%s\', 1)' % absFile)
+                vim.command('call s:OpenFile(%s, 1)' % q_absFile)
             elif key == vim.eval("g:VLWOpenNodeInNewTabKey"):
-                vim.command('call s:OpenFileInNewTab(\'%s\', 0)' % absFile)
+                vim.command('call s:OpenFileInNewTab(%s, 0)' % q_absFile)
             elif key == vim.eval("g:VLWOpenNodeInNewTab2Key"):
-                vim.command('call s:OpenFileInNewTab(\'%s\', 1)' % absFile)
+                vim.command('call s:OpenFileInNewTab(%s, 1)' % q_absFile)
             elif key == vim.eval("g:VLWOpenNodeSplitKey"):
-                vim.command('call s:OpenFileSplit(\'%s\', 0)' % absFile)
+                vim.command('call s:OpenFileSplit(%s, 0)' % q_absFile)
             elif key == vim.eval("g:VLWOpenNodeSplit2Key"):
-                vim.command('call s:OpenFileSplit(\'%s\', 1)' % absFile)
+                vim.command('call s:OpenFileSplit(%s, 1)' % q_absFile)
             elif key == vim.eval("g:VLWOpenNodeVSplitKey"):
-                vim.command('call s:OpenFileVSplit(\'%s\', 0)' % absFile)
+                vim.command('call s:OpenFileVSplit(%s, 0)' % q_absFile)
             elif key == vim.eval("g:VLWOpenNodeVSplit2Key"):
-                vim.command('call s:OpenFileVSplit(\'%s\', 1)' % absFile)
+                vim.command('call s:OpenFileVSplit(%s, 1)' % q_absFile)
             else:
                 pass
         elif nodeType == VLWorkspace.TYPE_WORKSPACE:
@@ -1890,11 +1885,11 @@ class VimLiteWorkspace(object):
             project = self.VLWIns.GetDatumByLineNum(row)['project']
             projName = project.GetName()
             if choice == 'Build':
-                vim.command("call s:BuildProject('%s')" % ToVimStr(projName))
+                vim.command("call s:BuildProject(%s)" % ToVimEval(projName))
             elif choice == 'Rebuild':
-                vim.command("call s:RebuildProject('%s')" % ToVimStr(projName))
+                vim.command("call s:RebuildProject(%s)" % ToVimEval(projName))
             elif choice == 'Clean':
-                vim.command("call s:CleanProject('%s')" % ToVimStr(projName))
+                vim.command("call s:CleanProject(%s)" % ToVimEval(projName))
             elif choice == 'Export Makefile':
                 self.builder.Export(projName, '', force = True)
             elif choice == 'Set as Active':
@@ -1948,11 +1943,11 @@ class VimLiteWorkspace(object):
                 if input == '1':
                     self.DeleteNode(row)
             elif choice == 'Edit PCH Header For Clang...':
-                vim.command("call s:OpenFile('%s')" % ToVimStr(
+                vim.command("call s:OpenFile(%s)" % ToVimEval(
                         os.path.join(project.dirName, projName + '_VLWPCH.h')))
                 vim.command("au BufWritePost <buffer> "\
-                    "call s:InitVLWProjectClangPCH('%s')"
-                    % ToVimStr(projName))
+                    "call s:InitVLWProjectClangPCH(%s)"
+                    % ToVimEval(projName))
             elif choice == 'Settings...':
                 vim.command('call s:ProjectSettings("%s")' % projName)
             elif choice[:2] == 'C_':
