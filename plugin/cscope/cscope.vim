@@ -199,9 +199,9 @@ function! s:UpdateVLWCscopeDatabase(...) "{{{2
     py l_ds = DirSaver()
     py if os.path.isdir(ws.VLWIns.dirName): os.chdir(ws.VLWIns.dirName)
 
-    let sWspName = GetWspName()
-    let sCsFilesFile = sWspName . videm#settings#Get('.videm.symdb.cscope.FilesFile')
-    let sCsOutFile = sWspName . videm#settings#Get('.videm.symdb.cscope.OutFile')
+    let sBase = Videm_GetWorkspaceBase()
+    let sCsFilesFile = sBase . videm#settings#Get('.videm.symdb.cscope.FilesFile')
+    let sCsOutFile = sBase . videm#settings#Get('.videm.symdb.cscope.OutFile')
 
     if !filereadable(sCsFilesFile)
         " 没有必要文件，自动忽略
