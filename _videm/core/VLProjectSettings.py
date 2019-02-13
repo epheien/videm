@@ -64,36 +64,36 @@ class VLProjectSettings:
 
     def FromDict(self, d):
         self.settings = {}
-        for k, v in d.get('settings', {}).iteritems():
+        for k, v in d.get('settings', {}).items():
             self.settings[k] = VLProjectSetting(v)
 
     def ToDict(self):
         d = {}
         d['settings'] = {}
-        for k, v in self.settings.iteritems():
+        for k, v in self.settings.items():
             d['settings'][k] = v.ToDict()
         return d
 
     def AddBreakpoint(self, projConfName, fileName, lineNumber):
-        if not self.settings.has_key(projConfName):
+        if projConfName not in self.settings:
             self.settings[projConfName] = VLProjectSetting()
             self.settings[projConfName].name = projConfName
         return self.settings[projConfName].AddBreakpoint(fileName, lineNumber)
 
     def GetBreakpoints(self, projConfName):
-        if not self.settings.has_key(projConfName):
+        if projConfName not in self.settings:
             self.settings[projConfName] = VLProjectSetting()
             self.settings[projConfName].name = projConfName
         return self.settings[projConfName].GetBreakpoints()
 
     def SetBreakpoints(self, projConfName, bps):
-        if not self.settings.has_key(projConfName):
+        if projConfName not in self.settings:
             self.settings[projConfName] = VLProjectSetting()
             self.settings[projConfName].name = projConfName
         return self.settings[projConfName].SetBreakpoints(bps)
 
     def DelBreakpoints(self, projConfName):
-        if not self.settings.has_key(projConfName):
+        if projConfName not in self.settings:
             self.settings[projConfName] = VLProjectSetting()
             self.settings[projConfName].name = projConfName
         return self.settings[projConfName].DelBreakpoints()
@@ -121,7 +121,7 @@ class VLProjectSettings:
                 os.makedirs(dirName)
             f = open(fileName, "wb")
         except IOError:
-            print "IOError:", fileName
+            print("IOError:", fileName)
             raise
         json.dump(self.ToDict(), f, indent=4, sort_keys=True, ensure_ascii=True)
         f.close()
@@ -132,11 +132,11 @@ def test():
     ins = VLProjectSettings()
     ins.AddBreakpoint('Debug', 'main.c', 15)
     d = ins.ToDict()
-    print json.dumps(d, indent=4)
+    print(json.dumps(d, indent=4))
     d['settings']['abc'] = {}
     ins.FromDict(d)
     ins.DelBreakpoints('Debug')
-    print json.dumps(ins.ToDict(), indent=4)
+    print(json.dumps(ins.ToDict(), indent=4))
     pass
 
 if __name__ == '__main__':

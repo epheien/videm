@@ -105,5 +105,5 @@ if __name__ == '__main__':
     #cmpl.LoadFromJson('test.json')
     #print cmpl.name
     #print cmpl.cCompiler
-    print json.dumps(cmpl.ToDict(), indent=4, sort_keys=True)
+    print(json.dumps(cmpl.ToDict(), indent=4, sort_keys=True))
 

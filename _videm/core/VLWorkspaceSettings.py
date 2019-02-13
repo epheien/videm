@@ -88,7 +88,7 @@ class VLWorkspaceSettings:
     def FromDict(self, d):
         Dict2Obj(self, d, set(['conf', 'fileName', 'localConfig']))
         # 处理后向兼容的选项
-        if d.has_key('localConfig'):
+        if 'localConfig' in d:
             self._UpdateLocalConfigTextFromDict(d['localConfig'])
 
     def SetFileName(self, fileName):
@@ -137,7 +137,7 @@ class VLWorkspaceSettings:
         self.envVarSetName = envVarSetName
 
     def GetBatchBuildList(self, name):
-        if self.batchBuild.has_key(name):
+        if name in self.batchBuild:
             return self.batchBuild[name]
         else:
             return []
@@ -146,7 +146,7 @@ class VLWorkspaceSettings:
         self.batchBuild[name] = order
 
     def GetBatchBuildNames(self):
-        li = self.batchBuild.keys()
+        li = list(self.batchBuild.keys())
         li.sort()
         return li
 
@@ -196,12 +196,12 @@ class VLWorkspaceSettings:
         li = []
 
         minlen = 1
-        for k in di.iterkeys():
+        for k in di.keys():
             if len(k) > minlen:
                 minlen = len(k)
 
-        for k, v in di.iteritems():
-            if isinstance(v, (str, unicode)):
+        for k, v in di.items():
+            if isinstance(v, str):
                 li.append("%-*s = '%s'" % (minlen, k, v.replace("'", "''")))
             else:
                 li.append("%-*s = %d" % (minlen, k, v))
@@ -254,7 +254,7 @@ class VLWorkspaceSettings:
                 self.cppSrcExts = obj.cppSrcExts
                 self.enableLocalConfig = obj.enableLocalConfig
                 if obj.localConfig and \
-                   obj.localConfig.keys()[0].startswith('.videm'):
+                   list(obj.localConfig.keys())[0].startswith('.videm'):
                     #self.localConfig = obj.localConfig
                     self._UpdateLocalConfigTextFromDict(obj.localConfig)
                 self.conf = obj.conf
@@ -300,7 +300,7 @@ class VLWorkspaceSettings:
             f.close()
             ret = True
         except IOError:
-            print 'IOError:', fileName
+            print('IOError:', fileName)
             return False
 
         return ret
@@ -309,17 +309,17 @@ class VLWorkspaceSettings:
 
 if __name__ == '__main__':
     ins = VLWorkspaceSettings('temp.wspsettings')
-    print ins.includePaths
-    print ins.excludePaths
+    print(ins.includePaths)
+    print(ins.excludePaths)
     ins.AddExcludePath('age')
     ins.AddIncludePath('aenkjle')
-    print ins.includePaths
-    print ins.excludePaths
+    print(ins.includePaths)
+    print(ins.excludePaths)
     #print ins.Save()
     #print ins.Load()
-    print ins.includePaths
-    print ins.excludePaths
-    print ins.fileName
-    print ins.GetIncPathFlagWords()
-    print ins.GetCurIncPathFlagWord()
+    print(ins.includePaths)
+    print(ins.excludePaths)
+    print(ins.fileName)
+    print(ins.GetIncPathFlagWords())
+    print(ins.GetCurIncPathFlagWord())
 

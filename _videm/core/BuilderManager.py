@@ -20,7 +20,7 @@ class BuilderManager(object):
         '''从配置文件中获取'''
         blder = BuildSettingsST.Get().GetActiveBuilderInstance()
         if not blder:
-            print "No active Builder"
+            print("No active Builder")
             return None
 
         # 理论上基类的配置是适用于所有派生类的

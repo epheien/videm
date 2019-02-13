@@ -75,7 +75,7 @@ class ProjectSettings:
         node = minidom.Document().createElement('Settings')
         node.setAttribute('Type', str(self.projectType).decode('utf-8'))
         node.appendChild(self.globalSettings.ToXmlNode())
-        for k, v in self.configs.items():
+        for k, v in list(self.configs.items()):
             node.appendChild(v.ToXmlNode())
 
         fnode = minidom.Document().createElement('FileImportGlob')
@@ -98,7 +98,7 @@ class ProjectSettings:
         configName: build configuration name to find
         merge: merge with global settings or not'''
         buildConf = None
-        if self.configs.has_key(configName):
+        if configName in self.configs:
             buildConf = self.configs[configName]
 
         if not merge or not buildConf:
@@ -146,12 +146,12 @@ class ProjectSettings:
         
     
     def GetFirstBuildConfiguration(self):
-        self.configsIterator = self.configs.itervalues()
-        return self.configsIterator.next()
+        self.configsIterator = iter(self.configs.values())
+        return next(self.configsIterator)
     
     def GetNextBuildConfiguration(self):
         try:
-            result = self.configsIterator.next()
+            result = next(self.configsIterator)
         except:
             return None
         else:
@@ -162,7 +162,7 @@ class ProjectSettings:
     
     def RemoveConfiguration(self, configName):
         '''Remove build configuration from the project settings.'''
-        if self.configs.has_key(configName):
+        if configName in self.configs:
             del self.configs[configName]
 
     def GetGlobalSettings(self):
@@ -174,7 +174,7 @@ class ProjectSettings:
     def GetProjectType(self, configName):
         '''尝试返回指定名字的设置的项目类型，如没有，返回整个项目的类型'''
         if configName:
-            if self.configs.has_key(configName):
+            if configName in self.configs:
                 bc = self.configs[configName]
                 type = bc.projectType
                 if not type:
@@ -188,4 +188,4 @@ class ProjectSettings:
 
 
 if __name__ == '__main__':
-    print 'hello'
+    print('hello')

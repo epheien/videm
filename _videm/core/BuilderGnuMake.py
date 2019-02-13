@@ -78,7 +78,7 @@ class BuilderGnuMake(Builder):
             projInst = VLWorkspaceST.Get().FindProjectByName(projName)
             if not projInst:
                 removeList.append(projName)
-                print "%s not found" % projName
+                print("%s not found" % projName)
                 continue
 
         matrix = VLWorkspaceST.Get().GetBuildMatrix()
@@ -138,7 +138,7 @@ class BuilderGnuMake(Builder):
             # 第一个项目的时候，需要添加 Custom Build 目标，如果必要的话
             # 因为 Batch Build 是不支持特殊的 Custom Build 目标的
             if idx == 0 and projBldConfIns.IsCustomBuild():
-                for k, v in projBldConfIns.GetCustomTargets().iteritems():
+                for k, v in projBldConfIns.GetCustomTargets().items():
                     customTgtText += 'PHONY += %s\n' % k
                     customTgtText += '%s:\n' % k
                     customTgtText += '\t@cd %s && $(MAKE) -f %s $@\n' \
@@ -286,7 +286,7 @@ Rebuild: DirSanity
 ''' % (mkdir, EscStr4MkSh(workDir), cdCmd + buildCmds, cdCmd + cleanCmds)
             customTargets = projBldConfIns.GetCustomTargets()
             customTargetsText = ''
-            for tgt, cmd in customTargets.iteritems():
+            for tgt, cmd in customTargets.items():
                 customTargetsText += 'PHONY += %s\n' % tgt
                 customTargetsText += '%s: DirSanity\n' % tgt
                 customTargetsText += '\t%s\n' % (cdCmd + cmd,)
@@ -417,7 +417,7 @@ endif
             shutil.move(tmpf, absProjMakefile)
         except:
             os.remove(tmpf)
-            print '%s: save failed!' % absProjMakefile
+            print('%s: save failed!' % absProjMakefile)
             raise
 
         projInst.SetModified(False)
@@ -632,10 +632,10 @@ endif
 def test():
     from BuilderManager import BuilderManagerST
     import json
-    print SmclStr2MkStr("s n'\"\"'ke;;;snekg;")
+    print(SmclStr2MkStr("s n'\"\"'ke;;;snekg;"))
     ins = VLWorkspaceST.Get()
     ins.OpenWorkspace("CxxParser/CxxParser.vlworkspace")
-    print ins.projects
+    print(ins.projects)
 
     return
     bm = BuilderManagerST.Get()
@@ -646,17 +646,17 @@ def test():
     bs = BuildSettingsST.Get()
     #print bs.ToDict()
     #print bs.GetCompilerByName('gnu g++')
-    print blder.Exports(['CxxParser'])
+    print(blder.Exports(['CxxParser']))
     #print blder.GenerateMakefile('CxxParser', 'mindll')
     #print '=' * 78
     #print blder.GenerateMakefile('CxxParser', 'Debug')
-    print blder.GetPrepFileCmd('CxxParser', 'main.cpp', 'Debug')
-    print blder.GetCmplFileCmd('CxxParser', 'main.cpp', 'Debug')
-    print blder.GetBuildCommand('CxxParser')
-    print blder.GetCleanCommand('CxxParser')
-    print blder.GetBatchBuildCommand(['CxxParser'])
-    print blder.GetBatchCleanCommand(['CxxParser'])
-    print json.dumps(blder.ToDict())
+    print(blder.GetPrepFileCmd('CxxParser', 'main.cpp', 'Debug'))
+    print(blder.GetCmplFileCmd('CxxParser', 'main.cpp', 'Debug'))
+    print(blder.GetBuildCommand('CxxParser'))
+    print(blder.GetCleanCommand('CxxParser'))
+    print(blder.GetBatchBuildCommand(['CxxParser']))
+    print(blder.GetBatchCleanCommand(['CxxParser']))
+    print(json.dumps(blder.ToDict()))
 
 if __name__ == "__main__":
     test()

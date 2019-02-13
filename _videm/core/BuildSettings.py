@@ -121,7 +121,7 @@ class BuildSettings:
                 os.makedirs(dirName)
             f = open(fileName, "wb")
         except IOError:
-            print "IOError:", fileName
+            print("IOError:", fileName)
             raise
         json.dump(self.ToDict(), f, indent=4, sort_keys=True, ensure_ascii=True)
         f.close()
@@ -150,12 +150,12 @@ def test():
     global CONFIG_FILE
     CONFIG_FILE = "BuildSettings.jcnf"
     ins = BuildSettings()
-    print ins.ToDict()
+    print(ins.ToDict())
     #print ins.Save("BuildSettings.jcnf")
     #ins = BuildSettingsST.Get()
     #print json.dumps(BuildSettingsST.Get().ToDict())
-    print BuildSettingsST.Get().GetCompilerNameList()
-    print BuildSettingsST.Get().GetBuilderNameList()
+    print(BuildSettingsST.Get().GetCompilerNameList())
+    print(BuildSettingsST.Get().GetBuilderNameList())
 
 if __name__ == "__main__":
     test()

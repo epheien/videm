@@ -197,9 +197,9 @@ if __name__ == '__main__':
   <p>1</p>
 </ref>'''
     n = minidom.parseString(s)
-    print n.toxml()
+    print(n.toxml())
     node = n.firstChild.firstChild
-    print n.firstChild.childNodes[1]
-    print GetRoot(n.firstChild)
+    print(n.firstChild.childNodes[1])
+    print(GetRoot(n.firstChild))
     
     

@@ -63,8 +63,8 @@ if __name__ == '__main__':
     #ins = VLProject('Test/LiteEditor.project.orig')
     ins = VLProject()
     ins.Create('JustTest', '', 'Jjj/sdd/gnekg', 'execute')
-    print ins.name
-    print os.name
+    print(ins.name)
+    print(os.name)
 
 
 

@@ -72,7 +72,7 @@ class EnvVarSettings:
     def ToDict(self):
         d = Obj2Dict(self, set(['fileName', 'activeSetName', 'envVarSets']))
         d['envVarSets'] = {}
-        for key, val in self.envVarSets.iteritems():
+        for key, val in self.envVarSets.items():
             d['envVarSets'][key] = []
             for item in val:
                 d['envVarSets'][key].append(item.ToDict())
@@ -81,7 +81,7 @@ class EnvVarSettings:
     def FromDict(self, d):
         Dict2Obj(self, d, set(['fileName', 'activeSetName', 'envVarSets']))
         self.envVarSets.clear()
-        for key, val in d['envVarSets'].iteritems():
+        for key, val in d['envVarSets'].items():
             self.envVarSets[key] = []
             for item in val:
                 env_var = EnvVar()
@@ -104,7 +104,7 @@ class EnvVarSettings:
         return self.GetEnvVars(self.GetActiveSetName())
 
     def GetEnvVars(self, setName):
-        if self.envVarSets.has_key(setName):
+        if setName in self.envVarSets:
             return self.envVarSets[setName]
         else:
             return []
@@ -113,22 +113,22 @@ class EnvVarSettings:
         '''新建组, 若已存在, 不会清空已存在的组'''
         if not setName:
             return
-        if not self.envVarSets.has_key(setName):
+        if setName not in self.envVarSets:
             self.envVarSets[setName] = []
 
     def DeleteEnvVarSet(self, setName):
-        if self.envVarSets.has_key(setName):
+        if setName in self.envVarSets:
             del self.envVarSets[setName]
 
     def DeleteAllEnvVarSets(self):
         self.envVarSets.clear()
 
     def AddEnvVar(self, setName, string):
-        if self.envVarSets.has_key(setName) and string:
+        if setName in self.envVarSets and string:
             self.envVarSets[setName].append(EnvVar(string))
 
     def ClearEnvVarSet(self, setName):
-        if self.envVarSets.has_key(setName):
+        if setName in self.envVarSets:
             del self.envVarSets[setName][:]
 
     def GetVarDict(self):
@@ -146,22 +146,22 @@ class EnvVarSettings:
         return self.mtime
 
     def Print(self):
-        for k, v in self.envVarSets.iteritems():
-            print k + ':'
+        for k, v in self.envVarSets.items():
+            print(k + ':')
             for i in v:
                 #print ' ' * 4 + i.GetKey(), '=', i.GetValue()
-                print ' ' * 4 + i.string
-        print '=== after expanded ==='
-        for k, v in self.envVarSets.iteritems():
-            print k + ':'
+                print(' ' * 4 + i.string)
+        print('=== after expanded ===')
+        for k, v in self.envVarSets.items():
+            print(k + ':')
             for i in v:
-                print ' ' * 4 + i.GetKey(), '=', i.GetValue()
+                print(' ' * 4 + i.GetKey(), '=', i.GetValue())
 
     def _ExpandSelf(self):
         '''
         展开自身，具体来说就是展开 EnvVar.val
         内部使用，外部不应该使用这个方法'''
-        for envVarName, envVarSet in self.envVarSets.iteritems():
+        for envVarName, envVarSet in self.envVarSets.items():
             d = os.environ.copy() # 支持系统的环境变量的
             for envVar in envVarSet:
                 key = envVar.GetKey()
@@ -238,7 +238,7 @@ class EnvVarSettings:
             self.mtime = GetMTime(fileName)
             ret = True
         except IOError:
-            print 'IOError:', fileName
+            print('IOError:', fileName)
             return False
         except:
             #print d
@@ -287,6 +287,6 @@ if __name__ == '__main__':
     ins.Print()
     ins._ExpandSelf()
     ins.Print()
-    print ins.GetModificationTime()
-    print ins.ExpandVariables("$(CodeLiteDir) + $(VimLiteDir) = $(abc)")
+    print(ins.GetModificationTime())
+    print(ins.ExpandVariables("$(CodeLiteDir) + $(VimLiteDir) = $(abc)"))
 

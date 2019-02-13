@@ -472,7 +472,7 @@ function! g:VLWGetAllFiles() "{{{2
     if g:VLWorkspaceHasStarted
         " FIXME: Windows 下，所有反斜扛(\)加倍，因为 python 输出 '\\'
         pyx vim.command('let files = %s' 
-                    \% [i.encode('utf-8') for i in ws.VLWIns.GetAllFiles(True)])
+                    \% [i for i in ws.VLWIns.GetAllFiles(True)])
     endif
     return files
 endfunction
@@ -744,7 +744,7 @@ function! s:OnceInit() "{{{2
 endfunction
 "}}}
 " 入口
-function! s:InitVLWorkspace(file) " 初始化 {{{2
+function! s:InitVLWorkspace(file) abort " 初始化 {{{2
     let sFile = a:file
 
     if !s:SanityCheck()
@@ -1788,7 +1788,7 @@ def CreateProjectPostCbk(ret):
 
     texts = []
     for i in range(ln, ret + 1):
-        texts.append(ws.VLWIns.GetLineText(i).encode('utf-8'))
+        texts.append(ws.VLWIns.GetLineText(i))
     if texts:
         ws.buffer[ln - 1 : ret - 1] = texts
 CreateProjectPostCbk(int(vim.eval("a:data")))
@@ -3053,7 +3053,7 @@ def GetVLWProjectCompileOpts(projName):
         if i:
             opts.append('-D%s' % i)
 
-    vim.command("let l:ret = %s" % ToVimEval(' '.join(opts).encode('utf-8')))
+    vim.command("let l:ret = %s" % ToVimEval(' '.join(opts)))
 GetVLWProjectCompileOpts(vim.eval('a:projName'))
 PYTHON_EOF
     return l:ret

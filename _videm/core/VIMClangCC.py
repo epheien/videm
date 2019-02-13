@@ -26,14 +26,14 @@ VimExcHdr.Init()
 
 def GetTypedText(iCompletionString):
     '''strings 是 CompletionString 实例，迭代后是 CompletionChunk 的实例'''
-    li = filter(lambda x: x.isKindTypedText(), iCompletionString)
+    li = [x for x in iCompletionString if x.isKindTypedText()]
     if li:
         return li[0].spelling
     else:
         return ''
 
 def GetResultType(iCompletionString):
-    li = filter(lambda x: x.isKindResultType(), iCompletionString)
+    li = [x for x in iCompletionString if x.isKindResultType()]
     if li:
         return li[0].spelling
     else:
@@ -70,7 +70,7 @@ def GetCalltipsFromResults(sFuncName, results):
     lCalltips = []
 
     # 理论上，这里基本上过滤完毕
-    results = filter(lambda x: GetTypedText(x.string) == sFuncName, results)
+    results = [x for x in results if GetTypedText(x.string) == sFuncName]
     for result in results:
         #kind = result.kind
         iCompletionString = result.string
@@ -278,8 +278,7 @@ class VIMClangCCIndex(object):
                 patBase = re.compile('^' + sBase, re.IGNORECASE)
             else:
                 patBase = re.compile('^' + sBase)
-            results = filter(lambda x: patBase.match(GetTypedText(x.string)),
-                             results)
+            results = [x for x in results if patBase.match(GetTypedText(x.string))]
 
         self.cacheResults = results
 
@@ -331,7 +330,7 @@ class VIMClangCCIndex(object):
     def GetVimQucikFixListFromRecentTU(self):
         tu = self.updateThread.tu
         if tu:
-            return filter(None, map(GetQuickFixItem, tu.diagnostics))
+            return [_f for _f in map(GetQuickFixItem, tu.diagnostics) if _f]
         else:
             return []
 
@@ -495,7 +494,7 @@ kinds = {                                                                      \
 
 def test():
     if len(sys.argv) < 4:
-        print "Usage: %s {filename} {line} {column}" % sys.argv[0]
+        print("Usage: %s {filename} {line} {column}" % sys.argv[0])
         return
 
     sFileName = sys.argv[1]
@@ -506,54 +505,54 @@ def test():
     ins = VIMClangCCIndex()
     ins.SetParseArgs(lArgs)
 
-    print "Ready"
+    print("Ready")
     start = time.time()
     ins.AsyncUpdateTranslationUnit(sFileName)
     ins.JoinUpdateThread()
-    print 'First parsing elapsed: %f' % (time.time() - start)
-    print ins.tus
+    print('First parsing elapsed: %f' % (time.time() - start))
+    print(ins.tus)
 
-    print '=' * 40
+    print('=' * 40)
     start = time.time()
     tu = ins.GetCurrentTranslationUnit(sFileName, bReparse = True)
-    print 'First reparsing elapsed: %f' % (time.time() - start)
+    print('First reparsing elapsed: %f' % (time.time() - start))
     start = time.time()
     tu = ins.GetCurrentTranslationUnit(sFileName, bReparse = True)
-    print 'Second reparsing elapsed: %f' % (time.time() - start)
-    print '=' * 40
+    print('Second reparsing elapsed: %f' % (time.time() - start))
+    print('=' * 40)
 
-    print '=' * 40
+    print('=' * 40)
     start = time.time()
     ccr = ins.GetTUCodeCompleteResults(sFileName, nLine, nColumn)
-    print 'First code completion elapsed: %f' % (time.time() - start)
+    print('First code completion elapsed: %f' % (time.time() - start))
     start = time.time()
     ccr = ins.GetTUCodeCompleteResults(sFileName, nLine, nColumn)
-    print 'Second code completion elapsed: %f' % (time.time() - start)
-    print '=' * 40
+    print('Second code completion elapsed: %f' % (time.time() - start))
+    print('=' * 40)
 
-    print ins.GetSymbolDeclarationLocation(sFileName, nLine, nColumn)
-    print ins.GetSymbolDefinitionLocation(sFileName, nLine, nColumn)
+    print(ins.GetSymbolDeclarationLocation(sFileName, nLine, nColumn))
+    print(ins.GetSymbolDefinitionLocation(sFileName, nLine, nColumn))
     return
 
     ccr = ins.GetTUCodeCompleteResults(sFileName, nLine, nColumn)
-    print ins.GetCalltipsFromCacheCCResults('operator=')
+    print(ins.GetCalltipsFromCacheCCResults('operator='))
     if not ins:
-        print 'GetTUCodeCompleteResults() failed'
+        print('GetTUCodeCompleteResults() failed')
     else:
         for result in ccr.results:
-            print '%s: %s' % (result.kind, result)
+            print('%s: %s' % (result.kind, result))
 
-    print '=' * 40
+    print('=' * 40)
 
     start = time.time()
     vimccr = ins.GetVimCodeCompleteResults(sFileName, nLine, nColumn)
-    print 'Get vim code completion elapsed: %f' % (time.time() - start)
+    print('Get vim code completion elapsed: %f' % (time.time() - start))
     for i in vimccr:
-        print i
+        print(i)
 
-    print '-' * 40
+    print('-' * 40)
     for i in ins.GetVimQucikFixListFromRecentTU():
-        print i
+        print(i)
 
 
 if __name__ == '__main__':

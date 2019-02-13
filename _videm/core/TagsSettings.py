@@ -142,7 +142,7 @@ class TagsSettings:
             f.close()
             ret = True
         except IOError:
-            print 'IOError:', fileName
+            print('IOError:', fileName)
             return False
 
         return ret
@@ -369,8 +369,8 @@ std::multimap<A,B>::const_iterator=std::pair<A,B>
 
 if __name__ == '__main__':
     ins = TagsSettingsST.Get()
-    print ins.fileName
-    print '\n'.join(ins.includePaths)
-    print '\n'.join(ins.tagsTokens)
-    print '\n'.join(ins.tagsTypes)
+    print(ins.fileName)
+    print('\n'.join(ins.includePaths))
+    print('\n'.join(ins.tagsTokens))
+    print('\n'.join(ins.tagsTypes))
 

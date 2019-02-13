@@ -711,7 +711,7 @@ class BuildConfig:
         customBuildNode.appendChild(rebldCmd)
 
         # add all 'Targets'
-        for k, v in self.customTargets.items():
+        for k, v in list(self.customTargets.items()):
             customTgtNode = dom.createElement('Target')
             customTgtNode.setAttribute('Name', k.decode('utf-8'))
             XmlUtils.SetNodeContent(customTgtNode, v)
@@ -1154,6 +1154,6 @@ class BuildConfig:
 if __name__ == '__main__':
     ins = BuildConfigCommon()
     ins.cCompileOptions = '-g;-Wall;-O0'
-    print ins.ToDict()
+    print(ins.ToDict())
     ins = BuildConfig()
-    print ins.ToDict()
+    print(ins.ToDict())

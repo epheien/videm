@@ -10,7 +10,7 @@ def main():
         ret = 0
     else:
         ret = subprocess.call(sys.argv[1:])
-    raw_input('Press ENTER to continue...\n')
+    input('Press ENTER to continue...\n')
     return ret
 
 if __name__ == '__main__':

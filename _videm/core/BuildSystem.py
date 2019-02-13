@@ -65,5 +65,5 @@ if __name__ == '__main__':
     #print doc.toxml()
     
     bs = BuildSystem(doc2.firstChild)
-    print bs.ToXmlNode().toxml()
+    print(bs.ToXmlNode().toxml())
     

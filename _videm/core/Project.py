@@ -150,7 +150,7 @@ class Project:
             try:
                 self.doc = minidom.parse(fileName)
             except IOError:
-                print 'Invalid fileName:', fileName
+                print('Invalid fileName:', fileName)
                 raise IOError
             self.rootNode = XmlUtils.GetRoot(self.doc)
             self.name = self.rootNode.getAttribute('Name').encode('utf-8')
@@ -531,12 +531,12 @@ class Project:
             self.SetProjectLastModifiedTime(self.GetProjFileLastModifiedTime())
             f.close()
         except IOError:
-            print 'IOError:', fileName
+            print('IOError:', fileName)
             raise IOError
 
 
 if __name__ == '__main__':
-    print 'Hello World!'
+    print('Hello World!')
     p = Project(sys.argv[1])
-    print p.doc.toxml()
+    print(p.doc.toxml())
     pass

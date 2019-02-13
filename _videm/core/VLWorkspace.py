@@ -38,7 +38,7 @@ class WspCpbdData(object):
         if not isinstance(v, list):
             v = [v]
         for elem in v:
-            print elem, elem.getAttribute('Name').encode('utf-8')
+            print(elem, elem.getAttribute('Name').encode('utf-8'))
 
 class WorkspaceClipboard(object):
     '''工作空间的剪切板，暂时只支持工作空间的虚拟目录节点和文件节点'''
@@ -150,7 +150,7 @@ def DirectoryToXmlNode(sDir, inclGlob, exclGlob,
     try:
         lFileList = os.listdir(sDir)
     except:
-        print traceback.format_exc()
+        print(traceback.format_exc())
         return None
     #lFileList.sort(CmpIC)
     for sFile in lFileList:
@@ -166,7 +166,7 @@ def DirectoryToXmlNode(sDir, inclGlob, exclGlob,
     try:
         lFiles = Glob(sDir, inclGlob, exclGlob)
     except:
-        print traceback.format_exc()
+        print(traceback.format_exc())
         return None
     # 防止重复文件
     lFiles = list(set(lFiles))
@@ -225,7 +225,7 @@ def SortVirtualDirectoryByNode(lNode):
     dic = {}
     for i in lNode:
         dic[i.attributes['Name'].value] = i
-    li = dic.keys()
+    li = list(dic.keys())
     li.sort(CmpIC)
 #    print li
     li = [dic[i] for i in li]
@@ -236,7 +236,7 @@ def SortFileByNode(lNode):
     dic = {}
     for i in lNode:
         dic[os.path.basename(i.attributes['Name'].value)] = i
-    li = dic.keys()
+    li = list(dic.keys())
     li.sort(CmpIC)
 #    print li
     li = [dic[i] for i in li]
@@ -297,7 +297,7 @@ class VLWorkspace(object):
             try:
                 self.doc = minidom.parse(fileName)
             except IOError:
-                print 'IOError:', fileName
+                print('IOError:', fileName)
                 raise IOError
             self.rootNode = XmlUtils.GetRoot(self.doc)
             self.name = XmlUtils.GetRoot(self.doc).getAttribute('Name')\
@@ -317,8 +317,8 @@ class VLWorkspace(object):
                     path = i.getAttribute('Path').encode('utf-8')
                     active = XmlUtils.ReadBool(i, 'Active')
                     if not os.path.isfile(path):
-                        print 'Can not open %s, remove from workspace.' \
-                                % (path,)
+                        print('Can not open %s, remove from workspace.' \
+                                % (path,))
                         continue
                     if name:
                         self.projects[name] = VLProject(path)
@@ -329,7 +329,7 @@ class VLWorkspace(object):
             tmpList = []
             tmpDict = {}
             i = 0
-            for k, v in self.projects.iteritems():
+            for k, v in self.projects.items():
                 datum = {}
                 datum['node'] = v.rootNode
                 datum['deepFlag'] = deepFlag[:]
@@ -597,7 +597,7 @@ class VLWorkspace(object):
 
                         # 之后的深度 <= newDeep 的节点肯定都是文件节点
                         # 也要检查是否重名
-                        for j in xrange(i + 1, len(self.vimLineData)):
+                        for j in range(i + 1, len(self.vimLineData)):
                             curDeep = len(self.vimLineData[j]['deepFlag'])
                             if curDeep < newDeep: # 到达最后
                                 break
@@ -752,11 +752,11 @@ class VLWorkspace(object):
                 # 需要跟随链接
                 name = os.path.relpath(os.path.realpath(os.path.abspath(name)), 
                                        parentDatum['project'].dirName)
-            except ValueError, e:
+            except ValueError as e:
                 # 在 Windows 下，不同分区的的文件无法以相对路径访问
                 # 不支持组织不同分区的文件于同一项目中
-                print 'Error:',
-                print e
+                print('Error:', end=' ')
+                print(e)
                 return 0
             newNode = self.doc.createElement('File')
         elif nodeType == TYPE_VIRTUALDIRECTORY:
@@ -781,7 +781,7 @@ class VLWorkspace(object):
         ret = self.DoInsertChild(lineNum, newDatum)
         # 插入失败（同名冲突），返回
         if not ret:
-            print 'Name Conflict: %s' % name
+            print('Name Conflict: %s' % name)
             return 0
 
         parentNode.appendChild(newNode)
@@ -794,7 +794,7 @@ class VLWorkspace(object):
             self.filesIndex[fikey] = newNode
             # 添加此 fname2file
             key2 = os.path.basename(key)
-            if not self.fname2file.has_key(key2):
+            if key2 not in self.fname2file:
                 self.fname2file[key2] = set()
             self.fname2file[key2].add(key)
 
@@ -862,7 +862,7 @@ class VLWorkspace(object):
         if type == TYPE_VIRTUALDIRECTORY or type == TYPE_PROJECT:
             # 如果有上次的缓存，直接用缓存
             # NOTE: 每次使用缓存的时候都要修正 deepFlag
-            if rootDatum.has_key('children'):
+            if 'children' in rootDatum:
                 li = rootDatum['children']
                 nDepth = len(rootDatum['deepFlag'])
                 # 用根节点的 'deepFlag' 覆盖子节点的 'deepFlag'
@@ -1176,14 +1176,14 @@ class VLWorkspace(object):
         if oldName == newName:
             return
         if self.DoCheckNameConflict(xmlNode.parentNode, newName):
-            print 'Name Conflict: %s' % newName
+            print('Name Conflict: %s' % newName)
             return
         if type == TYPE_FILE:
             absOldFile = self.GetFileByLineNum(lineNum, True)
             dirName = os.path.dirname(absOldFile)
             absNewFile = os.path.join(dirName, newName)
             if os.path.exists(absNewFile):
-                print 'Exists a same file'
+                print('Exists a same file')
                 return
             elif os.path.exists(absOldFile):
                 #print absOldFile
@@ -1204,7 +1204,7 @@ class VLWorkspace(object):
             if not self.fname2file[oldKey]:
                 del self.fname2file[oldKey]
             newKey = os.path.basename(absNewFile)
-            if not self.fname2file.has_key(newKey):
+            if newKey not in self.fname2file:
                 self.fname2file[newKey] = set()
             self.fname2file[newKey].add(absNewFile)
 
@@ -1255,7 +1255,7 @@ class VLWorkspace(object):
             key = os.path.abspath(os.path.join(project.dirName,
                                                delNode.getAttribute('Name').encode('utf-8')))
             fikey = os.path.realpath(key)
-            if self.filesIndex.has_key(fikey):
+            if fikey in self.filesIndex:
                 del self.filesIndex[fikey]
             # 删除此 fname2file
             try:
@@ -1301,10 +1301,10 @@ class VLWorkspace(object):
         '''为项目导入文件, 导入前需要清空项目原有的文件'''
         project = self.FindProjectByName(projname)
         if not project:
-            print "Project %s not found" % projname
+            print("Project %s not found" % projname)
             return -1
         if not realpath or not virtpath:
-            print 'Invalid Path'
+            print('Invalid Path')
             return -1
 
         realpath = os.path.normpath(realpath)
@@ -1323,14 +1323,14 @@ class VLWorkspace(object):
             for n in nodes:
                 errmsg = []
                 if project.InsertNode(n, rootNode, virtpath, errmsg=errmsg) < 0:
-                    print errmsg.pop()
+                    print(errmsg.pop())
                     continue
         else:
             errmsg = []
             xmlNode.setAttribute('Name', os.path.basename(virtpath).decode('utf-8'))
             if project.InsertNode(xmlNode, rootNode, virtpath, vnode=xmlNode,
                                   errmsg=errmsg) < 0:
-                print errmsg.pop()
+                print(errmsg.pop())
                 return -1
 
         if save:
@@ -1464,7 +1464,7 @@ class VLWorkspace(object):
         self.buildMatrix = buildMatrix
 
         # force regeneration of makefiles for all projects
-        for i in self.projects.itervalues():
+        for i in self.projects.values():
             i.SetModified(True)
 
     def DisplayAll(self, dispLn = False, stream = sys.stdout):
@@ -1481,26 +1481,26 @@ class VLWorkspace(object):
 
     def GetAllFiles(self, absPath = False):
         files = []
-        for k, v in self.projects.iteritems():
+        for k, v in self.projects.items():
             files.extend(v.GetAllFiles(absPath))
         return files
 
     def GenerateFilesIndex(self):
         self.filesIndex.clear()
-        for k, v in self.projects.iteritems():
+        for k, v in self.projects.items():
             self.filesIndex.update(v.GetFilesIndex())
         # 重建 fname2file
         self.fname2file.clear()
         for k in self.GetAllFiles(True):
             key2 = os.path.basename(k)
-            if not self.fname2file.has_key(key2):
+            if key2 not in self.fname2file:
                 self.fname2file[key2] = set()
             self.fname2file[key2].add(k)
 
     def GetProjectByFileName(self, fileName):
         '''从绝对路径的文件名中获取文件所在的项目实例'''
         fileName = os.path.realpath(fileName)
-        if not self.filesIndex.has_key(fileName):
+        if fileName not in self.filesIndex:
             return None
 
         node = self.filesIndex[fileName]
@@ -1548,7 +1548,7 @@ class VLWorkspace(object):
 
         从工作空间算起，如 /项目名/虚拟目录/文件显示名'''
         fileName = os.path.realpath(fileName)
-        if not self.filesIndex.has_key(fileName):
+        if fileName not in self.filesIndex:
             return ''
 
         node = self.filesIndex[fileName]
@@ -1559,12 +1559,12 @@ class VLWorkspace(object):
         if not fileName:
             return False
         fileName = os.path.realpath(fileName)
-        return self.filesIndex.has_key(fileName)
+        return fileName in self.filesIndex
 
     def TouchAllProjectFiles(self):
         '''更新本工作区包含的所有项目的项目文件，
         主要目的是另它们重建 Makefile'''
-        for project in self.projects.itervalues():
+        for project in self.projects.values():
             Touch(project.fileName)
 
     def TouchProject(self, projName):
@@ -1579,7 +1579,7 @@ class VLWorkspace(object):
             self.Save()
 
         if not name:
-            print 'Invalid workspace name'
+            print('Invalid workspace name')
             return False
 
         # Create new
@@ -1638,7 +1638,7 @@ class VLWorkspace(object):
 
         for projName, ins in enumerate(self.projects):
             if projName == newName:
-                print 'Project Name Conflict: %s' % projName
+                print('Project Name Conflict: %s' % projName)
                 return -1
 
         project.Rename(newName)
@@ -1661,12 +1661,12 @@ class VLWorkspace(object):
     def CreateProject(self, name, path, type, cmpType = '', 
                       addToBuildMatrix = True):
         if not self.rootNode:
-            print 'No workspace open'
+            print('No workspace open')
             return False
 
-        if self.projects.has_key(name):
-            print 'A project with the same name already exists in the '\
-                    'workspace!'
+        if name in self.projects:
+            print('A project with the same name already exists in the '\
+                    'workspace!')
             return False
 
         project = VLProject()
@@ -1706,22 +1706,22 @@ class VLWorkspace(object):
     def CreateProjectFromTemplate(self, name, path, templateFile, cmpType = ''):
         '''从模版创建项目，若 cmpType 未指定，使用模版默认值'''
         if not self.rootNode:
-            print 'No workspace open'
+            print('No workspace open')
             return False
 
-        if self.projects.has_key(name):
-            print 'A project with the same name already exists in the '\
-                    'workspace!'
+        if name in self.projects:
+            print('A project with the same name already exists in the '\
+                    'workspace!')
             return False
 
         if os.path.exists(path) and not os.path.isdir(path):
-            print 'Invalid Path'
+            print('Invalid Path')
             return False
 
         projFile = os.path.join(path, name + os.extsep + PROJECT_FILE_SUFFIX)
         if os.path.exists(projFile):
-            print 'The target project file already exists on the disk, '\
-                    'just add the project to workspace instead.'
+            print('The target project file already exists on the disk, '\
+                    'just add the project to workspace instead.')
             return False
 
         errmsg = ''
@@ -1760,34 +1760,34 @@ class VLWorkspace(object):
 
     def GetStringProperty(self, propName):
         if not self.rootNode:
-            print 'No workspace open'
+            print('No workspace open')
             return ''
 
         return self.rootNode.getAttribute(propName).encode('utf-8')
 
     def FindProjectByName(self, projName):
         '''返回 VLProject 实例'''
-        if self.projects.has_key(projName):
+        if projName in self.projects:
             return self.projects[projName]
         else:
             return None
 
     def GetProjectList(self):
         '''返回工作空间包含的项目的名称列表'''
-        li = self.projects.keys()
+        li = list(self.projects.keys())
         li.sort(CmpIC)
         return li
 
     def AddProject(self, projFile):
         if not self.rootNode or not os.path.isfile(projFile):
-            print 'No workspace open or file does not exist!'
+            print('No workspace open or file does not exist!')
             return False
 
         project = VLProject()
         project.Load(projFile)
 
         # 项目名称区分大小写
-        if not self.projects.has_key(project.GetName()):
+        if project.GetName() not in self.projects:
             # No project could be find, add it to the workspace
             self.projects[project.GetName()] = project
             relFile = os.path.relpath(project.fileName, self.dirName)
@@ -1811,7 +1811,7 @@ class VLWorkspace(object):
             # 更新 fname2file
             for k in project.GetAllFiles(True):
                 key2 = os.path.basename(k)
-                if not self.fname2file.has_key(key2):
+                if key2 not in self.fname2file:
                     self.fname2file[key2] = set()
                 self.fname2file[key2].add(k)
 
@@ -1822,8 +1822,8 @@ class VLWorkspace(object):
             datum['project'] = project
             return self.DoInsertProject(self.GetRootLineNum(0), datum)
         else:
-            print "A project with a similar name " \
-                    "'%s' already exists in the workspace" % (project.GetName(),)
+            print("A project with a similar name " \
+                    "'%s' already exists in the workspace" % (project.GetName(),))
             return False
 
     def RemoveProject(self, name):
@@ -1915,16 +1915,16 @@ class VLWorkspace(object):
                 # 凡是有 ToXmlNode 方法的类的保存方法都是添加到有 doc 属性的类中
                 project.SetSettings(settings)
                 settings = project.GetSettings()
-                prjBldConf = settings.configs(settings.configs.keys()[0])
+                prjBldConf = settings.configs(list(settings.configs.keys())[0])
                 matchConf = prjBldConf
             else:
-                prjBldConf = settings.configs[settings.configs.keys()[0]]
+                prjBldConf = settings.configs[list(settings.configs.keys())[0]]
                 matchConf = prjBldConf
 
                 # try to locate the best match to add to the workspace
                 # 尝试寻找 Configuration 名字和 WorkspaceConfiguration 的名字
                 # 相同的添加进去
-                for k, v in settings.configs.iteritems():
+                for k, v in settings.configs.items():
                     if wspCnfName == v.GetName():
                         matchConf = v
                         break
@@ -2094,7 +2094,7 @@ class VLWorkspace(object):
 
         self.Expand(lineNum)
         count = 0
-        for nextLineNum in xrange(lineNum + 1, self.GetLastLineNum() + 1):
+        for nextLineNum in range(lineNum + 1, self.GetLastLineNum() + 1):
             nodeType = self.GetNodeTypeByLineNum(nextLineNum)
             if nodeType in set([TYPE_PROJECT, TYPE_WORKSPACE, TYPE_INVALID]):
                 break
@@ -2120,7 +2120,7 @@ class VLWorkspace(object):
                 os.makedirs(dirName)
             f = open(fileName, 'wb')
         except IOError:
-            print 'IOError:', fileName
+            print('IOError:', fileName)
             raise IOError
         #f.write(self.doc.toxml('utf-8'))
         f.write(XmlUtils.ToPrettyXmlString(self.doc))
@@ -2134,7 +2134,7 @@ class VLWorkspace(object):
 
         self.Save(fileName)
 
-        for i in self.projects.itervalues():
+        for i in self.projects.values():
             i.Save()
 
     def ConvertToNewFileFormat(self):
@@ -2153,7 +2153,7 @@ class VLWorkspace(object):
                 + WORKSPACE_FILE_SUFFIX
         self.Save(newFileName)
 
-        for i in self.projects.itervalues():
+        for i in self.projects.values():
             newFileName = os.path.splitext(i.fileName)[0] + os.extsep \
                     + PROJECT_FILE_SUFFIX
             i.Save(newFileName)
@@ -2203,10 +2203,10 @@ if __name__ == '__main__':
     #print ws.DoGetDispTextByIndex(0)
     #print ws.DoGetDispTextByIndex(1)
     ws.DisplayAll(True)
-    print '-'*80
+    print('-'*80)
     #print ws.filesIndex
-    print ws.GetProjectByFileName(
-        '/home/eph/Desktop/VimLite/WorkspaceMgr/Test/C++/CTest/main.c')
+    print(ws.GetProjectByFileName(
+        '/home/eph/Desktop/VimLite/WorkspaceMgr/Test/C++/CTest/main.c'))
     #bd.Export(ws.GetDatumByLineNum(9)['project'].name, '')
     #ws.SetActiveProjectByLineNum(2)
     #ws.Expand(2)

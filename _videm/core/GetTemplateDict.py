@@ -27,11 +27,11 @@ def GetTemplateDict(dir):
             template['cmpType'] = bldConf.GetCompilerType()
 
             if internalType:
-                if not templates.has_key(internalType):
+                if internalType not in templates:
                     templates[internalType] = []
                 templates[internalType].append(template)
             else:
-                if not templates.has_key('Others'):
+                if 'Others' not in templates:
                     templates['Others'] = []
                 templates['Others'].append(template)
     return templates
@@ -43,15 +43,15 @@ def test():
     else:
         templatesDir = '/home/eph/.codelite/templates/projects'
     templates = GetTemplateDict(templatesDir)
-    for k, v in templates.iteritems():
-        print k
+    for k, v in templates.items():
+        print(k)
         for i in v:
-            print i['name']
-            print i['file']
-            print i['desc']
-            print i['cmpType']
-            print '-' * 40
-        print '-' * 80
+            print(i['name'])
+            print(i['file'])
+            print(i['desc'])
+            print(i['cmpType'])
+            print('-' * 40)
+        print('-' * 80)
 
 
 if __name__ == '__main__':
