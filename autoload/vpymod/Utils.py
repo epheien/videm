@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''工具集。多数为和Macros.py关联的常数的例程'''
 
@@ -34,7 +34,7 @@ def VPrint(*args, **kargs):
     end = kargs.get('end', '\n')
     file = kargs.get('file', sys.stdout)
     for arg in args:
-        print arg
+        print(arg)
     #print(value, *args, sep=sep, end=end, file=file)
 
 def IsVDirNameIllegal(name):
@@ -160,7 +160,7 @@ def ExpandVariables(sString, dVariables, bTrimVar = False):
                     sResult += '$' * n
                     sResult += sVarVal
                 else:
-                    if dVariables.has_key(sVarName):
+                    if sVarName in dVariables:
                         # 成功展开变量的时候，前面的 $ 全数保留
                         sResult += '$' * n
                         sResult += str(dVariables[sVarName])
@@ -198,7 +198,7 @@ def ExpandBacktick(exp):
                 i += 1
 
             if not found:
-                print "Syntax error in exp: %s, expecting '`'" % exp
+                print("Syntax error in exp: %s, expecting '`'" % exp)
                 return exp
             else:
                 output = os.popen(backtick).read()
@@ -344,7 +344,7 @@ def ExpandAllInterMacros(expression, workspace, projName, projConfName = '',
                 NormalizePath(os.path.dirname(fileName))
         dVariables['CurrentFileFullPath'] = NormalizePath(fileName)
 
-    if dVariables.has_key('OutDir'): # 这个变量由于由用户定义，所以可以嵌套变量
+    if 'OutDir' in dVariables: # 这个变量由于由用户定义，所以可以嵌套变量
         imd = dVariables['OutDir']
         del dVariables['OutDir']
         del dVariables['IntermediateDirectory']
@@ -474,7 +474,7 @@ if __name__ == '__main__':
         def testExpandVariables(self):
             d = {'name': 'aa', 'value': 'bb', 'temp': 'cc'}
             s = '  $$$(name), $$(value), $(temp) $$$(x) '
-            print ExpandVariables(s, d)
+            print(ExpandVariables(s, d))
             self.assertTrue(ExpandVariables(s, d, True) 
                             == '  $$aa, $$(value), cc $$ ')
             self.assertTrue(ExpandVariables(s, d, False) 
@@ -484,17 +484,17 @@ if __name__ == '__main__':
     s += ' -D_DEBUG'
     s += ' -I /usr/xxx/include'
     li = shlex.split(s)
-    print s
-    print li
+    print(s)
+    print(li)
     optlist, args = getopt.getopt(li, 'I:D:')
-    print optlist
-    print args
-    print '-' * 10
-    print GetIncludesFromArgs(s)
-    print GetMacrosFromArgs(s)
+    print(optlist)
+    print(args)
+    print('-' * 10)
+    print(GetIncludesFromArgs(s))
+    print(GetMacrosFromArgs(s))
 
-    print StripVariablesForShell('a $(shell wx-config --cxxflags) b')
+    print(StripVariablesForShell('a $(shell wx-config --cxxflags) b'))
 
-    print '= unittest ='
+    print('= unittest =')
     unittest.main() # 跑这个函数会直接退出，所以后面的语句会全部跑不了
 

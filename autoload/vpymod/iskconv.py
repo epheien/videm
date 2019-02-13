@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''转换vim的iskeyword选项到python的re模块用的模式'''
 
@@ -139,7 +139,7 @@ def SplitOptions(seq):
                 # 处理完毕了
                 break
             else:
-                print 'Syntax Error:', ','.join(li), chrrdr.PeekToken()
+                print('Syntax Error:', ','.join(li), chrrdr.PeekToken())
                 break
         else:
             # ASCII码本义
@@ -164,7 +164,7 @@ def SplitOptions(seq):
                 # 处理完毕了
                 break
             else:
-                print 'Syntax Error:', ','.join(li), chrrdr.PeekToken()
+                print('Syntax Error:', ','.join(li), chrrdr.PeekToken())
                 break
         # endif
     return li
@@ -251,7 +251,7 @@ def main(argv):
             Conv2PattList(case, True)
             Conv2PattList(case)
         except AssertionError:
-            print 'assert failed:', case, '==', ','.join(li)
+            print('assert failed:', case, '==', ','.join(li))
             #raise
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 class Notifier:
@@ -68,10 +68,10 @@ class Notifier:
 
 def main(argv):
     def func1(val, data):
-        print 'func1(%s, %s)' % (val, data)
+        print('func1(%s, %s)' % (val, data))
         return Notifier.OK
     def func2(val, data):
-        print 'func2(%s, %s)' % (val, data)
+        print('func2(%s, %s)' % (val, data))
         return Notifier.DONE
     notif = Notifier('test', 'hello')
     notif.Register(func1, 1)

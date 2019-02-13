@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding:utf-8 -*-
 # 各种例程
 
@@ -23,33 +23,17 @@ def ToVimEval(o):
         vim.command("echo %s" % ToVimEval(expr))'''
     if isinstance(o, str):
         return "'%s'" % o.replace("'", "''")
-    elif isinstance(o, unicode):
-        return "'%s'" % o.encode('utf-8').replace("'", "''")
+    elif isinstance(o, bytes):
+        return "'%s'" % o.decode('utf-8').replace("'", "''")
     elif isinstance(o, (list, dict)):
         return json.dumps(o, ensure_ascii=False)
     else:
         return repr(o)
 
 def ToUtf8(o):
-    '''处理utf-8转码问题'''
-    if isinstance(o, str):
-        if IsWindowsOS():
-            return o.decode('gb18030').encode('utf-8')
-        else:
-            return o
-    elif isinstance(o, unicode):
-        return o.encode('utf-8')
     return o
 
 def ToU(o):
-    '''把字符串转为unicode'''
-    if isinstance(o, unicode):
-        return o
-    elif isinstance(o, str):
-        if IsWindowsOS():
-            return o.decode('gb18030')
-        else:
-            return o.decode('utf-8')
     return o
 
 def CmpIC(s1, s2):
@@ -218,17 +202,14 @@ def Dict2Obj(obj, d, exclude=set()):
     '''把字典转为对象
     字典的键对应对象的属性，字典的值对应对象的属性值
     NOTE: 不会递归转换，也就是只转一层'''
-    for k, v in d.iteritems():
+    for k, v in d.items():
         if k in exclude:
             continue
-        if isinstance(v, unicode):
-            # 统一转成 utf-8 编码的字符串，唉，python2 的软肋
-            v = v.encode('utf-8')
         setattr(obj, k, v)
     return obj
 
 class SimpleThread(threading.Thread):
-    def __init__(self, callback, prvtData, 
+    def __init__(self, callback, prvtData,
                  postHook = None, postPara = None,
                  exceptHook = None, exceptPara = None):
         '''简单线程接口'''
@@ -284,7 +265,7 @@ class ConfTree:
 
         d = self.tree
         for key in li[:-1]:
-            if not d.has_key(key):
+            if key not in d:
                 d[key] = {}
             if not isinstance(d[key], dict):
                 # 非页结点必须是字典，否则退出
@@ -300,7 +281,7 @@ class ConfTree:
 
         d = self.tree
         for key in li[:-1]:
-            if not d.has_key(key):
+            if key not in d:
                 return val
             if not isinstance(d[key], dict):
                 return val
@@ -314,12 +295,12 @@ class ConfTree:
 
         d = self.tree
         for key in li[:-1]:
-            if not d.has_key(key):
+            if key not in d:
                 return False
             if not isinstance(d[key], dict):
                 return False
             d = d[key]
-        return d.has_key(li[-1])
+        return li[-1] in d
 
     def Save(self, filename):
         dirname = os.path.dirname(filename)
@@ -347,11 +328,11 @@ if __name__ == '__main__':
     def ppp(yy):
         import time
         time.sleep(3)
-        print dir(yy)
+        print(dir(yy))
     #print RunSimpleThread(ppp, list)
 
-    print GetBgThdCnt()
-    print threading.active_count()
+    print(GetBgThdCnt())
+    print(threading.active_count())
 
     class test(unittest.TestCase):
         def testDirSaver(self):
@@ -382,9 +363,9 @@ if __name__ == '__main__':
     assert not conftree.Has('.abc')
     assert conftree.Has('.videm.wsp')
     assert conftree.Get('.videm.wsp.xxx', 123) == 123
-    print conftree.Save('x.json')
+    print(conftree.Save('x.json'))
 
-    print GetFileModificationTime(sys.argv[0])
+    print(GetFileModificationTime(sys.argv[0]))
 
-    print '= unittest ='
+    print('= unittest =')
     unittest.main() # 跑这个函数会直接退出，所以后面的语句会全部跑不了

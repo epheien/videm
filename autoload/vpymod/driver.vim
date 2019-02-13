@@ -4,7 +4,7 @@
 " Create:   2013-12-15
 " Change:   2013-12-15
 
-if !has('python')
+if !has('python3')
     finish
 endif
 
@@ -16,10 +16,10 @@ function vpymod#driver#Init()
     endif
     let s:init = 1
 
-    py import sys
-    py import os.path
-    py import vim
-    py sys.path.append(os.path.dirname(vim.eval('s:sfile')))
+    pyx import sys
+    pyx import os.path
+    pyx import vim
+    pyx sys.path.append(os.path.dirname(vim.eval('s:sfile')))
 endfunction
 
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1

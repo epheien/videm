@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''需要vim模块的例程'''
 
 import traceback
-import StringIO
+import io
 import os.path
 import subprocess
 import threading
@@ -54,8 +54,8 @@ class VimExcHdr:
     def Print(msg):
         if not VimExcHdr.vim_has_gui_running:
             # 终端下直接打印
-            print msg
-            print "There are some warning messages! Please run ':messages' for details."
+            print(msg)
+            print("There are some warning messages! Please run ':messages' for details.")
         elif VimExcHdr.vim_servername:
             if threading.current_thread() is VimExcHdr._main_thread:
                 vim.command("call vlutils#EchoMsgx('%s')" % msg.replace("'", "''"))
@@ -79,7 +79,7 @@ class VimExcHdr:
     @staticmethod
     def PrintExcept():
         '''打印出错信息'''
-        sio = StringIO.StringIO()
+        sio = io.StringIO()
         traceback.print_exc(file=sio)
         errmsg = sio.getvalue()
         if not errmsg:

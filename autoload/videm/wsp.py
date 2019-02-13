@@ -26,7 +26,6 @@ from EnvVarSettings import EnvVarSettingsST
 from VLWorkspaceSettings import VLWorkspaceSettings
 from VLProjectSettings import VLProjectSettings
 import BuilderGnuMake
-import IncludeParser
 
 from GetTemplateDict import GetTemplateDict
 
@@ -180,7 +179,7 @@ class VimLiteWorkspace(object):
 
     @staticmethod
     def __InsertMenuItem(menu, item, index, mapping, hook, priv):
-        if mapping.has_key(item):
+        if item in mapping:
             return -1
         menu.insert(index, item)
         mapping[item] = [hook, priv]
@@ -188,7 +187,7 @@ class VimLiteWorkspace(object):
 
     @staticmethod
     def __RemoveMenuItem(menu, item, mapping):
-        if not mapping.has_key(item):
+        if item not in mapping:
             return -1
         menu.remove(item)
         del mapping[item]
@@ -544,13 +543,13 @@ class VimLiteWorkspace(object):
         if IsCCppSourceFile(fileName):
             for ext in CPP_HEADER_EXT:
                 swapFileName = name + ext
-                if self.VLWIns.fname2file.has_key(swapFileName):
+                if swapFileName in self.VLWIns.fname2file:
                     results.extend(self.VLWIns.fname2file[swapFileName])
         elif IsCppHeaderFile(fileName):
             exts = C_SOURCE_EXT.union(CPP_SOURCE_EXT)
             for ext in exts:
                 swapFileName = name + ext
-                if self.VLWIns.fname2file.has_key(swapFileName):
+                if swapFileName in self.VLWIns.fname2file:
                     results.extend(self.VLWIns.fname2file[swapFileName])
         else:
             pass
@@ -594,7 +593,7 @@ class VimLiteWorkspace(object):
         if not matchName:
             return
 
-        fnames = self.VLWIns.fname2file.keys()
+        fnames = list(self.VLWIns.fname2file.keys())
         fnames.sort()
         results = []
         questionList = []
@@ -715,7 +714,7 @@ class VimLiteWorkspace(object):
                                                             projName)
             bldConf = self.VLWIns.GetProjBuildConf(projName, projSelConfName)
             if bldConf and bldConf.IsCustomBuild():
-                targets = bldConf.GetCustomTargets().keys()
+                targets = list(bldConf.GetCustomTargets().keys())
                 targets.sort()
                 for target in targets:
                     menuNumber = 25
@@ -853,7 +852,7 @@ class VimLiteWorkspace(object):
                     project = self.VLWIns.GetDatumByLineNum(row)['project']
                     project.Save()
                 except:
-                    print 'Save project filed after AddFileNodes()'
+                    print('Save project filed after AddFileNodes()')
                     pass
             else:
                 ret = self.VLWIns.AddFileNodeQuickly(row, names[idx])
@@ -903,7 +902,7 @@ class VimLiteWorkspace(object):
     def AddProjectNode(self, row, projFile):
         ext = os.path.splitext(projFile)[1]
         if not ext in VALID_PROJECT_FILE_EXTS:
-            print 'Not a valid project file: %s' % projFile
+            print('Not a valid project file: %s' % projFile)
             return
 
         row = int(row)
@@ -1193,7 +1192,7 @@ class VimLiteWorkspace(object):
 
         projInst = self.VLWIns.FindProjectByName(projName)
         if not projInst:
-            print 'Can not find a valid project!'
+            print('Can not find a valid project!')
             return
 
         wspSelConfName = self.VLWIns.GetBuildMatrix()\
@@ -1205,7 +1204,7 @@ class VimLiteWorkspace(object):
         try:
             os.chdir(projInst.dirName)
         except OSError:
-            print 'change directory failed:', projInst.dirName
+            print('change directory failed:', projInst.dirName)
             return
         wd = ExpandAllVariables(
             bldConf.workingDirectory, self.VLWIns, projName, confToBuild, '')
@@ -1213,7 +1212,7 @@ class VimLiteWorkspace(object):
             if wd:
                 os.chdir(wd)
         except OSError:
-            print 'change directory failed:', wd
+            print('change directory failed:', wd)
             return
         #print os.getcwd()
 
@@ -1244,8 +1243,8 @@ class VimLiteWorkspace(object):
                 else:
                     py = os.path.join(sys.prefix, 'python.exe')
                     if not Executable(py):
-                        print 'Can not find valid python interpreter'
-                        print 'Please add python interpreter to "PATH"'
+                        print('Can not find valid python interpreter')
+                        print('Please add python interpreter to "PATH"')
                         return
                 p = subprocess.Popen([py, vlterm, prog] + shlex.split(args),
                                      env=d)
@@ -1316,7 +1315,7 @@ class VimLiteWorkspace(object):
         '''获取全部项目的预定义宏，激活的项目的会放到最后'''
         extraMacros = []
         actProjName = self.VLWIns.GetActiveProjectName()
-        for project in self.VLWIns.projects.itervalues():
+        for project in self.VLWIns.projects.values():
             # 保证激活的项目的预定义宏放到最后
             if project.GetName() != actProjName:
                 extraMacros.extend(
@@ -1563,7 +1562,7 @@ class VimLiteWorkspace(object):
         incPaths = []
         if include_parser:
             incPaths += self.GetParserSearchPaths()
-        for projName in self.VLWIns.projects.keys():
+        for projName in list(self.VLWIns.projects.keys()):
             incPaths += self.GetProjectIncludePaths(projName, wspConfName)
         guard = set()
         results = []
@@ -1625,7 +1624,7 @@ class VimLiteWorkspace(object):
                     idx = popupMenuP.index('Clean') + 1
                 except ValueError:
                     idx = len(popupMenuP)
-                targets = bldConf.GetCustomTargets().keys()
+                targets = list(bldConf.GetCustomTargets().keys())
                 if targets:
                     popupMenuP.insert(idx, 'Custom Build Targets ->')
 
@@ -1635,7 +1634,7 @@ class VimLiteWorkspace(object):
             if choice > 0 and choice < len(popupMenuP):
                 menu = 'P_'
                 if popupMenuP[choice].startswith('Custom Build Targets ->'):
-                    targets = bldConf.GetCustomTargets().keys()
+                    targets = list(bldConf.GetCustomTargets().keys())
                     targets.sort()
                     if targets:
                         CBMenu = ['Please select an operation:']
@@ -1693,7 +1692,7 @@ class VimLiteWorkspace(object):
             li = vim.eval('vlutils#Inputs("\nImport Files:\n", "", "dir")')
             for d in li:
                 if not os.path.isdir(d):
-                    print '%s not found or not a directory, ignore' % d
+                    print('%s not found or not a directory, ignore' % d)
                     continue
                 importDirs.append(d)
 
@@ -1752,7 +1751,7 @@ class VimLiteWorkspace(object):
             if project.dirName:
                 os.chdir(project.dirName)
         except OSError:
-            print "chdir failed, cwd is: %s" % os.getcwd()
+            print("chdir failed, cwd is: %s" % os.getcwd())
         if useGui and vim.eval("executable('zenity')") == '1':
             # zenity 返回的是绝对路径
             names = vim.eval('system(\'zenity --file-selection ' \
@@ -1767,7 +1766,7 @@ class VimLiteWorkspace(object):
             li = []
             for name in names:
                 if not os.path.exists(name):
-                    print '%s not found, ignore' % name
+                    print('%s not found, ignore' % name)
                     continue
                 li.append(os.path.abspath(name))
             self.AddFileNodes(row, li)
@@ -1970,8 +1969,8 @@ class VimLiteWorkspace(object):
                     if customBuildWd:
                         os.chdir(customBuildWd)
                 except OSError:
-                    print 'Can not enter Working Directory "%s"!' \
-                        % customBuildWd
+                    print('Can not enter Working Directory "%s"!' \
+                        % customBuildWd)
                     return
                 if cmd:
                     tempFile = vim.eval('tempname()')
@@ -2122,7 +2121,7 @@ class VimLiteWorkspace(object):
     def GetProjectConfigList(self, projName):
         projInst = self.VLWIns.FindProjectByName(projName)
         settings = projInst.GetSettings()
-        li = settings.configs.keys()
+        li = list(settings.configs.keys())
         li.sort()
         return li
 
@@ -2164,7 +2163,7 @@ class VimLiteWorkspace(object):
     def CutNodes(self, row, length):
         ret, err = self.VLWIns._SanityCheck4CutNodes(row, length)
         if not ret:
-            print err
+            print(err)
             return
 
         # 如果节点已经展开，先折叠
@@ -2180,15 +2179,15 @@ class VimLiteWorkspace(object):
     def PasteNodes(self, row):
         ret, err = self.VLWIns._SanityCheck4PasteNodes(row)
         if not ret:
-            print err
+            print(err)
             return
 
         ret = self.VLWIns.PasteNodes(row)
         #print 'row = %d, ret = %d' % (row, ret)
         if ret == 0:
-            print 'Invalid Operation'
+            print('Invalid Operation')
         elif ret == -1:
-            print 'Name Conflict'
+            print('Name Conflict')
         elif ret > 0:
             vim.command("call s:RefreshBuffer()")
             # 粘贴成功的话，顺便展开
