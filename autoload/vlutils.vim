@@ -807,6 +807,63 @@ function! vlutils#JoinToSmclStr(li) "{{{2
     return join(tempList, sep)
 endfunction
 "}}}
+func vlutils#TrimTermColors(msg) "{{{2
+  let pat = '\C\v(%x9B|%x1B\[)[0-?]*[ -/]*[@-~]'
+  return substitute(a:msg, pat, '', 'g')
+endfunc
+"}}}
+"{{{2
+function! s:Build_out_cb(channel, message) dict
+    call add(self.content, vlutils#TrimTermColors(a:message))
+endfunction
+function! s:Build_exit_cb(channel, retcode) dict
+    if !self.bufnr
+        return
+    endif
+    let self.exitval = a:retcode
+    let tmp = tempname()
+    " NOTE: 终端运行的命令，换行符貌似都是 "\r\n"
+    let lines = split(join(self.content, ''), "\r\\?\n")
+    let ret = writefile(lines, tmp)
+    if ret
+        call delete(tmp)
+        echoerr 'failed to writefile' tmp
+        return
+    endif
+    execute 'cgetfile' tmp
+
+    let found = 0
+    for winnr in range(1, winnr('$'))
+        if getwinvar(winnr, '&buftype') =~# '\<quickfix\>'
+            let found = 1
+        endif
+    endfor
+    if !found
+        bo copen
+    endif
+
+    " 清理临时文件，避免一直增多
+    call delete(tmp)
+endfunction
+function! s:Build_close_cb(channel) dict
+endfunction
+"}}}
+" 使用 job 机制运行构建命令，构建完毕后，读取全局的 quickfix
+function! vlutils#Build(argv) "{{{2
+    let d = {'content': [], 'bufnr': 0}
+    let bufnr = term_start(
+                \ a:argv,
+                \ {
+                \   'term_finish': 'close',
+                \   'norestore': 1,
+                \   'out_cb': function('s:Build_out_cb', [], d),
+                \   'err_cb': function('s:Build_out_cb', [], d),
+                \   'exit_cb': function('s:Build_exit_cb', [], d),
+                \   'close_cb': function('s:Build_close_cb', [], d),
+                \ })
+    let d.bufnr = bufnr
+endfunction
+"}}}
 " 模拟 python 的 os 和 os.path 模块
 " os, os.path {{{2
 let s:os = {}

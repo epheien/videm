@@ -1112,40 +1112,8 @@ class VimLiteWorkspace(object):
         if cmd:
             if vim.eval("videm#settings#Get('.videm.wsp.SaveBeforeBuild')") != '0':
                 vim.command("wa")
-            tempFile = vim.eval('tempname()')
-            if IsWindowsOS():
-                #vim.command('!"%s >%s 2>&1"' % (cmd, tempFile))
-                # 用 subprocess 模块代替
-                p = subprocess.Popen('"C:\\WINDOWS\\system32\\cmd.exe" /c '
-                    '"%s 2>&1 | tee %s && pause || pause"'
-                    % (cmd, tempFile))
-                p.wait()
-            else:
-                # 强制设置成英语 locale 以便 quickfix 处理
-                cmd = "export LANG=en_US; " + cmd
-                # NOTE: 这个命令无法返回 cmd 的执行返回值，蛋疼了...
-                vim.command("!%s 2>&1 | tee %s" % (cmd, tempFile))
-            vim.command('cgetfile %s' % tempFile)
-            qflist = vim.eval('getqflist()')
-            if qflist:
-                lastLine = qflist[-1]['text']
-                if lastLine.startswith('make: ***'): # make 出错标志
-                    result = False
-                else:
-                    result = True
-
-#           if False:
-#               os.system("gnome-terminal -t 'make' -e "\
-#                   "\"sh -c \\\"%s 2>&1 | tee '%s' "\
-#                   "&& echo ========================================"\
-#                   "&& echo -n This will close in 3 seconds... "\
-#                   "&& read -t 3 i && echo Press ENTER to continue... "\
-#                   "&& read i;"\
-#                   "vim --servername '%s' "\
-#                   "--remote-send '<C-\><C-n>:cgetfile %s "\
-#                   "| echo \\\\\\\"Readed the error file.\\\\\\\"<CR>'\\\"\" &"
-#                   % (cmd, tempFile, vim.eval('v:servername'),
-#                      tempFile.replace(' ', '\\ ')))
+            argv = [vim.eval('&shell'), vim.eval('&shellcmdflag'), cmd]
+            vim.command('call vlutils#Build(%s)' % ToVimEval(argv))
 
         return result
 
