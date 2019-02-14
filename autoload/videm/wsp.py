@@ -734,15 +734,14 @@ class VimLiteWorkspace(object):
             if names:
                 # 添加 Batch Build 和 Batch Clean 目标
                 names.sort()
+                menuNumber = 75
+                try:
+                    menuNumber = self.popupMenuW.index('Batch Builds')
+                    menuNumber = (menuNumber - 1) * 10 - 5
+                    menuNumber += 10
+                except ValueError:
+                    pass
                 for name in names:
-                    menuNumber = 75
-                    try:
-                        menuNumber = self.popupMenuW.index('Batch Builds')
-                        menuNumber = (menuNumber - 1) * 10 - 5
-                        if IsWindowsOS():
-                            menuNumber += 10
-                    except ValueError:
-                        pass
                     name2 = name.replace(' ', '\\ ').replace('.', '\\.')
                     vim.command("an <silent> 100.%d ]VLWorkspacePopup."
                         "Batch\\ Builds.%s "
