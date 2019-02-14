@@ -42,6 +42,11 @@ endfunction
 " envd 为字典，作为环境变量
 " 这个命令一般只在Linux下面用
 function! vlutils#RunCmd(argv, envd) "{{{2
+    if has('terminal')
+        let bufid = term_start(a:argv, {'env': a:envd})
+        return
+    endif
+
     let sCmd = ''
 
     " 环境变量字符串，只在Linux下才处理
@@ -50,7 +55,7 @@ function! vlutils#RunCmd(argv, envd) "{{{2
     else
         let sEnv = ''
         for [k, v] in items(a:envd)
-            let sEnv .= printf("export %s=%s; ", k, shellescape(v, 1))
+            let sEnv .= printf("export %s=%s; ", shellescape(k, 1), shellescape(v, 1))
         endfor
         let sCmd .= '!' . sEnv
     endif

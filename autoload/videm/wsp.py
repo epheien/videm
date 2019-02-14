@@ -1225,44 +1225,14 @@ class VimLiteWorkspace(object):
             confToBuild, '')
         #print args
         if prog:
-            envs = ''
             envsDict = {}
             for envVar in EnvVarSettingsST.Get().GetActiveEnvVars():
-                envs += envVar.GetString() + ' '
                 envsDict[envVar.GetKey()] = envVar.GetValue()
-            #print envs
-            d = os.environ.copy()
-            d.update(envsDict)
-            global VidemDir
-            if IsWindowsOS():
-                vlterm = os.path.join(VidemDir, 'vlexec.py')
-                if not prog.endswith('.exe'): prog += '.exe'
-                prog = os.path.realpath(prog)
-                if Executable('python'):
-                    py = 'python'
-                else:
-                    py = os.path.join(sys.prefix, 'python.exe')
-                    if not Executable(py):
-                        print('Can not find valid python interpreter')
-                        print('Please add python interpreter to "PATH"')
-                        return
-                p = subprocess.Popen([py, vlterm, prog] + shlex.split(args),
-                                     env=d)
-                p.wait()
-            else:
-                if vim.eval("has('gui_running')") == '1':
-                    vlterm = os.path.join(VidemDir, 'vlterm')
-                    # 理论上这种方式是最好的了，就是需要两个脚本 vlterm vlexec
-                    p = subprocess.Popen([vlterm, prog] + shlex.split(args),
-                                         env=d)
-                    p.wait()
-                else:
-                    # 终端的vim下运行，相当难处理
-                    argv = [prog] + shlex.split(args)
-                    # NOTE: vim下面运行的话，只需要处理新增的环境变量就好了
-                    #       这样的话，会受vim的环境变量影响
-                    vim.command("call vlutils#RunCmd(%s, %s)"
-                                    % (ToVimEval(argv), ToVimEval(envsDict)))
+            env = os.environ.copy()
+            env.update(envsDict)
+            argv = [prog] + shlex.split(args)
+            vim.command("call vlutils#RunCmd(%s, %s)"
+                        % (ToVimEval(argv), ToVimEval(env)))
 
     def BuildActiveProject(self):
         actProjName = self.VLWIns.GetActiveProjectName()
