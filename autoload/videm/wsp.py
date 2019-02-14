@@ -164,9 +164,6 @@ class VimLiteWorkspace(object):
         'Save Session...',
         '-Sep_BatchBuilds-',
         'Batch Builds',
-        '-Sep_Symdb-',
-        'Initialize Symbol Database',
-        'Update Symbol Database',
         '-Sep_Settings-',
         'Workspace Build Configuration...',
         'Workspace Batch Build Settings...',
@@ -1830,10 +1827,6 @@ class VimLiteWorkspace(object):
                 if name:
                     vim.command("call s:SaveSession(%s)" % ToVimEval(
                                     os.path.join(self.VLWIns.dirName, name)))
-            elif choice == 'Initialize Symbol Database':
-                vim.command("call Videm_SymdbInit()")
-            elif choice == 'Update Symbol Database':
-                vim.command("call Videm_SymdbUpdate()")
             elif choice == 'Workspace Build Configuration...':
                 vim.command("call s:WspBuildConfigManager()")
             elif choice == 'Workspace Batch Build Settings...':

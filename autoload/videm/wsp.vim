@@ -680,11 +680,6 @@ function! s:OnceInit() "{{{2
         call s:InstallToolBarMenu()
     endif
 
-    if videm#settings#Get('.videm.wsp.EnablePopUpMenu')
-        " 添加右键弹出菜单
-        call s:InstallPopUpMenu()
-    endif
-
     " 安装命令
     call s:InstallCommands()
 
@@ -1093,6 +1088,7 @@ function! s:InstallCommands() "{{{2
         return
     endif
 
+    " @ 基本必要命令
     command! -nargs=0 -bar VBuildActiveProject    
             \                           call <SID>BuildActiveProject()
     command! -nargs=0 -bar VCleanActiveProject    
@@ -1106,6 +1102,12 @@ function! s:InstallCommands() "{{{2
     command! -nargs=0 -bar VCompilersSettings call <SID>CompilersSettings()
     command! -nargs=0 -bar VBuildersSettings  call <SID>BuildersSettings()
 
+    command! -nargs=1 -bar VSaveSession
+            \               call s:SaveSession(<q-args>)
+    command! -nargs=1 -bar -complete=file VLoadSession
+            \               call s:LoadSession(<q-args>)
+
+    " @ 辅助工具命令
     command! -nargs=0 -bar VSwapSourceHeader  call <SID>SwapSourceHeader()
 
     command! -nargs=0 -bar VLocateCurrentFile 
@@ -1115,23 +1117,6 @@ function! s:InstallCommands() "{{{2
     command! -nargs=? -bar VFindFilesIC     call <SID>FindFiles(<q-args>, 1)
 
     command! -nargs=? -bar VOpenIncludeFile call <SID>OpenIncludeFile()
-
-    command! -nargs=0 -bar VSymbolDatabaseInit      call Videm_SymdbInit()
-    command! -nargs=0 -bar VSymbolDatabaseUpdate    call Videm_SymdbUpdate()
-
-    command! -nargs=1 -bar VSearchSymbolDefinition
-            \               call <SID>SearchSymbolDefinition(<q-args>)
-    command! -nargs=1 -bar VSearchSymbolDeclaration
-            \               call <SID>SearchSymbolDeclaration(<q-args>)
-    command! -nargs=1 -bar VSearchSymbolCalling
-            \               call <SID>SearchSymbolCalling(<q-args>)
-    command! -nargs=1 -bar VSearchSymbolReference
-            \               call <SID>SearchSymbolReference(<q-args>)
-
-    command! -nargs=1 -bar VSaveSession
-            \               call s:SaveSession(<q-args>)
-    command! -nargs=1 -bar -complete=file VLoadSession
-            \               call s:LoadSession(<q-args>)
 
     command! -nargs=0 -bar VPlugInfo call videm#wsp#PlugInfo()
 endfunction
@@ -1205,30 +1190,6 @@ function! s:VisualSearchSymbol(choice) "{{{2
     elseif a:choice ==# 'Reference'
         call <SID>SearchSymbolReference(word)
     endif
-endfunction
-"}}}
-function! s:InstallPopUpMenu() "{{{2
-    nnoremenu <silent> 1.55 PopUp.Search\ Definition
-            \ :call <SID>SearchSymbolDefinition(expand('<cword>'))<CR>
-    nnoremenu <silent> 1.55 PopUp.Search\ Declaration
-            \ :call <SID>SearchSymbolDeclaration(expand('<cword>'))<CR>
-    nnoremenu <silent> 1.55 PopUp.Search\ Calling
-            \ :call <SID>SearchSymbolCalling(expand('<cword>'))<CR>
-    nnoremenu <silent> 1.55 PopUp.Search\ Reference
-            \ :call <SID>SearchSymbolReference(expand('<cword>'))<CR>
-    nnoremenu <silent> 1.55 PopUp.-SEP- <Nop>
-
-    vnoremenu <silent> 1.55 PopUp.Search\ Definition
-            \ :<C-u>call <SID>VisualSearchSymbol('Definition')<CR>
-    vnoremenu <silent> 1.55 PopUp.Search\ Declaration
-            \ :<C-u>call <SID>VisualSearchSymbol('Declaration')<CR>
-    vnoremenu <silent> 1.55 PopUp.Search\ Calling
-            \ :<C-u>call <SID>VisualSearchSymbol('Calling')<CR>
-    vnoremenu <silent> 1.55 PopUp.Search\ Reference
-            \ :<C-u>call <SID>VisualSearchSymbol('Reference')<CR>
-    "vnoremenu <silent> 1.55 PopUp.Debug
-            "\ :<C-u>call <SID>GetVisualSelection()<CR>
-    vnoremenu <silent> 1.55 PopUp.-SEP- <Nop>
 endfunction
 "}}}
 function! s:IsWorkspaceFile(file) "{{{2
