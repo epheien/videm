@@ -2020,7 +2020,7 @@ class VLWorkspace(object):
         if nodeType == TYPE_VIRTUALDIRECTORY or nodeType == TYPE_PROJECT:
             return True, errmsg
         else:
-            return False, errmsg
+            return False, 'only can paste nodes on VirtualDirectory or Project node'
 
     def CutNodes(self, lineNum, length):
         '''返回剪切成功的行数'''
