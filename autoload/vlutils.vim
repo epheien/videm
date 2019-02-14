@@ -43,7 +43,7 @@ endfunction
 " 这个命令一般只在Linux下面用
 function! vlutils#RunCmd(argv, envd) "{{{2
     if has('terminal')
-        let bufid = term_start(a:argv, {'env': a:envd})
+        call vlutils#TermRun(a:argv, {'env': a:envd})
         return
     endif
 
@@ -863,8 +863,9 @@ endfunction
 "}}}
 " 使用 job 机制运行构建命令，构建完毕后，读取全局的 quickfix
 function! vlutils#TermRun(argv, ...) "{{{2
-    let quickfix = get(a:000, 0, 0)
-    let d = {'content': [], 'bufnr': 0, 'winid': win_getid(), 'quickfix': quickfix}
+    let opts = get(a:000, 0, {})
+    let d = {'content': [], 'bufnr': 0, 'winid': win_getid(),
+            \ 'quickfix': get(opts, 'quickfix', 0)}
     let curwin = 0
     let term_name = '== VidemTerminal =='
 
@@ -894,6 +895,7 @@ function! vlutils#TermRun(argv, ...) "{{{2
                 \   'err_cb': function('s:Build_out_cb', [], d),
                 \   'exit_cb': function('s:Build_exit_cb', [], d),
                 \   'close_cb': function('s:Build_close_cb', [], d),
+                \   'env': get(opts, 'env', {})
                 \ })
     let d.bufnr = bufnr
 

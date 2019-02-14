@@ -1106,7 +1106,7 @@ class VimLiteWorkspace(object):
             if vim.eval("videm#settings#Get('.videm.wsp.SaveBeforeBuild')") != '0':
                 vim.command("wa")
             argv = [vim.eval('&shell'), vim.eval('&shellcmdflag'), cmd]
-            vim.command('call vlutils#TermRun(%s, 1)' % ToVimEval(argv))
+            vim.command('call vlutils#TermRun(%s, {"quickfix":1})' % ToVimEval(argv))
 
         return result
 
