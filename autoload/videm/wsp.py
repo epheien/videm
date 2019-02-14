@@ -80,7 +80,7 @@ def Executable(cmd):
 
 def UseVIMCCC():
     '''辅助函数
-    
+
     判断是否使用 VIMCCC 补全引擎'''
     return vim.eval("g:VLWorkspaceCodeCompleteEngine").lower() == 'vimccc'
 
@@ -101,10 +101,10 @@ class StartEdit:
         self.bufnr = vim.eval("bufnr('%')")
         self.bak_ma = vim.eval("getbufvar(%s, '&modifiable')" % self.bufnr)
         vim.command("setlocal modifiable")
-    
+
     def __del__(self):
         #vim.command("setlocal nomodifiable")
-        vim.command("call setbufvar(%s, '&modifiable', %s)" 
+        vim.command("call setbufvar(%s, '&modifiable', %s)"
             % (self.bufnr, self.bak_ma))
 
 class videm(object):
@@ -117,7 +117,7 @@ class videm(object):
 
 class VimLiteWorkspace(object):
     '''VimLite 工作空间对象，主要用于操作缓冲区和窗口
-    
+
     所有操作假定已经在工作空间缓冲区'''
     # 结点类型
     NT_WORKSPACE = VLWorkspace.TYPE_WORKSPACE
@@ -228,35 +228,35 @@ class VimLiteWorkspace(object):
         self.buildMTime = time.time()
 
         # 项目右键菜单列表
-        self.popupMenuP = ['Please select an operation:', 
-            'Build', 
-            'Rebuild', 
-            'Clean', 
-#            'Stop Build (Unrealized)', 
-            '-Sep1-', 
+        self.popupMenuP = ['Please select an operation:',
+            'Build',
+            'Rebuild',
+            'Clean',
+#            'Stop Build (Unrealized)',
+            '-Sep1-',
             'Export Makefile' ,
-            '-Sep2-', 
+            '-Sep2-',
             'Set as Active',
-            '-Sep3-', 
-#            'Build Order... (Unrealized)', 
-#            'Re-Tag Project (Unrealized)', 
-#            'Sort Items (Unrealized)', 
-            'Add a New File...', 
-            'Add Existing Files...', 
+            '-Sep3-',
+#            'Build Order... (Unrealized)',
+#            'Re-Tag Project (Unrealized)',
+#            'Sort Items (Unrealized)',
+            'Add a New File...',
+            'Add Existing Files...',
             '-Sep7-',
-            'New Virtual Folder...', 
-            'Import Files From Directory...', 
+            'New Virtual Folder...',
+            'Import Files From Directory...',
             'Import Files by Filter',
-            '-Sep4-', 
+            '-Sep4-',
             'Enable Files (Non-Recursive)',
             'Disable Files (Non-Recursive)',
             'Swap Enabling (Non-Recursive)',
             '-Sep8-',
             #'Rename Project...',
-            'Remove Project', 
-            '-Sep5-', 
-            'Edit PCH Header For Clang...', 
-            '-Sep6-', 
+            'Remove Project',
+            '-Sep5-',
+            'Edit PCH Header For Clang...',
+            '-Sep6-',
             'Settings...' ]
 
         # PCH 貌似已经不需要了，因为用 libclang，PCH 反而添乱
@@ -265,33 +265,33 @@ class VimLiteWorkspace(object):
             self.popupMenuP.remove('-Sep6-')
 
         # 虚拟目录右键菜单列表
-        self.popupMenuV = ['Please select an operation:', 
-            'Add a New File...', 
-            'Add Existing Files...', 
+        self.popupMenuV = ['Please select an operation:',
+            'Add a New File...',
+            'Add Existing Files...',
             '-Sep1-',
-            'New Virtual Folder...', 
-            'Import Files From Directory...', 
-#            'Sort Items (Unrealized)', 
+            'New Virtual Folder...',
+            'Import Files From Directory...',
+#            'Sort Items (Unrealized)',
             '-Sep2-',
             'Enable Files (Non-Recursive)',
             'Disable Files (Non-Recursive)',
             'Swap Enabling (Non-Recursive)',
             '-Sep3-',
-            'Rename...', 
+            'Rename...',
             'Remove Virtual Folder' ]
 
         # 文件右键菜单列表
-        self.popupMenuF = ['Please select an operation:', 
-                'Open', 
+        self.popupMenuF = ['Please select an operation:',
+                'Open',
                 #'-Sep1-',
-                #'Compile (Unrealized)', 
-                #'Preprocess (Unrealized)', 
+                #'Compile (Unrealized)',
+                #'Preprocess (Unrealized)',
                 '-Sep2-',
                 'Enable This File',
                 'Disable This File',
                 'Swap Enabling',
                 '-Sep3-',
-                'Rename...', 
+                'Rename...',
                 'Remove' ]
 
         # 当前工作区选择构建设置名字，缓存，用于快速访问
@@ -305,7 +305,7 @@ class VimLiteWorkspace(object):
         self.CreateWindow()
         # 设置键位绑定。当前光标必须在需要设置键位绑定的缓冲区中
         vim.command("call s:SetupKeyMappings()")
-        
+
         self.InstallPopupMenu()
 
         # 创建窗口后需要执行的一些动作
@@ -440,31 +440,31 @@ class VimLiteWorkspace(object):
                 continue
             elif value[:4] == '-Sep':
                 # 菜单分隔符
-                vim.command("an <silent> 100.%d ]VLWorkspacePopup.%s <Nop>" 
+                vim.command("an <silent> 100.%d ]VLWorkspacePopup.%s <Nop>"
                     % (idx * 10, value))
             else:
                 vim.command("an <silent> 100.%d ]VLWorkspacePopup.%s "\
-                    ":call videm#wsp#MenuOperation('W_%s')<CR>" 
-                    % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'), 
+                    ":call videm#wsp#MenuOperation('W_%s')<CR>"
+                    % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'),
                        value))
         for idx in range(1, len(self.popupMenuP)):
             value = self.popupMenuP[idx]
             if value[:4] == '-Sep':
-                vim.command("an <silent> 100.%d ]VLWProjectPopup.%s <Nop>" 
+                vim.command("an <silent> 100.%d ]VLWProjectPopup.%s <Nop>"
                     % (idx * 10, value))
             else:
                 vim.command("an <silent> 100.%d ]VLWProjectPopup.%s "\
-                    ":call videm#wsp#MenuOperation('P_%s')<CR>" 
-                    % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'), 
+                    ":call videm#wsp#MenuOperation('P_%s')<CR>"
+                    % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'),
                        value))
         for idx in range(1, len(self.popupMenuV)):
             value = self.popupMenuV[idx]
             if value[:4] == '-Sep':
-                vim.command("an <silent> ]VLWVirtualDirectoryPopup.%s <Nop>" 
+                vim.command("an <silent> ]VLWVirtualDirectoryPopup.%s <Nop>"
                     % value)
             else:
                 vim.command("an <silent> ]VLWVirtualDirectoryPopup.%s "\
-                    ":call videm#wsp#MenuOperation('V_%s')<CR>" 
+                    ":call videm#wsp#MenuOperation('V_%s')<CR>"
                     % (value.replace(' ', '\\ ').replace('.', '\\.'), value))
         for idx in range(1, len(self.popupMenuF)):
             value = self.popupMenuF[idx]
@@ -472,7 +472,7 @@ class VimLiteWorkspace(object):
                 vim.command("an <silent> ]VLWFilePopup.%s <Nop>" % value)
             else:
                 vim.command("an <silent> ]VLWFilePopup.%s "\
-                    ":call videm#wsp#MenuOperation('F_%s')<CR>" 
+                    ":call videm#wsp#MenuOperation('F_%s')<CR>"
                     % (value.replace(' ', '\\ ').replace('.', '\\.'), value))
 
     @staticmethod
@@ -484,15 +484,15 @@ class VimLiteWorkspace(object):
                 continue
             elif value[:4] == '-Sep':
                 # 菜单分隔符
-                vim.command("an <silent> 100.%d ]VLWorkspacePopup.%s <Nop>" 
+                vim.command("an <silent> 100.%d ]VLWorkspacePopup.%s <Nop>"
                     % (idx * 10, value))
             else:
                 if IsWindowsOS() and value == 'Batch Builds':
                     '''Windows 下删除菜单有问题'''
                     continue
                 vim.command("an <silent> 100.%d ]VLWorkspacePopup.%s "\
-                    ":call videm#wsp#MenuOperation('W_%s')<CR>" 
-                    % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'), 
+                    ":call videm#wsp#MenuOperation('W_%s')<CR>"
+                    % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'),
                        value))
 
     def ReinstallPopupMenuP(self):
@@ -501,12 +501,12 @@ class VimLiteWorkspace(object):
         for idx in range(1, len(self.popupMenuP)):
             value = self.popupMenuP[idx]
             if value[:4] == '-Sep':
-                vim.command("an <silent> 100.%d ]VLWProjectPopup.%s <Nop>" 
+                vim.command("an <silent> 100.%d ]VLWProjectPopup.%s <Nop>"
                     % (idx * 10, value))
             else:
                 vim.command("an <silent> 100.%d ]VLWProjectPopup.%s "\
-                    ":call videm#wsp#MenuOperation('P_%s')<CR>" 
-                    % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'), 
+                    ":call videm#wsp#MenuOperation('P_%s')<CR>"
+                    % (idx * 10, value.replace(' ', '\\ ').replace('.', '\\.'),
                        value))
 
     def RefreshBuffer(self):
@@ -527,7 +527,7 @@ class VimLiteWorkspace(object):
         #string = self.VLWIns.GetName() + '[' + \
             #self.VLWIns.GetBuildMatrix().GetSelectedConfigName() \
             #+ ']'
-        #vim.command("call setwinvar(bufwinnr(%d), '&statusline', %s)" 
+        #vim.command("call setwinvar(bufwinnr(%d), '&statusline', %s)"
             #% (self.bufNum, ToVimEval(string)))
         self.cache_confName = \
                 self.VLWIns.GetBuildMatrix().GetSelectedConfigName()
@@ -560,7 +560,7 @@ class VimLiteWorkspace(object):
     def SwapSourceHeader(self, fileName):
         '''切换源/头文件，仅对在工作区中的文件有效
         仅切换在同一项目中的文件
-        
+
         fileName 必须是绝对路径，否则会直接返回'''
         project = self.VLWIns.GetProjectByFileName(fileName)
         if not os.path.isabs(fileName) or not project:
@@ -583,7 +583,7 @@ class VimLiteWorkspace(object):
         if len(swapFiles) == 1:
             vim.command("e %s" % swapFiles[0])
         else:
-            choice = vim.eval("inputlist(%s)" 
+            choice = vim.eval("inputlist(%s)"
                 % GenerateMenuList(['Please select:'] + swapFiles))
             choice = int(choice) - 1
             if choice >= 0 and choice < len(swapFiles):
@@ -620,7 +620,7 @@ class VimLiteWorkspace(object):
 
         try:
             # 如果按 q 退出了, 会抛出错误
-            choice = vim.eval("inputlist(%s)" 
+            choice = vim.eval("inputlist(%s)"
                 % GenerateMenuList(['Pleace select:'] + questionList))
             #echoList = GenerateMenuList(['Pleace select:'] + questionList)
             #vim.command('echo "%s"' % '\n'.join(echoList))
@@ -710,7 +710,7 @@ class VimLiteWorkspace(object):
             projName = project.GetName()
             matrix = self.VLWIns.GetBuildMatrix()
             wspSelConfName = matrix.GetSelectedConfigurationName()
-            projSelConfName = matrix.GetProjectSelectedConf(wspSelConfName, 
+            projSelConfName = matrix.GetProjectSelectedConf(wspSelConfName,
                                                             projName)
             bldConf = self.VLWIns.GetProjBuildConf(projName, projSelConfName)
             if bldConf and bldConf.IsCustomBuild():
@@ -727,9 +727,9 @@ class VimLiteWorkspace(object):
                         pass
                     vim.command("an <silent> 100.%d ]VLWProjectPopup."
                         "Custom\\ Build\\ Targets.%s "
-                        ":call videm#wsp#MenuOperation('P_C_%s')<CR>" 
-                        % (menuNumber, 
-                           target.replace(' ', '\\ ').replace('.', '\\.'), 
+                        ":call videm#wsp#MenuOperation('P_C_%s')<CR>"
+                        % (menuNumber,
+                           target.replace(' ', '\\ ').replace('.', '\\.'),
                            target))
 
             vim.command("popup ]VLWProjectPopup")
@@ -1064,10 +1064,10 @@ class VimLiteWorkspace(object):
             args = bldConf.debugArgs
         else:
             args = bldConf.commandArguments
-        prog = ExpandAllVariables(prog, self.VLWIns, projName, 
+        prog = ExpandAllVariables(prog, self.VLWIns, projName,
             confToBuild, '')
         #print prog
-        args = ExpandAllVariables(args, self.VLWIns, projName, 
+        args = ExpandAllVariables(args, self.VLWIns, projName,
             confToBuild, '')
         #print args
         if firstRun and prog:
@@ -1147,7 +1147,7 @@ class VimLiteWorkspace(object):
 #                   "vim --servername '%s' "\
 #                   "--remote-send '<C-\><C-n>:cgetfile %s "\
 #                   "| echo \\\\\\\"Readed the error file.\\\\\\\"<CR>'\\\"\" &"
-#                   % (cmd, tempFile, vim.eval('v:servername'), 
+#                   % (cmd, tempFile, vim.eval('v:servername'),
 #                      tempFile.replace(' ', '\\ ')))
 
         return result
@@ -1218,10 +1218,10 @@ class VimLiteWorkspace(object):
 
         prog = bldConf.GetCommand()
         args = bldConf.commandArguments
-        prog = ExpandAllVariables(prog, self.VLWIns, projName, 
+        prog = ExpandAllVariables(prog, self.VLWIns, projName,
             confToBuild, '')
         #print prog
-        args = ExpandAllVariables(args, self.VLWIns, projName, 
+        args = ExpandAllVariables(args, self.VLWIns, projName,
             confToBuild, '')
         #print args
         if prog:
@@ -1382,7 +1382,7 @@ class VimLiteWorkspace(object):
         包括 C 和 C++ 的，并且会展开编译选项
 
         wspConfName 为空则获取当前激活的工作区构建设置
-        
+
         返回绝对路径列表'''
         # 合并的结果
         cmplpaths = self.GetCompilerIncludePaths(projName,
@@ -1418,7 +1418,7 @@ class VimLiteWorkspace(object):
             32 -> 解析后的 C++ 编译器的包含路径（慢）
             64 -> 解析后的 C 编译器的预定义宏（慢）
             128-> 解析后的 C++ 编译器的预定义宏（慢）
-        
+
         返回列表'''
         project = self.VLWIns.FindProjectByName(projName)
         if not project:
@@ -1589,7 +1589,7 @@ class VimLiteWorkspace(object):
                 popupMenuW.insert(idx, 'Batch Cleans ->')
                 popupMenuW.insert(idx, 'Batch Builds ->')
 
-            choice = vim.eval("inputlist(%s)" 
+            choice = vim.eval("inputlist(%s)"
                 % GenerateMenuList(popupMenuW))
             choice = int(choice)
             if choice > 0 and choice < len(popupMenuW):
@@ -1599,7 +1599,7 @@ class VimLiteWorkspace(object):
                     BBMenu = ['Please select an operation:']
                     for name in names:
                         BBMenu.append(name)
-                    choice2 = vim.eval("inputlist(%s)" 
+                    choice2 = vim.eval("inputlist(%s)"
                         % GenerateMenuList(BBMenu))
                     choice2 = int(choice2)
                     if choice2 > 0 and choice2 < len(BBMenu):
@@ -1616,7 +1616,7 @@ class VimLiteWorkspace(object):
             projName = project.GetName()
             matrix = self.VLWIns.GetBuildMatrix()
             wspSelConfName = matrix.GetSelectedConfigurationName()
-            projSelConfName = matrix.GetProjectSelectedConf(wspSelConfName, 
+            projSelConfName = matrix.GetProjectSelectedConf(wspSelConfName,
                                                             projName)
             bldConf = self.VLWIns.GetProjBuildConf(projName, projSelConfName)
             if bldConf and bldConf.IsCustomBuild():
@@ -1628,7 +1628,7 @@ class VimLiteWorkspace(object):
                 if targets:
                     popupMenuP.insert(idx, 'Custom Build Targets ->')
 
-            choice = vim.eval("inputlist(%s)" 
+            choice = vim.eval("inputlist(%s)"
                 % GenerateMenuList(popupMenuP))
             choice = int(choice)
             if choice > 0 and choice < len(popupMenuP):
@@ -1640,7 +1640,7 @@ class VimLiteWorkspace(object):
                         CBMenu = ['Please select an operation:']
                         for target in targets:
                             CBMenu.append(target)
-                        choice2 = vim.eval("inputlist(%s)" 
+                        choice2 = vim.eval("inputlist(%s)"
                             % GenerateMenuList(CBMenu))
                         choice2 = int(choice2)
                         if choice2 > 0 and choice2 < len(CBMenu):
@@ -1650,14 +1650,14 @@ class VimLiteWorkspace(object):
                 self.MenuOperation(menu, False)
         elif nodeType == VLWorkspace.TYPE_VIRTUALDIRECTORY: #虚拟目录右键菜单
             popupMenuV = [i for i in self.popupMenuV if i[:4] != '-Sep']
-            choice = vim.eval("inputlist(%s)" 
+            choice = vim.eval("inputlist(%s)"
                 % GenerateMenuList(popupMenuV))
             choice = int(choice)
             if choice > 0 and choice < len(popupMenuV):
                 self.MenuOperation('V_' + popupMenuV[choice], False)
         elif nodeType == VLWorkspace.TYPE_FILE: #文件右键菜单
             popupMenuF = [i for i in self.popupMenuF if i[:4] != '-Sep']
-            choice = vim.eval("inputlist(%s)" 
+            choice = vim.eval("inputlist(%s)"
                 % GenerateMenuList(popupMenuF))
             choice = int(choice)
             if choice > 0 and choice < len(popupMenuF):
@@ -1705,7 +1705,7 @@ class VimLiteWorkspace(object):
         project = self.VLWIns.GetDatumByLineNum(row)['project']
         # NOTE: gnome 3 中的这个函数已经无法输入文件名了，禁用掉
         if useGui and vim.eval('has("browse")') != '0' and False:
-            name = vim.eval('browse("", "Add a New File...", "%s", "")' 
+            name = vim.eval('browse("", "Add a New File...", "%s", "")'
                 % project.dirName)
             # 若返回相对路径, 是相对于当前工作目录的相对路径
             if IsFileNameIllegal(name):
@@ -1809,7 +1809,7 @@ class VimLiteWorkspace(object):
             elif choice == 'Add an Existing Project...':
                 if useGui and vim.eval('has("browse")') != '0':
                     fileName = vim.eval(
-                        'browse("", "Add Project", "%s", "")' 
+                        'browse("", "Add Project", "%s", "")'
                         % self.VLWIns.dirName)
                 else:
                     fileName = vim.eval(
@@ -1843,7 +1843,7 @@ class VimLiteWorkspace(object):
             elif choice == 'Load Session...':
                 if useGui and vim.eval('has("browse")') != '0':
                     fileName = vim.eval(
-                        'browse("", "Load Session", "%s", "")' 
+                        'browse("", "Load Session", "%s", "")'
                         % self.VLWIns.dirName)
                 else:
                     fileName = vim.eval(
@@ -1953,9 +1953,9 @@ class VimLiteWorkspace(object):
                 target = choice[2:]
                 matrix = self.VLWIns.GetBuildMatrix()
                 wspSelConfName = matrix.GetSelectedConfigurationName()
-                projSelConfName = matrix.GetProjectSelectedConf(wspSelConfName, 
+                projSelConfName = matrix.GetProjectSelectedConf(wspSelConfName,
                                                                 projName)
-                bldConf = self.VLWIns.GetProjBuildConf(projName, 
+                bldConf = self.VLWIns.GetProjBuildConf(projName,
                                                        projSelConfName)
                 cmd = bldConf.customTargets[target]
                 customBuildWd = bldConf.GetCustomBuildWorkingDir()
@@ -2026,7 +2026,7 @@ class VimLiteWorkspace(object):
             elif choice == 'Rename...': # TODO: 等于先删，再添加
                 absFile = self.VLWIns.GetFileByLineNum(row, True) # 真实文件
                 oldName = self.VLWIns.GetDispNameByLineNum(row)
-                newName = vim.eval('inputdialog("Enter new name:", "%s")' 
+                newName = vim.eval('inputdialog("Enter new name:", "%s")'
                     % oldName)
                 if newName != oldName and newName:
                     nodePath = self.GetNodePathByFileName(absFile)
