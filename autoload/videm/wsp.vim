@@ -5161,4 +5161,12 @@ endfunction
 function! Videm_GetActiveProjectName()
     py3 vim.command('return %s' % ToVimEval(ws.VLWIns.GetActiveProjectName()))
 endfunction
+function! Videm_GetAllFiles(...)
+    let abspath = get(a:000, 0, 0)
+    if abspath
+        py3 vim.command('return %s' % ToVimEval(ws.VLWIns.GetAllFiles(True)))
+    else
+        py3 vim.command('return %s' % ToVimEval(ws.VLWIns.GetAllFiles(False)))
+    endif
+endfunction
 " vim:fdm=marker:fen:et:sts=4:fdl=1:
