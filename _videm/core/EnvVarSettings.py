@@ -272,8 +272,7 @@ def GenerateDefaultEnvVarSettings():
     # 预设值
     ins = EnvVarSettingsST.Get()
     ins.NewEnvVarSet('Default')
-    ins.AddEnvVar('Default', 'CodeLiteDir=/usr/share/codelite')
-    ins.AddEnvVar('Default', 'VimLiteDir=~/.vimlite')
+    ins.AddEnvVar('Default', 'VidemDir=%s' % VIMLITE_DIR)
     ins.SetActiveSetName('Default')
 
 
