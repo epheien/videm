@@ -698,9 +698,9 @@ class VimLiteWorkspace(object):
         row, col = self.window.cursor
         nodeType = self.VLWIns.GetNodeTypeByLineNum(row)
         if nodeType == VLWorkspace.TYPE_FILE: #文件右键菜单
-            vim.command("popup ]VLWFilePopup")
+            vim.command("popup! ]VLWFilePopup")
         elif nodeType == VLWorkspace.TYPE_VIRTUALDIRECTORY: #虚拟目录右键菜单
-            vim.command("popup ]VLWVirtualDirectoryPopup")
+            vim.command("popup! ]VLWVirtualDirectoryPopup")
         elif nodeType == VLWorkspace.TYPE_PROJECT: #项目右键菜单
             if IsWindowsOS():
                 self.ReinstallPopupMenuP()
@@ -732,7 +732,7 @@ class VimLiteWorkspace(object):
                            target.replace(' ', '\\ ').replace('.', '\\.'),
                            target))
 
-            vim.command("popup ]VLWProjectPopup")
+            vim.command("popup! ]VLWProjectPopup")
         elif nodeType == VLWorkspace.TYPE_WORKSPACE: #工作空间右键菜单
             if IsWindowsOS():
                 VidemWorkspace.ReinstallPopupMenuW()
@@ -763,7 +763,7 @@ class VimLiteWorkspace(object):
                         ":call videm#wsp#MenuOperation('W_BC_%s')<CR>"
                         % (menuNumber + 1, name2, name))
 
-            vim.command("popup ]VLWorkspacePopup")
+            vim.command("popup! ]VLWorkspacePopup")
         else:
             pass
 
