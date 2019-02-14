@@ -10,7 +10,7 @@ from Utils import SplitVarDef, ExpandVariables
 from Misc import GetMTime
 from Misc import Obj2Dict, Dict2Obj
 
-CONFIG_FILE = os.path.join(VIMLITE_DIR, 'config', 'EnvVarSettings.conf')
+CONFIG_FILE = os.path.join(VIMLITE_DIR, 'config', 'EnvVarSettings.jcnf')
 
 class EnvVar:
     '''代表一个环境变量'''
