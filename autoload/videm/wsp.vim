@@ -1168,25 +1168,6 @@ function! s:GetVisualSelection() "{{{2
     return result
 endfunction
 "}}}
-" 可视/选择模式的入口，会预处理字符串
-function! s:VisualSearchSymbol(choice) "{{{2
-    let word = s:GetVisualSelection()
-    if empty(word) || word =~# '\W'
-        call s:echow('Invalid selection for searching symbol')
-        return
-    endif
-
-    if     a:choice ==# 'Definition'
-        call <SID>SearchSymbolDefinition(word)
-    elseif a:choice ==# 'Declaration'
-        call <SID>SearchSymbolDeclaration(word)
-    elseif a:choice ==# 'Calling'
-        call <SID>SearchSymbolCalling(word)
-    elseif a:choice ==# 'Reference'
-        call <SID>SearchSymbolReference(word)
-    endif
-endfunction
-"}}}
 function! s:IsWorkspaceFile(file) "{{{2
     pyx if ws.VLWIns.IsWorkspaceFile(vim.eval("a:file")):
             \ vim.command('return 1')
