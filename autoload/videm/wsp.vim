@@ -5075,91 +5075,6 @@ endfunction
 " ============================================================================
 " ============================================================================
 
-" 会话文件的后缀，前缀统一为工作空间名字
-let s:videm_session_suffix = '.session'
-
-function! Videm_GetVersion() "{{{2
-    if s:bHadInited
-        pyx vim.command("return %d" % VIMLITE_VER)
-    else
-        return 0
-    endif
-endfunction
-"}}}
-function! Videm_GetWorkspaceName() "{{{2
-    pyx vim.command("return %s" % ToVimEval(ws.VLWIns.name))
-endfunction
-"}}}
-function! Videm_GetWorkspaceBase() "{{{2
-    pyx vim.command("return %s" % ToVimEval(ws.VLWIns.GetBase()))
-endfunction
-"}}}
-function! Videm_IsFileInWorkspace(fname) "{{{2
-    return s:IsWorkspaceFile(a:fname)
-endfunction
-"}}}
-" *DEPRECATED*
-function! VidemVersion() "{{{2
-    return Videm_GetVersion()
-endfunction
-"}}}
-function! s:SaveSession(filename) "{{{2
-    let filename = a:filename
-    if empty(filename)
-        " 空文件名的话，表示使用默认的名字
-        let filename = printf('%s%s',
-                \              Videm_GetWorkspaceName(), s:videm_session_suffix)
-    endif
-    let sessionoptions_bak = &sessionoptions
-    let &sessionoptions = videm#settings#Get('.videm.wsp.SessionOptions')
-    pyx l_session = VidemSession()
-    pyx vim.command("let ret = %d" % l_session.Save(vim.eval('filename')))
-    pyx del l_session
-    let &sessionoptions = sessionoptions_bak
-    if ret != 0
-        call s:echow('Failed to save videm session!')
-    endif
-    return ret
-endfunction
-"}}}
-function! s:LoadSession(filename) "{{{2
-    let filename = a:filename
-    if empty(filename)
-        " 空文件名的话，表示使用默认的名字
-        let filename = printf('%s%s',
-                \              Videm_GetWorkspaceName(), s:videm_session_suffix)
-    endif
-    pyx l_session = VidemSession()
-    pyx vim.command("let ret = %d" % l_session.Load(vim.eval('filename')))
-    pyx del l_session
-    if ret != 0
-        call s:echow('Failed to load videm session!')
-    endif
-    return ret
-endfunction
-"}}}
-function! s:AutoLoadSession() "{{{2
-    if !videm#settings#Get('.videm.wsp.AutoSession')
-        return
-    endif
-    pyx if not videm.wsp.IsOpen(): vim.command('return')
-    pyx vim.command("let dir = %s" % ToVimEval(videm.wsp.VLWIns.dirName))
-    let filename = s:os.path.join(dir,
-            \               Videm_GetWorkspaceName() . s:videm_session_suffix)
-    return s:LoadSession(filename)
-endfunction
-"}}}
-function! s:AutoSaveSession() "{{{2
-    if !videm#settings#Get('.videm.wsp.AutoSession')
-        return
-    endif
-    pyx if not videm.wsp.IsOpen(): vim.command('return')
-    pyx vim.command("let dir = %s" % ToVimEval(videm.wsp.VLWIns.dirName))
-    let filename = s:os.path.join(dir,
-            \               Videm_GetWorkspaceName() . s:videm_session_suffix)
-    return s:SaveSession(filename)
-endfunction
-"}}}
 function! s:InitPythonInterfaces() "{{{2
     " 防止重复初始化
     if s:bHadInited
@@ -5236,4 +5151,27 @@ function! VidemGetLoadedPlugins() "{{{2
 endfunction
 "}}}
 
+" ============================================================================
+" API
+" ============================================================================
+function! Videm_GetVersion() "{{{2
+    if s:bHadInited
+        pyx vim.command("return %d" % VIMLITE_VER)
+    else
+        return 0
+    endif
+endfunction
+"}}}
+function! Videm_GetWorkspaceName() "{{{2
+    pyx vim.command("return %s" % ToVimEval(ws.VLWIns.name))
+endfunction
+"}}}
+function! Videm_GetWorkspaceBase() "{{{2
+    pyx vim.command("return %s" % ToVimEval(ws.VLWIns.GetBase()))
+endfunction
+"}}}
+function! Videm_IsFileInWorkspace(fname) "{{{2
+    return s:IsWorkspaceFile(a:fname)
+endfunction
+"}}}
 " vim:fdm=marker:fen:et:sts=4:fdl=1:
