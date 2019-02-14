@@ -3894,30 +3894,30 @@ function! s:CreateWspSettingsDialog() "{{{2
 
 " ============================================================================
     " 3. Local Config
-    let ctl = g:VCStaticText.New("Workspace Local Configurations")
-    call ctl.SetHighlight("Special")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
+    "let ctl = g:VCStaticText.New("Workspace Local Configurations")
+    "call ctl.SetHighlight("Special")
+    "call dlg.AddControl(ctl)
+    "call dlg.AddBlankLine()
 
-    let ctl = g:VCCheckItem.New('Enable Local Configurations:')
-    call ctl.SetId(s:ID_WspSettingsEnableLocalConfig)
-    call ctl.SetIndent(4)
-    pyx if ws.VLWSettings.enableLocalConfig: vim.command("call ctl.SetValue(1)")
-    call dlg.AddControl(ctl)
-    let sep = g:VCSeparator.New('~')
-    call sep.SetIndent(4)
-    call dlg.AddControl(sep)
+    "let ctl = g:VCCheckItem.New('Enable Local Configurations:')
+    "call ctl.SetId(s:ID_WspSettingsEnableLocalConfig)
+    "call ctl.SetIndent(4)
+    "pyx if ws.VLWSettings.enableLocalConfig: vim.command("call ctl.SetValue(1)")
+    "call dlg.AddControl(ctl)
+    "let sep = g:VCSeparator.New('~')
+    "call sep.SetIndent(4)
+    "call dlg.AddControl(sep)
 
-    let ctl = g:VCMultiText.New("Workspace Local Configurations"
-            \ . " (Please read the Extra Help info):")
-    call ctl.SetId(s:ID_WspSettingsLocalConfig)
-    call ctl.SetIndent(4)
-    pyx vim.command("let localConfig = %s"
-            \       % ToVimEval(ws.VLWSettings.GetLocalConfigText()))
-    call ctl.SetValue(localConfig)
-    call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "conf")
-    call dlg.AddControl(ctl)
-    call dlg.AddBlankLine()
+    "let ctl = g:VCMultiText.New("Workspace Local Configurations"
+    "        \ . " (Please read the Extra Help info):")
+    "call ctl.SetId(s:ID_WspSettingsLocalConfig)
+    "call ctl.SetIndent(4)
+    "pyx vim.command("let localConfig = %s"
+    "        \       % ToVimEval(ws.VLWSettings.GetLocalConfigText()))
+    "call ctl.SetValue(localConfig)
+    "call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "conf")
+    "call dlg.AddControl(ctl)
+    "call dlg.AddBlankLine()
 
 " ============================================================================
     " 3. Extension Options
