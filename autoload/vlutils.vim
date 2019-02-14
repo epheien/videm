@@ -814,13 +814,21 @@ endfunc
 "}}}
 "{{{2
 function! s:Build_out_cb(channel, message) dict
-    call add(self.content, vlutils#TrimTermColors(a:message))
+    if self.quickfix
+        call add(self.content, vlutils#TrimTermColors(a:message))
+    endif
 endfunction
 function! s:Build_exit_cb(channel, retcode) dict
     if !self.bufnr
         return
     endif
     let self.exitval = a:retcode
+
+    if !self.quickfix
+        return
+    endif
+
+    " 以下为读入 quickfix
     let tmp = tempname()
     " NOTE: 终端运行的命令，换行符貌似都是 "\r\n"
     let lines = split(join(self.content, ''), "\r\\?\n")
@@ -836,10 +844,15 @@ function! s:Build_exit_cb(channel, retcode) dict
     for winnr in range(1, winnr('$'))
         if getwinvar(winnr, '&buftype') =~# '\<quickfix\>'
             let found = 1
+            break
         endif
     endfor
+    let winid = win_getid()
     if !found
         bo copen
+    endif
+    if !self.exitval
+        call win_gotoid(winid)
     endif
 
     " 清理临时文件，避免一直增多
@@ -849,19 +862,42 @@ function! s:Build_close_cb(channel) dict
 endfunction
 "}}}
 " 使用 job 机制运行构建命令，构建完毕后，读取全局的 quickfix
-function! vlutils#Build(argv) "{{{2
-    let d = {'content': [], 'bufnr': 0}
+function! vlutils#TermRun(argv, ...) "{{{2
+    let quickfix = get(a:000, 0, 0)
+    let d = {'content': [], 'bufnr': 0, 'winid': win_getid(), 'quickfix': quickfix}
+    let curwin = 0
+    let term_name = '== VidemTerminal =='
+
+    " 如果已有
+    for winnr in range(1, winnr('$'))
+        if getwinvar(winnr, '&buftype') !~# '\<terminal\>'
+            continue
+        endif
+        let bufnr = winbufnr(winnr)
+        if term_getstatus(bufnr) =~# '\<finished\>' &&
+                \ bufname(bufnr) ==# term_name
+            if win_gotoid(win_getid(winnr))
+                let curwin = 1
+            endif
+            break
+        endif
+    endfor
+
     let bufnr = term_start(
                 \ a:argv,
                 \ {
-                \   'term_finish': 'close',
+                \   'term_name': term_name,
+                \   'term_finish': 'open',
                 \   'norestore': 1,
+                \   'curwin': curwin,
                 \   'out_cb': function('s:Build_out_cb', [], d),
                 \   'err_cb': function('s:Build_out_cb', [], d),
                 \   'exit_cb': function('s:Build_exit_cb', [], d),
                 \   'close_cb': function('s:Build_close_cb', [], d),
                 \ })
     let d.bufnr = bufnr
+
+    call win_gotoid(d.winid)
 endfunction
 "}}}
 " 模拟 python 的 os 和 os.path 模块
