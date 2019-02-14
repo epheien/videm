@@ -27,6 +27,15 @@ FOLD_PREFIX = '+'
 FILE_PREFIX = '-'
 IGNORED_FILE_PREFIX = '#'
 
+# for python3 compatible
+def cmp(x, y):
+    if x < y:
+        return -1
+    elif x > y:
+        return 1
+    else:
+        return 0
+
 class WspCpbdData(object):
     '''剪切板数据对象'''
     def __init__(self, projname = '', data = None):
