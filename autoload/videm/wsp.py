@@ -1128,6 +1128,54 @@ class VimLiteWorkspace(object):
         self.CleanProject(projName)
         self.BuildProject(projName)
 
+    def GetProjectRunInfo(self, projName):
+        ds = DirSaver()
+
+        projInst = self.VLWIns.FindProjectByName(projName)
+        if not projInst:
+            print('Can not find a valid project!')
+            return {}
+
+        wspSelConfName = self.VLWIns.GetBuildMatrix()\
+            .GetSelectedConfigurationName()
+        confToBuild = self.VLWIns.GetBuildMatrix().GetProjectSelectedConf(
+            wspSelConfName, projName)
+        bldConf = self.VLWIns.GetProjBuildConf(projName, confToBuild)
+
+        try:
+            os.chdir(projInst.dirName)
+        except OSError:
+            print('change directory failed:', projInst.dirName)
+            return {}
+        wd = ExpandAllVariables(
+            bldConf.workingDirectory, self.VLWIns, projName, confToBuild, '')
+        try:
+            if wd:
+                os.chdir(wd)
+        except OSError:
+            print('change directory failed:', wd)
+            return {}
+
+        prog = bldConf.GetCommand()
+        args = bldConf.commandArguments
+        prog = ExpandAllVariables(prog, self.VLWIns, projName,
+            confToBuild, '')
+        args = ExpandAllVariables(args, self.VLWIns, projName,
+            confToBuild, '')
+        if not prog:
+            return {}
+
+        envsDict = {}
+        for envVar in EnvVarSettingsST.Get().GetActiveEnvVars():
+            envsDict[envVar.GetKey()] = envVar.GetValue()
+        argv = [prog] + shlex.split(args)
+
+        return {
+            'argv': argv,
+            'env': envsDict,
+            'cwd': os.getcwd(),
+        }
+
     def RunProject(self, projName):
         ds = DirSaver()
 

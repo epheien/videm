@@ -5155,4 +5155,10 @@ function! Videm_IsFileInWorkspace(fname) "{{{2
     return s:IsWorkspaceFile(a:fname)
 endfunction
 "}}}
+function! Videm_GetProjectRunInfo(projName)
+    py3 vim.command('return %s' % ToVimEval(ws.GetProjectRunInfo(vim.eval('a:projName'))))
+endfunction
+function! Videm_GetActiveProjectName()
+    py3 vim.command('return %s' % ToVimEval(ws.VLWIns.GetActiveProjectName()))
+endfunction
 " vim:fdm=marker:fen:et:sts=4:fdl=1:
