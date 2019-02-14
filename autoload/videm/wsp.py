@@ -223,7 +223,7 @@ class VimLiteWorkspace(object):
         # 项目右键菜单列表
         self.popupMenuP = ['Please select an operation:',
             'Build',
-            'Rebuild',
+            #'Rebuild',
             'Clean',
 #            'Stop Build (Unrealized)',
             '-Sep1-',
@@ -1125,15 +1125,7 @@ class VimLiteWorkspace(object):
 
     def RebuildProject(self, projName):
         '''重构建项目，即先 Clean 再 Build'''
-        ds = DirSaver()
-        try:
-            os.chdir(self.VLWIns.dirName)
-        except OSError:
-            return
-        cmd = self.builder.GetCleanCommand(projName, '')
-        if cmd:
-            os.system("%s" % cmd)
-
+        self.CleanProject(projName)
         self.BuildProject(projName)
 
     def RunProject(self, projName):
