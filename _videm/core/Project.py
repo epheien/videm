@@ -525,7 +525,7 @@ class Project:
             dirName = os.path.dirname(fileName)
             if not os.path.exists(dirName):
                 os.makedirs(dirName)
-            f = open(fileName, 'wb')
+            f = open(fileName, 'wt', encoding='utf-8')
             #self.doc.writexml(f, encoding = 'utf-8')
             f.write(XmlUtils.ToPrettyXmlString(self.doc))
             self.SetProjectLastModifiedTime(self.GetProjFileLastModifiedTime())

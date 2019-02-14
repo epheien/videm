@@ -227,7 +227,7 @@ class VLWorkspaceSettings:
         ret = False
         obj = None
         try:
-            f = open(fileName, 'rb')
+            f = open(fileName, 'rt', encoding='utf-8')
             obj = pickle.load(f)
             f.close()
         except IOError:
@@ -265,7 +265,7 @@ class VLWorkspaceSettings:
 
         if isjson:
             try:
-                f = open(fileName, 'rb')
+                f = open(fileName, 'rt', encoding='utf-8')
                 d = json.load(f)
                 f.close()
                 self.FromDict(d)
@@ -295,7 +295,7 @@ class VLWorkspaceSettings:
             return False
 
         try:
-            f = open(fileName, 'wb')
+            f = open(fileName, 'wt', encoding='utf-8')
             json.dump(d, f, indent=4, sort_keys=True, ensure_ascii=True)
             f.close()
             ret = True

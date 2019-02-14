@@ -153,7 +153,7 @@ class BuilderGnuMake(Builder):
 
         tmpf = TempFile()
         try:
-            f = open(tmpf, "wb")
+            f = open(tmpf, "wt", encoding='utf-8')
             f.write(text)
             f.close()
             shutil.move(tmpf, wspMakefile)
@@ -411,7 +411,7 @@ endif
         # 写到文件
         tmpf = TempFile()
         try:
-            f = open(tmpf, "wb")
+            f = open(tmpf, "wt", encoding='utf-8')
             f.write(text)
             f.close()
             shutil.move(tmpf, absProjMakefile)

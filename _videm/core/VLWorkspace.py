@@ -2118,7 +2118,7 @@ class VLWorkspace(object):
             dirName = os.path.dirname(fileName)
             if not os.path.exists(dirName):
                 os.makedirs(dirName)
-            f = open(fileName, 'wb')
+            f = open(fileName, 'wt', encoding='utf-8')
         except IOError:
             print('IOError:', fileName)
             raise IOError

@@ -182,13 +182,17 @@ def ToPrettyXmlString(doc):
     try:
         from lxml import etree
     except ImportError:
-        return doc.toxml('utf-8')
-    parser = etree.XMLParser(remove_blank_text = True)
-    root = etree.XML(doc.toxml(), parser)
-    return etree.tostring(root, 
-                          encoding = 'utf-8', 
-                          xml_declaration = True, 
-                          pretty_print = True)
+        result = doc.toxml('utf-8')
+    else:
+        parser = etree.XMLParser(remove_blank_text = True)
+        root = etree.XML(doc.toxml(), parser)
+        result = etree.tostring(root,
+                                encoding = 'utf-8',
+                                xml_declaration = True,
+                                pretty_print = True)
+    if isinstance(result, bytes):
+        result = result.decode()
+    return result
 
 if __name__ == '__main__':
     s = '''

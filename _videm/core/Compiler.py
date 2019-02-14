@@ -70,7 +70,7 @@ class Compiler:
             return False
 
         try:
-            f = open(fileName, "rb")
+            f = open(fileName, 'rt', encoding='utf-8')
         except:
             return False
 
@@ -85,7 +85,7 @@ class Compiler:
             return False
 
         try:
-            f = open(fileName, "wb")
+            f = open(fileName, "wt", encoding='utf-8')
         except:
             return False
 

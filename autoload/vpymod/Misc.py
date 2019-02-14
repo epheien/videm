@@ -305,13 +305,12 @@ class ConfTree:
         dirname = os.path.dirname(filename)
         if dirname and not os.path.exists(dirname):
             os.makedirs(dirname)
-        f = open(filename, 'wb')
-        json.dump(self.tree, f, indent=4, sort_keys=True, ensure_ascii=True)
-        f.close()
+        with open(filename, 'wt', encoding='utf-8') as f:
+            json.dump(self.tree, f, indent=4, sort_keys=True, ensure_ascii=True)
         return 0
 
     def Load(self, filename):
-        f = open(filename, 'rb')
+        f = open(filename, 'rt', encoding='utf-8')
         d = json.load(f)
         f.close()
         self.tree = d

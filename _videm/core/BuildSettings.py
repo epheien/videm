@@ -100,7 +100,7 @@ class BuildSettings:
 
     def Load(self, fileName):
         try:
-            f = open(fileName, "rb")
+            f = open(fileName, 'rt', encoding='utf-8')
         except:
             return False
 
@@ -119,7 +119,7 @@ class BuildSettings:
             dirName = os.path.dirname(fileName)
             if dirName and not os.path.exists(dirName):
                 os.makedirs(dirName)
-            f = open(fileName, "wb")
+            f = open(fileName, "wt", encoding='utf-8')
         except IOError:
             print("IOError:", fileName)
             raise
