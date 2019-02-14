@@ -1120,17 +1120,8 @@ class VimLiteWorkspace(object):
         cmd = self.builder.GetCleanCommand(projName, '')
 
         if cmd:
-            tempFile = vim.eval('tempname()')
-            if IsWindowsOS():
-                #vim.command('!"%s >%s 2>&1"' % (cmd, tempFile))
-                p = subprocess.Popen('"C:\\WINDOWS\\system32\\cmd.exe" /c '
-                    '"%s 2>&1 | tee %s && pause || pause"' % (cmd, tempFile))
-                p.wait()
-            else:
-                # 强制设置成英语 locale 以便 quickfix 处理
-                cmd = "export LANG=en_US; " + cmd
-                vim.command("!%s 2>&1 | tee %s" % (cmd, tempFile))
-            vim.command('cgetfile %s' % tempFile)
+            argv = [vim.eval('&shell'), vim.eval('&shellcmdflag'), cmd]
+            vim.command('call vlutils#TermRun(%s, {"quickfix":1})' % ToVimEval(argv))
 
     def RebuildProject(self, projName):
         '''重构建项目，即先 Clean 再 Build'''
