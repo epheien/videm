@@ -1102,11 +1102,6 @@ function! s:InstallCommands() "{{{2
     command! -nargs=0 -bar VCompilersSettings call <SID>CompilersSettings()
     command! -nargs=0 -bar VBuildersSettings  call <SID>BuildersSettings()
 
-    command! -nargs=1 -bar VSaveSession
-            \               call s:SaveSession(<q-args>)
-    command! -nargs=1 -bar -complete=file VLoadSession
-            \               call s:LoadSession(<q-args>)
-
     " @ 辅助工具命令
     command! -nargs=0 -bar VSwapSourceHeader  call <SID>SwapSourceHeader()
 

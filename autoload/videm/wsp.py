@@ -43,7 +43,6 @@ from Utils import IsCppSourceFile, GetIncludesFromArgs, GetMacrosFromArgs
 from Macros import CPP_HEADER_EXT, C_SOURCE_EXT, CPP_SOURCE_EXT, WSP_PATH_SEP
 from Macros import VALID_WORKSPACE_FILE_EXTS, VALID_PROJECT_FILE_EXTS
 from Notifier import Notifier
-from VidemSession import VidemSession
 
 # 这个变量仅用于后向兼容
 VimLiteDir = vim.eval('g:VidemDir')
@@ -159,9 +158,6 @@ class VimLiteWorkspace(object):
         'Rename Workspace...',
         'Close Workspace',
         'Reload Workspace',
-        '-Sep_Session-',
-        'Load Session...',
-        'Save Session...',
         '-Sep_BatchBuilds-',
         'Batch Builds',
         '-Sep_Settings-',
@@ -356,7 +352,6 @@ class VimLiteWorkspace(object):
         self.RefreshStatusLine()
         self.SetupActiveProject()
         VidemWorkspace.wsp_ntf.CallChain('open_post', self)
-        vim.command('call s:AutoLoadSession()') # 会话处理
 
     def CloseWorkspace(self):
         if not self.IsOpen():
@@ -364,7 +359,6 @@ class VimLiteWorkspace(object):
         VidemWorkspace.wsp_ntf.CallChain('close_pre', self)
         # XXX: 这个自动命令需要更明确的语义，暂时未用
         #vim.command('doautocmd VLWorkspace VimLeave *')
-        vim.command('call s:AutoSaveSession()') # 会话处理
         vim.command('redraw | echo ""') # 清理输出...
         vim.command('call s:CloseWorkspaceFiles()')
         self.VLWIns.CloseWorkspace()
@@ -1775,26 +1769,6 @@ class VimLiteWorkspace(object):
                 self.ReloadWorkspace()
             elif choice == 'Rename Workspace...':
                 self.RenameWorkspace()
-            elif choice == 'Load Session...':
-                if useGui and vim.eval('has("browse")') != '0':
-                    fileName = vim.eval(
-                        'browse("", "Load Session", "%s", "")'
-                        % self.VLWIns.dirName)
-                else:
-                    fileName = vim.eval(
-                        'input("Please enter the session file name:\n", '\
-                        '"%s/", "file")' % (os.getcwd(),))
-                    vim.command(r'echo "\n" | redraw')
-                if fileName:
-                    vim.command("call s:LoadSession(%s)" % ToVimEval(fileName))
-            elif choice == 'Save Session...':
-                # NOTE: gnome3中的browse()函数无法输入文件名，换inputdialog()
-                name = vim.eval(
-                    'inputdialog("Enter the session file name to be created:\n'
-                    '(CWD is: ".%s.")\n")' % ToVimEval(self.VLWIns.dirName))
-                if name:
-                    vim.command("call s:SaveSession(%s)" % ToVimEval(
-                                    os.path.join(self.VLWIns.dirName, name)))
             elif choice == 'Workspace Build Configuration...':
                 vim.command("call s:WspBuildConfigManager()")
             elif choice == 'Workspace Batch Build Settings...':
