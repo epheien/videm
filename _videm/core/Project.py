@@ -17,7 +17,7 @@ def _mkdir_one(node, name, vnode=None):
     for n in node.childNodes:
         if n.nodeType != n.ELEMENT_NODE:
             continue
-        if n.getAttribute('Name').encode('utf-8') == name:
+        if n.getAttribute('Name') == name:
             if n.nodeName == 'VirtualDirectory':
                 if vnode:
                     # 名字冲突
@@ -31,7 +31,7 @@ def _mkdir_one(node, name, vnode=None):
     # 到此, 没有找到同名的, 新建一个即可
     if not vnode:
         n = minidom.Document().createElement('VirtualDirectory')
-        n.setAttribute('Name', name.decode('utf-8'))
+        n.setAttribute('Name', name)
     else:
         n = vnode
     node.appendChild(n)
@@ -87,7 +87,7 @@ def _ConvertIgnoredFiles(project, ignoredFiles):
         # 人肉转，因为要减少依赖
         node = _GetNodeByIgnoredPath(project, elem)
         if node:
-            ignoredFiles.add(node.getAttribute('Name').encode('utf-8'))
+            ignoredFiles.add(node.getAttribute('Name'))
 
 def _CleanupIgnoredFiles(project, ignoredFiles):
     '''清理无效的条目'''
@@ -153,7 +153,7 @@ class Project:
                 print('Invalid fileName:', fileName)
                 raise IOError
             self.rootNode = XmlUtils.GetRoot(self.doc)
-            self.name = self.rootNode.getAttribute('Name').encode('utf-8')
+            self.name = self.rootNode.getAttribute('Name')
 
             # 添加版本号
             if self.rootNode.hasAttribute('Version'):
@@ -228,7 +228,7 @@ class Project:
     def SetName(self, name):
         '''设置项目的名称，不改变关联的 .project 文件'''
         self.name = name
-        self.rootNode.setAttribute('Name', name.decode('utf-8'))
+        self.rootNode.setAttribute('Name', name)
 
     def Rename(self, newName):
         if not newName or self.name == newName:
@@ -259,7 +259,7 @@ class Project:
         self.doc = minidom.Document()
         rootNode = self.doc.createElement('CodeLite_Project')
         self.doc.appendChild(rootNode)
-        rootNode.setAttribute('Name', name.decode('utf-8'))
+        rootNode.setAttribute('Name', name)
 
         descNode = self.doc.createElement('Description')
         XmlUtils.SetNodeContent(descNode, description)
@@ -317,7 +317,7 @@ class Project:
         files = []
         for i in node.childNodes:
             if i.nodeName == 'File':
-                fileName = i.getAttribute('Name').encode('utf-8')
+                fileName = i.getAttribute('Name')
                 if absPath:
                     fileName = os.path.abspath(fileName)
 
@@ -329,7 +329,7 @@ class Project:
                 else:
                     files.append(fileName)
             elif i.nodeName == 'VirtualDirectory':
-                pathName = i.getAttribute('Name').encode('utf-8')
+                pathName = i.getAttribute('Name')
                 # 递归遍历所有文件
                 if i.hasChildNodes():
                     files.extend(
@@ -407,11 +407,11 @@ class Project:
 
         # create new dependencies node
         node = self.doc.createElement('Dependencies')
-        node.setAttribute('Name', configuration.decode('utf-8'))
+        node.setAttribute('Name', configuration)
         rootNode.appendChild(node)
         for i in deps:
             child = self.doc.createElement('Project')
-            child.setAttribute('Name', i.decode('utf-8'))
+            child.setAttribute('Name', i)
             node.appendChild(child)
 
         # save changes
@@ -453,13 +453,13 @@ class Project:
             return 0
 
         # 这里再检查是否有同名的节点
-        name = node.getAttribute('Name').encode('utf-8')
+        name = node.getAttribute('Name')
         for n in target.childNodes:
             if n.nodeType != n.ELEMENT_NODE:
                 continue
             if n.nodeName != 'VirtualDirectory' and n.nodeName != 'File':
                 continue
-            if n.getAttribute('Name').encode('utf-8') == name:
+            if n.getAttribute('Name') == name:
                 errmsg.append('Name Conflict: %s' % name)
                 return -1
         target.appendChild(node)
@@ -482,7 +482,7 @@ class Project:
 
     def SetProjectInternalType(self, interType):
         XmlUtils.GetRoot(self.doc).setAttribute('InternalType',
-                                                interType.decode('utf-8'))
+                                                interType)
 
     def GetProjectInternalType(self):
         return XmlUtils.GetRoot(self.doc).getAttribute('InternalType')

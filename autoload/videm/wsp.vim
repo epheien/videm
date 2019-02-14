@@ -3798,7 +3798,7 @@ def CreateWspBuildConfDialog():
     vim.command("call wspBCMDlg.AddBlankLine()")
 
     projectNameList = ws.VLWIns.projects.keys()
-    projectNameList.sort(CmpIC)
+    projectNameList.sort(key=CmpIC)
     for projName in projectNameList:
         project = ws.VLWIns.FindProjectByName(projName)
         vim.command("let ctl = g:VCComboBox.New(%s)" % ToVimEval(projName))

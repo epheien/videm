@@ -57,10 +57,10 @@ def FindLastByTagName(parent, tagName):
     return node
 
 def SetAttr(node, name, attr):
-    node.setAttribute(name, attr.decode('utf-8'))
+    node.setAttribute(name, attr)
 
 def GetAttr(node, name):
-    return node.getAttribute(name).encode('utf-8')
+    return node.getAttribute(name)
 
 def SetNodeContent(node, text):
     '''Set the content of node. This function replaces any existing content of node
@@ -79,20 +79,20 @@ def SetNodeContent(node, text):
         node.appendChild(contentNode)
 
 def ReadString(node, attrName, defaultValue = ''):
-    ret = node.getAttribute(attrName).encode('utf-8')
+    ret = node.getAttribute(attrName)
     if not ret:
         ret = defaultValue
     return ret
 
 def ReadStringIfExists(node, attrName):
-    ret = node.getAttribute(attrName).encode('utf-8')
+    ret = node.getAttribute(attrName)
     if ret:
         return True, ret
     else:
         return False, ret
 
 def ReadLong(node, attrName, defaultValue = -1):
-    ret = node.getAttribute(attrName).encode('utf-8')
+    ret = node.getAttribute(attrName)
     if not ret:
         return defaultValue
     
@@ -108,7 +108,7 @@ def ReadLong(node, attrName, defaultValue = -1):
         return defaultValue
 
 def ReadLongIfExists(node, attrName, defaultValue = -1):
-    ret = node.getAttribute(attrName).encode('utf-8')
+    ret = node.getAttribute(attrName)
     if not ret:
         return False, defaultValue
     
@@ -124,7 +124,7 @@ def ReadLongIfExists(node, attrName, defaultValue = -1):
         return False, int(ret)
 
 def ReadBool(node, attrName, defaultValue = False):
-    ret = node.getAttribute(attrName).encode('utf-8')
+    ret = node.getAttribute(attrName)
     if not ret:
         return defaultValue
     
@@ -134,7 +134,7 @@ def ReadBool(node, attrName, defaultValue = False):
         return False
 
 def ReadBoolIfExists(node, attrName):
-    ret = node.getAttribute(attrName).encode('utf-8')
+    ret = node.getAttribute(attrName)
     if not ret:
         return False, False
     

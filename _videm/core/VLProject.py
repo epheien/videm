@@ -49,7 +49,7 @@ class VLProject(Project):
         filesIndex = {}
         for i in node.childNodes:
             if i.nodeName == 'File':
-                fileName = i.getAttribute('Name').encode('utf-8')
+                fileName = i.getAttribute('Name')
                 #fileName = os.path.abspath(fileName)
                 fileName = os.path.realpath(fileName)
                 filesIndex[fileName] = i

@@ -73,14 +73,14 @@ class ProjectSettings:
     
     def ToXmlNode(self):
         node = minidom.Document().createElement('Settings')
-        node.setAttribute('Type', str(self.projectType).decode('utf-8'))
+        node.setAttribute('Type', str(self.projectType))
         node.appendChild(self.globalSettings.ToXmlNode())
         for k, v in list(self.configs.items()):
             node.appendChild(v.ToXmlNode())
 
         fnode = minidom.Document().createElement('FileImportGlob')
-        fnode.setAttribute('IncludeGlob', self.inclGlob.decode('utf-8'))
-        fnode.setAttribute('ExcludeGlob', self.exclGlob.decode('utf-8'))
+        fnode.setAttribute('IncludeGlob', self.inclGlob)
+        fnode.setAttribute('ExcludeGlob', self.exclGlob)
         for item in self.direList:
             dnode = minidom.Document().createElement('Directory')
             dnode.setAttribute('Enable', 'yes' if item['Enable'] else 'no')

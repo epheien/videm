@@ -554,7 +554,7 @@ class VimLiteWorkspace(object):
         else:
             pass
 
-        results.sort(CmpIC)
+        results.sort(key=CmpIC)
         return results
 
     def SwapSourceHeader(self, fileName):

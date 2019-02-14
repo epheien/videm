@@ -71,12 +71,12 @@ class BuildConfigCommon:
             compilerNode = XmlUtils.FindFirstByTagName(xmlNode, 'Compiler')
             if compilerNode:
                 self.compileOptions = compilerNode.getAttribute('Options')\
-                        .encode('utf-8')
+                        
                 self.cCompileOptions = compilerNode.getAttribute('C_Options')\
-                        .encode('utf-8')
+                        
                 if compilerNode.hasAttribute('C_Cpp_Options'): # 同时用于 C/C++
                     self.cCxxCmplOpts = compilerNode.getAttribute('C_Cpp_Options')\
-                            .encode('utf-8')
+                            
                 #if not self.cCompileOptions:
                     # the attribute "C_Options" does not exist,
                     # copy the values from the "Options" attribute
@@ -162,55 +162,55 @@ class BuildConfigCommon:
 
         # 编译器节点
         compileNode = doc.createElement('Compiler')
-        compileNode.setAttribute('Options', self.compileOptions.decode('utf-8'))
-        compileNode.setAttribute('C_Options', self.cCompileOptions.decode('utf-8'))
-        compileNode.setAttribute('C_Cpp_Options', self.cCxxCmplOpts.decode('utf-8'))
+        compileNode.setAttribute('Options', self.compileOptions)
+        compileNode.setAttribute('C_Options', self.cCompileOptions)
+        compileNode.setAttribute('C_Cpp_Options', self.cCxxCmplOpts)
         newNode.appendChild(compileNode)
 
         includePathList = SplitSmclStr(self.includePath)
         for i in includePathList:
             if i:
                 optionNode = doc.createElement('IncludePath')
-                optionNode.setAttribute('Value', i.decode('utf-8'))
+                optionNode.setAttribute('Value', i)
                 compileNode.appendChild(optionNode)
 
         preprocessorList = SplitSmclStr(self.preprocessor)
         for i in preprocessorList:
             if i:
                 prepNode = doc.createElement('Preprocessor')
-                prepNode.setAttribute('Value', i.decode('utf-8'))
+                prepNode.setAttribute('Value', i)
                 compileNode.appendChild(prepNode)
 
 
         # 链接器节点
         linkNode = doc.createElement('Linker')
-        linkNode.setAttribute('Options', self.linkOptions.decode('utf-8'))
+        linkNode.setAttribute('Options', self.linkOptions)
         newNode.appendChild(linkNode)
 
         libPathList = SplitSmclStr(self.libPath)
         for i in libPathList:
             if i:
                 optionNode = doc.createElement('LibraryPath')
-                optionNode.setAttribute('Value', i.decode('utf-8'))
+                optionNode.setAttribute('Value', i)
                 linkNode.appendChild(optionNode)
 
         libsList = SplitSmclStr(self.libs)
         for i in libsList:
             if i:
                 optionNode = doc.createElement('Library')
-                optionNode.setAttribute('Value', i.decode('utf-8'))
+                optionNode.setAttribute('Value', i)
                 linkNode.appendChild(optionNode)
 
         # 资源编译器节点
         resCmpNode = doc.createElement('ResourceCompiler')
-        resCmpNode.setAttribute('Options', self.resCompileOptions.decode('utf-8'))
+        resCmpNode.setAttribute('Options', self.resCompileOptions)
         newNode.appendChild(resCmpNode)
 
         resCompileIncludePathList = SplitSmclStr(self.resCompileIncludePath)
         for i in resCompileIncludePathList:
             if i:
                 optionNode = doc.createElement('IncludePath')
-                optionNode.setAttribute('Value', i.decode('utf-8'))
+                optionNode.setAttribute('Value', i)
                 resCmpNode.appendChild(optionNode)
 
         return newNode
@@ -477,7 +477,7 @@ class BuildConfig:
                     elif i.nodeName == 'MakefileGenerationCommand':
                         self.makeGenerationCommand = XmlUtils.GetNodeContent(i)
                     elif i.nodeName == 'Target':
-                        tgtName = i.getAttribute('Name').encode('utf-8')
+                        tgtName = i.getAttribute('Name')
                         tgtCmd = XmlUtils.GetNodeContent(i)
                         if tgtName:
                             self.customTargets[tgtName] = tgtCmd
@@ -519,7 +519,7 @@ class BuildConfig:
             if ignoredFilesNode:
                 for i in ignoredFilesNode.childNodes:
                     if i.nodeName == 'IgnoredFile':
-                        self.ignoredFiles.add(i.getAttribute('Name').encode('utf-8'))
+                        self.ignoredFiles.add(i.getAttribute('Name'))
 
             # <CodeCompleteEngine UseSeparateArguments="no"
             #  IncludePaths=""
@@ -531,9 +531,9 @@ class BuildConfig:
                 self.useSepCCEngArgs = XmlUtils.ReadBool(
                         codeCompleteEngineNode, 'UseSeparateArguments', False)
                 self.sepCCEngIncArgs = codeCompleteEngineNode.getAttribute(
-                        'IncludePaths').encode('utf-8')
+                        'IncludePaths')
                 self.sepCCEngMacArgs = codeCompleteEngineNode.getAttribute(
-                        'PredefineMacros').encode('utf-8')
+                        'PredefineMacros')
 
         else:
             # create default project settings
@@ -589,9 +589,9 @@ class BuildConfig:
         # Create the common nodes
         node = self.commonConfig.ToXmlNode()
 
-        node.setAttribute('Name', self.name.decode('utf-8'))
-        node.setAttribute('CompilerType', self.compilerType.decode('utf-8'))
-        node.setAttribute('DebuggerType', self.debuggerType.decode('utf-8'))
+        node.setAttribute('Name', self.name)
+        node.setAttribute('CompilerType', self.compilerType)
+        node.setAttribute('DebuggerType', self.debuggerType)
         node.setAttribute('Type', self.projectType)
         node.setAttribute('BuildCmpWithGlobalSettings', self.buildCmpWithGlobalSettings)
         node.setAttribute('BuildLnkWithGlobalSettings', self.buildLnkWithGlobalSettings)
@@ -601,7 +601,7 @@ class BuildConfig:
         if compilerNode:
             compilerNode.setAttribute('Required', BoolToString(self.compilerRequired))
             compilerNode.setAttribute('PreCompiledHeader',
-                                      self.precompiledHeader.decode('utf-8'))
+                                      self.precompiledHeader)
 
         linkerNode = XmlUtils.FindFirstByTagName(node, 'Linker')
         if linkerNode:
@@ -612,18 +612,18 @@ class BuildConfig:
             resCmpNode.setAttribute('Required', BoolToString(self.isResCmpNeeded))
 
         generalNode = minidom.Document().createElement('General')
-        generalNode.setAttribute('OutputFile', self.outputFile.decode('utf-8'))
+        generalNode.setAttribute('OutputFile', self.outputFile)
         generalNode.setAttribute('IntermediateDirectory',
-                                 self.intermediateDirectory.decode('utf-8'))
-        generalNode.setAttribute('Command', self.command.decode('utf-8'))
+                                 self.intermediateDirectory)
+        generalNode.setAttribute('Command', self.command)
         generalNode.setAttribute('CommandArguments',
-                                 self.commandArguments.decode('utf-8'))
+                                 self.commandArguments)
         generalNode.setAttribute('UseSeparateDebugArgs',
                                  BoolToString(self.useSeparateDebugArgs))
         generalNode.setAttribute('DebugArguments',
-                                 self.debugArgs.decode('utf-8'))
+                                 self.debugArgs)
         generalNode.setAttribute('WorkingDirectory',
-                                 self.workingDirectory.decode('utf-8'))
+                                 self.workingDirectory)
         generalNode.setAttribute('PauseExecWhenProcTerminates',
                                  BoolToString(self.pauseWhenExecEnds))
         node.appendChild(generalNode)
@@ -634,12 +634,12 @@ class BuildConfig:
         debuggerNode.setAttribute('RemoteHostName', self.dbgHostName)
         debuggerNode.setAttribute('RemoteHostPort', self.dbgHostPort)
         debuggerNode.setAttribute('DebuggerPath',
-                                  self.debuggerPath.decode('utf-8'))
+                                  self.debuggerPath)
         # node.appendChild(debuggerNode) #?
 
         envNode = minidom.Document().createElement('Environment')
-        envNode.setAttribute('EnvVarSetName', self.envVarSet.decode('utf-8'))
-        envNode.setAttribute('DbgSetName', self.dbgEnvSet.decode('utf-8'))
+        envNode.setAttribute('EnvVarSetName', self.envVarSet)
+        envNode.setAttribute('DbgSetName', self.dbgEnvSet)
         node.appendChild(envNode)
 
         dbgStartupCommands = minidom.Document().createElement('StartupCommands')
@@ -713,7 +713,7 @@ class BuildConfig:
         # add all 'Targets'
         for k, v in list(self.customTargets.items()):
             customTgtNode = dom.createElement('Target')
-            customTgtNode.setAttribute('Name', k.decode('utf-8'))
+            customTgtNode.setAttribute('Name', k)
             XmlUtils.SetNodeContent(customTgtNode, v)
             customBuildNode.appendChild(customTgtNode)
 
@@ -733,7 +733,7 @@ class BuildConfig:
         ignoredFilesNode = dom.createElement('IgnoredFiles')
         for i in self.ignoredFiles:
             ignoredFileNode = dom.createElement('IgnoredFile')
-            ignoredFileNode.setAttribute('Name', i.decode('utf-8'))
+            ignoredFileNode.setAttribute('Name', i)
             ignoredFilesNode.appendChild(ignoredFileNode)
         node.appendChild(ignoredFilesNode)
 

@@ -36,9 +36,8 @@ def ToUtf8(o):
 def ToU(o):
     return o
 
-def CmpIC(s1, s2):
-    '''忽略大小写比较两个字符串'''
-    return cmp(s1.lower(), s2.lower())
+def CmpIC(s):
+    return s.lower()
 
 def IsLinuxOS():
     '''判断系统是否 Linux'''
