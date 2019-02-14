@@ -1863,7 +1863,7 @@ PYTHON_EOF
     endif
 endfunction
 
-function! s:CreateProject(...) "{{{2
+function! s:CreateProject(...) abort "{{{2
     if exists('a:1')
         " Run as callback
         if a:1.type == g:VC_DIALOG
@@ -1900,17 +1900,12 @@ function! s:CreateProject(...) "{{{2
                     let l:templateName = ''
                     continue
                 endtry
-pythonx << PYTHON_EOF
-templates = GetTemplateDict(vim.eval('g:VLWorkspaceTemplatesPath'))
-key = vim.eval('l:categories')
-name = vim.eval('l:templateName')
-template = {}
-for template in templates[key]:
-    if template['name'] == name:
-        vim.command("let l:templateFile = %s" % ToVimEval(template['file']))
-templates.clear()
-del templates, template, key, name
-PYTHON_EOF
+                py3 vim.command('let templates = %s' % GetTemplateDict(vim.eval('g:VLWorkspaceTemplatesPath')))
+                for template in templates[l:categories]
+                    if template['name'] ==# l:templateName
+                        let l:templateFile = template['file']
+                    endif
+                endfor
             else
                 continue
             endif
