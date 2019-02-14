@@ -1095,8 +1095,8 @@ function! s:InstallCommands() "{{{2
             \                           call <SID>CleanActiveProject()
     command! -nargs=0 -bar VRunActiveProject      
             \                           call <SID>RunActiveProject()
-    command! -nargs=0 -bar VBuildAndRunActiveProject 
-            \                           call <SID>BuildAndRunActiveProject()
+    "command! -nargs=0 -bar VBuildAndRunActiveProject
+            "\                           call <SID>BuildAndRunActiveProject()
 
     command! -nargs=0 -bar VEnvVarSetttings   call <SID>EnvVarSettings()
     command! -nargs=0 -bar VCompilersSettings call <SID>CompilersSettings()
