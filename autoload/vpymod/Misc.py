@@ -14,6 +14,7 @@ import threading
 import shlex
 import platform
 import json
+import vim
 
 # TODO: 现在的变量展开是不支持递归的，例如 $(a$(b))
 
@@ -29,6 +30,14 @@ def ToVimEval(o):
         return json.dumps(o, ensure_ascii=False)
     else:
         return repr(o)
+
+def VimEval(expr):
+    '''
+    vim 数据结构无缝转为 Python 的数据结构，已知问题，不支持
+        - Float nan
+        - Float inf
+    '''
+    return json.loads(vim.eval('json_encode({})'.format(expr)))
 
 def ToUtf8(o):
     return o
