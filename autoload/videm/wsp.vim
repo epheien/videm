@@ -2084,7 +2084,7 @@ def CreateTemplateCtls():
     templates = GetTemplateDict(vim.eval('g:VLWorkspaceTemplatesPath'))
     if not templates:
         return
-    keys = templates.keys()
+    keys = list(templates.keys())
     keys.sort()
     for key in keys:
         vim.command("call tpltCtgr.AddItem(%s)" % ToVimEval(key))
@@ -2106,8 +2106,6 @@ PYTHON_EOF
 
     " 第一次也需要刷新组合框
     call s:TemplatesTableCbk(tblCtl, [cmpTypeCtl, descCtl])
-pythonx << PYTHON_EOF
-PYTHON_EOF
 endfunction
 
 "}}}1
@@ -2445,7 +2443,7 @@ function! s:CreateEnvVarSettingsDialog() "{{{2
     let dSetsCtl = ctl
     call ctl.SetId(s:ID_EnvVarSettingsEnvVarSets)
     call ctl.SetIndent(4)
-    pyx vim.command("let lEnvVarSets = %s" % ToVimEval(ins.envVarSets.keys()))
+    pyx vim.command("let lEnvVarSets = %s" % ToVimEval(list(ins.envVarSets.keys())))
     call sort(lEnvVarSets)
     for sEnvVarSet in lEnvVarSets
         call ctl.AddItem(sEnvVarSet)
@@ -2476,7 +2474,7 @@ pythonx << PYTHON_EOF
 def CreateEnvVarSettingsData():
     ins = EnvVarSettingsST.Get()
     vim.command('let dData = {}')
-    for setName, envVars in ins.envVarSets.iteritems():
+    for setName, envVars in ins.envVarSets.items():
         vim.command("let dData[%s] = []" % ToVimEval(setName))
         for envVar in envVars:
             vim.command("call add(dData[%s], %s)" 
@@ -3797,7 +3795,7 @@ def CreateWspBuildConfDialog():
             "g:VCStaticText.New('Available project configurations:'))")
     vim.command("call wspBCMDlg.AddBlankLine()")
 
-    projectNameList = ws.VLWIns.projects.keys()
+    projectNameList = list(ws.VLWIns.projects.keys())
     projectNameList.sort(key=CmpIC)
     for projName in projectNameList:
         project = ws.VLWIns.FindProjectByName(projName)
@@ -3947,7 +3945,7 @@ comment while writing a single line script.
 Supported configuration variables:
 '''
     conf = vim.eval("s:WspConfTmpl")
-    li = conf.keys()
+    li = list(conf.keys())
     li.sort()
     restart_conf = vim.eval("s:WspConfTmplRestart")
 
@@ -3961,7 +3959,7 @@ Supported configuration variables:
         # 处理数字
         if vim.eval('type(s:WspConfTmpl[%s]) == type(0)' % ToVimEval(k)) == '1':
             v = int(v)
-        if restart_conf.has_key(k):
+        if k in restart_conf:
             s += '* %-*s = %s' % (minlen, k, ToVimEval(v))
         else:
             s += '  %-*s = %s' % (minlen, k, ToVimEval(v))
@@ -3992,7 +3990,7 @@ function! s:CreateWspSettingsDialog() "{{{2
     call ctl.SetId(s:ID_WspSettingsEnvironment)
     call ctl.SetIndent(4)
     pyx vim.command("let lEnvVarSets = %s"
-            \      % ToVimEval(EnvVarSettingsST.Get().envVarSets.keys()))
+            \      % ToVimEval(list(EnvVarSettingsST.Get().envVarSets.keys())))
     call sort(lEnvVarSets)
     for sEnvVarSet in lEnvVarSets
         call ctl.AddItem(sEnvVarSet)
