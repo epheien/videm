@@ -161,7 +161,7 @@ class VimLiteWorkspace(object):
         '-Sep_BatchBuilds-',
         'Batch Builds',
         '-Sep_Settings-',
-        'Workspace Build Configuration...',
+        'Workspace Build Settings...',
         'Workspace Batch Build Settings...',
         'Workspace Settings...',
     ]
@@ -1799,7 +1799,7 @@ class VimLiteWorkspace(object):
                 self.ReloadWorkspace()
             elif choice == 'Rename Workspace...':
                 self.RenameWorkspace()
-            elif choice == 'Workspace Build Configuration...':
+            elif choice == 'Workspace Build Settings...':
                 vim.command("call s:WspBuildConfigManager()")
             elif choice == 'Workspace Batch Build Settings...':
                 vim.command('call s:WspBatchBuildSettings()')

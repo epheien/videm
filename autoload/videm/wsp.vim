@@ -3606,7 +3606,7 @@ PYTHON_EOF
 endfunction
 
 function! s:CreateWspBuildConfDialog() "{{{2
-    let wspBCMDlg = g:VimDialog.New('== Workspace Build Configuration ==')
+    let wspBCMDlg = g:VimDialog.New('== Workspace Build Settings ==')
 python3 << PYTHON_EOF
 def CreateWspBuildConfDialog():
     matrix = ws.VLWIns.GetBuildMatrix()
