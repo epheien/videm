@@ -10,7 +10,7 @@ endif
 let g:loaded_autoload_wsp = 1
 
 " 先设置 python 脚本编码
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 # -*- encoding: utf-8 -*-
 PYTHON_EOF
 
@@ -1699,7 +1699,7 @@ endfunction
 
 function! s:CreateProjectPostCbk(dlg, data) "{{{2
     setlocal modifiable
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def CreateProjectPostCbk(ret):
     # 只需刷新添加的节点的上一个兄弟节点到添加的节点之间的显示
     ln = ws.VLWIns.GetPrevSiblingLineNum(ret)
@@ -1724,7 +1724,7 @@ function! s:CreateProjectCategoriesCbk(ctl, data) "{{{2
     let categories = ctl.GetValue()
     call tblCtl.DeleteAllLines()
     call tblCtl.SetSelection(1)
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def CreateProjectCategoriesCbk():
     templates = GetTemplateDict(vim.eval('g:VLWorkspaceTemplatesPath'))
     key = vim.eval('categories')
@@ -1758,7 +1758,7 @@ function! s:TemplatesTableCbk(ctl, data) "{{{2
             break
         endif
     endfor
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def TemplatesTableCbk():
     templates = GetTemplateDict(vim.eval('g:VLWorkspaceTemplatesPath'))
     name = vim.eval('name')
@@ -1994,7 +1994,7 @@ function! s:CreateProject(...) abort "{{{2
     call tblCtl.ConnectSelectionCallback(
             \ s:GetSFuncRef('s:TemplatesTableCbk'), [cmpTypeCtl, descCtl])
 
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def CreateTemplateCtls():
     templates = GetTemplateDict(vim.eval('g:VLWorkspaceTemplatesPath'))
     if not templates:
@@ -2297,7 +2297,7 @@ function! s:SaveEnvVarSettingsCbk(dlg, data) "{{{2
 endfunction
 "}}}
 function! s:GetEnvVarSettingsHelpText() "{{{2
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def GetEnvVarSettingsHelpText():
     s = '''\
 ==============================================================================
@@ -2385,7 +2385,7 @@ function! s:CreateEnvVarSettingsDialog() "{{{2
 
     call dlg.ConnectSaveCallback(s:GetSFuncRef("s:SaveEnvVarSettingsCbk"), "")
 
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def CreateEnvVarSettingsData():
     ins = EnvVarSettingsST.Get()
     vim.command('let dData = {}')
@@ -3177,7 +3177,7 @@ function! s:NewConfigCbk(dlg, data) "{{{2
 
         let projName = comboCtl.data
         call comboCtl.InsertItem(newConfName, -2)
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def NewBuildConfig(projName, newConfName, copyFrom):
     from BuildConfig import BuildConfig
     project = ws.VLWIns.FindProjectByName(projName)
@@ -3216,7 +3216,7 @@ function! s:WspBCMRenameCbk(ctl, data) "{{{2
         let oldBcName = line[0]
         let newBcName = input("Enter New Name:\n", oldBcName)
         if newBcName !=# '' && newBcName !=# oldBcName
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def RenameProjectBuildConfig(projName, oldBcName, newBcName):
     '''可能重命名失败, 当同名的配置已经存在的时候
     
@@ -3274,7 +3274,7 @@ PYTHON_EOF
         let oldConfName = line[0]
         let newConfName = input("Enter New Configuration Name:\n", oldConfName)
         if newConfName !=# '' && newConfName !=# oldConfName
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def RenameWorkspaceConfiguration(oldConfName, newConfName):
     if not newConfName or newConfName == oldConfName:
         return
@@ -3339,7 +3339,7 @@ function! s:WspBCMRemoveCbk(ctl, data) "{{{2
             "更新组合框
             call comboCtl.RemoveItem(bldConfName)
             call comboCtl.owner.RefreshCtl(comboCtl)
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def RemoveProjectBuildConfig(projName, bldConfName):
     project = ws.VLWIns.FindProjectByName(projName)
     if not project:
@@ -3379,7 +3379,7 @@ PYTHON_EOF
             "更新组合框
             call comboCtl.RemoveItem(configName)
             call comboCtl.owner.RefreshCtl(comboCtl)
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def RemoveWorkspaceConfiguration(confName):
     if not confName: return
     matrix = ws.VLWIns.GetBuildMatrix()
@@ -3429,7 +3429,7 @@ function! s:WspBCMActionPostCbk(ctl, data) "{{{2
                 endif
 
                 call a:ctl.InsertItem(input, -2)
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def NewWspConfig(newConfName, copyFrom):
     if not newConfName or not copyFrom:
         return
@@ -3573,7 +3573,7 @@ PYTHON_EOF
 endfunction
 
 function! s:WspBCMSaveCbk(dlg, data) "{{{2
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def WspBCMSaveCbk(matrix, wspConfName, projName, confName):
     wspConf = matrix.GetConfigurationByName(wspConfName)
     if wspConf:
@@ -3607,7 +3607,7 @@ endfunction
 
 function! s:CreateWspBuildConfDialog() "{{{2
     let wspBCMDlg = g:VimDialog.New('== Workspace Build Configuration ==')
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def CreateWspBuildConfDialog():
     matrix = ws.VLWIns.GetBuildMatrix()
     wspSelConfName = matrix.GetSelectedConfigurationName()
@@ -3760,7 +3760,7 @@ endfunction
 "}}}
 " 工作区设置的帮助信息
 function! s:GetWspSettingsHelpText() "{{{2
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def GetWspSettingsHelpText():
     s = '''\
 ==============================================================================
@@ -3991,7 +3991,7 @@ let s:GIDS_PSCtls = [
 call s:InitEnum(s:GIDS_PSCtls, 10)
 "}}}2
 function! s:GetProjectSettingsHelpText() "{{{2
-pythonx << PYTHON_EOF
+python3 << PYTHON_EOF
 def GetProjectSettingsHelpText():
     s = '''\
 $(ProjectFiles)          A space delimited string containing all of the 
