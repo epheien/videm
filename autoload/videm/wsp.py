@@ -1006,7 +1006,7 @@ class VimLiteWorkspace(object):
 
     def SetupActiveProject(self):
         '''这个函数的含义已经变了, 现在仅用于刷新指定配置'''
-        hlname = vim.eval('videm#settings#Get(".videm.wsp.ActProjHlGroup")')
+        hlname = vim.eval('videm#settings#Get("videm.wsp.ActProjHlGroup")')
         vim.command("hi link VLWActiveProject %s" % hlname)
 
     def RefreshLines(self, start, end=None):
@@ -1103,7 +1103,7 @@ class VimLiteWorkspace(object):
         cmd = self.builder.GetBuildCommand(projName, '')
 
         if cmd:
-            if vim.eval("videm#settings#Get('.videm.wsp.SaveBeforeBuild')") != '0':
+            if vim.eval("videm#settings#Get('videm.wsp.SaveBeforeBuild')") != '0':
                 vim.command("wa")
             argv = [vim.eval('&shell'), vim.eval('&shellcmdflag'), cmd]
             vim.command('call vlutils#TermRun(%s, {"quickfix":1})' % ToVimEval(argv))
@@ -1264,7 +1264,7 @@ class VimLiteWorkspace(object):
             if not IsWindowsOS():
                 # 强制设置成英语 locale 以便 quickfix 处理
                 cmd = "export LANG=en_US; " + cmd
-            if vim.eval("videm#settings#Get('.videm.wsp.SaveBeforeBuild')") != '0':
+            if vim.eval("videm#settings#Get('videm.wsp.SaveBeforeBuild')") != '0':
                 vim.command("wa")
             tempFile = vim.eval('tempname()')
             vim.command("!%s 2>&1 | tee %s" % (cmd, tempFile))

@@ -66,17 +66,17 @@ class VLWorkspaceSettings:
         # 裸配置样，例的文本
         self.localConfigText = """\
 # Code Complete Engine
-.videm.cc.Current    = 'vimccc'
+videm.cc.Current    = 'vimccc'
 # Symbol Database
-.videm.symdb.Current = 'gtags'"""
+videm.symdb.Current = 'gtags'"""
 
         # 统一的配置视图 on 2013-05-19
         # 路径示例:
-        # omnicpp   -> .videm.plugin.omnicpp
-        # vimccc    -> .videm.plugin.vimccc
-        # pyclewn   -> .videm.plugin.pyclewn
-        # gtags     -> .videm.plugin.gtags
-        # cscope    -> .videm.plugin.cscope
+        # omnicpp   -> videm.plugin.omnicpp
+        # vimccc    -> videm.plugin.vimccc
+        # pyclewn   -> videm.plugin.pyclewn
+        # gtags     -> videm.plugin.gtags
+        # cscope    -> videm.plugin.cscope
         self.conf = ConfTree()
 
         # 如果指定了 fileName, 从文件载入, 不论成功与否
@@ -254,7 +254,7 @@ class VLWorkspaceSettings:
                 self.cppSrcExts = obj.cppSrcExts
                 self.enableLocalConfig = obj.enableLocalConfig
                 if obj.localConfig and \
-                   list(obj.localConfig.keys())[0].startswith('.videm'):
+                   list(obj.localConfig.keys())[0].startswith('videm'):
                     #self.localConfig = obj.localConfig
                     self._UpdateLocalConfigTextFromDict(obj.localConfig)
                 self.conf = obj.conf

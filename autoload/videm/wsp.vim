@@ -70,8 +70,8 @@ let g:VidemDir = g:videm_dir
 let g:VidemPyDir = g:videm_pydir
 
 " 如果这个选项为零，所有后向兼容的选项都失效
-if !videm#settings#Has('.videm.Compatible')
-    call videm#settings#Set('.videm.Compatible', 1)
+if !videm#settings#Has('videm.Compatible')
+    call videm#settings#Set('videm.Compatible', 1)
 endif
 
 call s:InitVariable("g:VLWorkspaceWinSize", 30)
@@ -109,46 +109,46 @@ if exists('g:VLWorkspaceUseVIMCCC') && g:VLWorkspaceUseVIMCCC
 endif
 function! s:RefreshBackwardOptions() "{{{2
     if      g:VLWorkspaceCodeCompleteEngine == 'omnicpp'
-        call videm#settings#Set('.videm.cc.vimccc.Enable', 0)
-        call videm#settings#Set('.videm.cc.omnicpp.Enable', 1)
-        call videm#settings#Set('.videm.cc.Current', 'omnicpp')
+        call videm#settings#Set('videm.cc.vimccc.Enable', 0)
+        call videm#settings#Set('videm.cc.omnicpp.Enable', 1)
+        call videm#settings#Set('videm.cc.Current', 'omnicpp')
     elseif  g:VLWorkspaceCodeCompleteEngine == 'vimccc'
-        call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
-        call videm#settings#Set('.videm.cc.vimccc.Enable', 1)
-        call videm#settings#Set('.videm.cc.Current', 'vimccc')
+        call videm#settings#Set('videm.cc.omnicpp.Enable', 0)
+        call videm#settings#Set('videm.cc.vimccc.Enable', 1)
+        call videm#settings#Set('videm.cc.Current', 'vimccc')
     else
-        call videm#settings#Set('.videm.cc.vimccc.Enable', 0)
-        call videm#settings#Set('.videm.cc.omnicpp.Enable', 0)
-        call videm#settings#Set('.videm.cc.Current', '')
+        call videm#settings#Set('videm.cc.vimccc.Enable', 0)
+        call videm#settings#Set('videm.cc.omnicpp.Enable', 0)
+        call videm#settings#Set('videm.cc.Current', '')
     endif
 
     if type(g:VLWorkspaceSymbolDatabase) == type('')
         if g:VLWorkspaceSymbolDatabase ==? 'cscope'
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
-            call videm#settings#Set('.videm.symdb.Current', 'cscope')
+            call videm#settings#Set('videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('videm.symdb.cscope.Enable', 1)
+            call videm#settings#Set('videm.symdb.Current', 'cscope')
         elseif g:VLWorkspaceSymbolDatabase ==? 'gtags'
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
-            call videm#settings#Set('.videm.symdb.Current', 'gtags')
+            call videm#settings#Set('videm.symdb.cscope.Enable', 0)
+            call videm#settings#Set('videm.symdb.gtags.Enable', 1)
+            call videm#settings#Set('videm.symdb.Current', 'gtags')
         else
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-            call videm#settings#Set('.videm.symdb.Current', '')
+            call videm#settings#Set('videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('videm.symdb.cscope.Enable', 0)
+            call videm#settings#Set('videm.symdb.Current', '')
         endif
     else
         if g:VLWorkspaceSymbolDatabase == 1
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 1)
-            call videm#settings#Set('.videm.symdb.Current', 'cscope')
+            call videm#settings#Set('videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('videm.symdb.cscope.Enable', 1)
+            call videm#settings#Set('videm.symdb.Current', 'cscope')
         elseif g:VLWorkspaceSymbolDatabase == 2
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 1)
-            call videm#settings#Set('.videm.symdb.Current', 'gtags')
+            call videm#settings#Set('videm.symdb.cscope.Enable', 0)
+            call videm#settings#Set('videm.symdb.gtags.Enable', 1)
+            call videm#settings#Set('videm.symdb.Current', 'gtags')
         else
-            call videm#settings#Set('.videm.symdb.gtags.Enable', 0)
-            call videm#settings#Set('.videm.symdb.cscope.Enable', 0)
-            call videm#settings#Set('.videm.symdb.Current', '')
+            call videm#settings#Set('videm.symdb.gtags.Enable', 0)
+            call videm#settings#Set('videm.symdb.cscope.Enable', 0)
+            call videm#settings#Set('videm.symdb.Current', '')
         endif
     endif
 endfunction
@@ -156,90 +156,90 @@ endfunction
 "}}}
 
 let s:DefaultSettings = {
-    \ '.videm.wsp.WinSize'          : 30,
-    \ '.videm.wsp.WinPos'           : 'left',
-    \ '.videm.wsp.BufName'          : '== VidemWorkspace ==',
-    \ '.videm.wsp.ShowLineNum'      : 0,
-    \ '.videm.wsp.HlCursorLine'     : 1,
-    \ '.videm.wsp.LinkToEditor'     : 1,
-    \ '.videm.wsp.EnableMenuBar'    : 1,
-    \ '.videm.wsp.EnablePopUpMenu'  : 1,
-    \ '.videm.wsp.EnableToolBar'    : 1,
-    \ '.videm.wsp.ShowWspName'      : 1,
-    \ '.videm.wsp.SaveBeforeBuild'  : 1,
-    \ '.videm.wsp.HlSourceFile'     : 1,
-    \ '.videm.wsp.ActProjHlGroup'   : 'SpecialKey',
-    \ '.videm.wsp.ShowBriefHelp'    : 1,
+    \ 'videm.wsp.WinSize'          : 30,
+    \ 'videm.wsp.WinPos'           : 'left',
+    \ 'videm.wsp.BufName'          : '== VidemWorkspace ==',
+    \ 'videm.wsp.ShowLineNum'      : 0,
+    \ 'videm.wsp.HlCursorLine'     : 1,
+    \ 'videm.wsp.LinkToEditor'     : 1,
+    \ 'videm.wsp.EnableMenuBar'    : 1,
+    \ 'videm.wsp.EnablePopUpMenu'  : 1,
+    \ 'videm.wsp.EnableToolBar'    : 1,
+    \ 'videm.wsp.ShowWspName'      : 1,
+    \ 'videm.wsp.SaveBeforeBuild'  : 1,
+    \ 'videm.wsp.HlSourceFile'     : 1,
+    \ 'videm.wsp.ActProjHlGroup'   : 'SpecialKey',
+    \ 'videm.wsp.ShowBriefHelp'    : 1,
     \
-    \ '.videm.wsp.keybind.ShowMenu'         : '.',
-    \ '.videm.wsp.keybind.PopupMenu'        : ',',
-    \ '.videm.wsp.keybind.OpenNode'         : 'o',
-    \ '.videm.wsp.keybind.OpenNode2'        : 'go',
-    \ '.videm.wsp.keybind.OpenNodeNewTab'   : 't',
-    \ '.videm.wsp.keybind.OpenNodeNewTab2'  : 'T',
-    \ '.videm.wsp.keybind.OpenNodeSplit'    : 'i',
-    \ '.videm.wsp.keybind.OpenNodeSplit2'   : 'gi',
-    \ '.videm.wsp.keybind.OpenNodeVSplit'   : 's',
-    \ '.videm.wsp.keybind.OpenNodeVSplit2'  : 'gs',
-    \ '.videm.wsp.keybind.GotoParent'       : 'p',
-    \ '.videm.wsp.keybind.GotoRoot'         : 'P',
-    \ '.videm.wsp.keybind.GotoNextSibling'  : '<C-n>',
-    \ '.videm.wsp.keybind.GotoPrevSibling'  : '<C-p>',
-    \ '.videm.wsp.keybind.RefreshBuffer'    : 'R',
-    \ '.videm.wsp.keybind.ToggleHelpInfo'   : '<F1>',
-    \ '.videm.wsp.keybind.CutOneNode'       : 'dd',
-    \ '.videm.wsp.keybind.CutNodes'         : 'd',
-    \ '.videm.wsp.keybind.PasteNodes'       : '<C-v>',
+    \ 'videm.wsp.keybind.ShowMenu'         : '.',
+    \ 'videm.wsp.keybind.PopupMenu'        : ',',
+    \ 'videm.wsp.keybind.OpenNode'         : 'o',
+    \ 'videm.wsp.keybind.OpenNode2'        : 'go',
+    \ 'videm.wsp.keybind.OpenNodeNewTab'   : 't',
+    \ 'videm.wsp.keybind.OpenNodeNewTab2'  : 'T',
+    \ 'videm.wsp.keybind.OpenNodeSplit'    : 'i',
+    \ 'videm.wsp.keybind.OpenNodeSplit2'   : 'gi',
+    \ 'videm.wsp.keybind.OpenNodeVSplit'   : 's',
+    \ 'videm.wsp.keybind.OpenNodeVSplit2'  : 'gs',
+    \ 'videm.wsp.keybind.GotoParent'       : 'p',
+    \ 'videm.wsp.keybind.GotoRoot'         : 'P',
+    \ 'videm.wsp.keybind.GotoNextSibling'  : '<C-n>',
+    \ 'videm.wsp.keybind.GotoPrevSibling'  : '<C-p>',
+    \ 'videm.wsp.keybind.RefreshBuffer'    : 'R',
+    \ 'videm.wsp.keybind.ToggleHelpInfo'   : '<F1>',
+    \ 'videm.wsp.keybind.CutOneNode'       : 'dd',
+    \ 'videm.wsp.keybind.CutNodes'         : 'd',
+    \ 'videm.wsp.keybind.PasteNodes'       : '<C-v>',
     \
-    \ '.videm.cc.Current'       : 'omnicpp',
-    \ '.videm.symdb.Current'    : 'gtags',
+    \ 'videm.cc.Current'       : 'omnicpp',
+    \ 'videm.symdb.Current'    : 'gtags',
     \
     \ 
-    \ '.videm.symdb.Quickfix'               : 1,
+    \ 'videm.symdb.Quickfix'               : 1,
 \ }
 
 let s:CompatSettings = {
-    \ 'g:VLWorkspaceWinSize'                : '.videm.wsp.WinSize',
-    \ 'g:VLWorkspaceWinPos'                 : '.videm.wsp.WinPos',
-    \ 'g:VLWorkspaceBufName'                : '.videm.wsp.BufName',
-    \ 'g:VLWorkspaceShowLineNumbers'        : '.videm.wsp.ShowLineNum',
-    \ 'g:VLWorkspaceHighlightCursorline'    : '.videm.wsp.HlCursorLine',
-    \ 'g:VLWorkspaceLinkToEidtor'           : '.videm.wsp.LinkToEditor',
-    \ 'g:VLWorkspaceEnableMenuBarMenu'      : '.videm.wsp.EnableMenuBar',
-    \ 'g:VLWorkspaceEnableToolBarMenu'      : '.videm.wsp.EnableToolBar',
-    \ 'g:VLWorkspaceDispWspNameInTitle'     : '.videm.wsp.ShowWspName',
-    \ 'g:VLWorkspaceSaveAllBeforeBuild'     : '.videm.wsp.SaveBeforeBuild',
-    \ 'g:VLWorkspaceHighlightSourceFile'    : '.videm.wsp.HlSourceFile',
-    \ 'g:VLWorkspaceActiveProjectHlGroup'   : '.videm.wsp.ActProjHlGroup',
+    \ 'g:VLWorkspaceWinSize'                : 'videm.wsp.WinSize',
+    \ 'g:VLWorkspaceWinPos'                 : 'videm.wsp.WinPos',
+    \ 'g:VLWorkspaceBufName'                : 'videm.wsp.BufName',
+    \ 'g:VLWorkspaceShowLineNumbers'        : 'videm.wsp.ShowLineNum',
+    \ 'g:VLWorkspaceHighlightCursorline'    : 'videm.wsp.HlCursorLine',
+    \ 'g:VLWorkspaceLinkToEidtor'           : 'videm.wsp.LinkToEditor',
+    \ 'g:VLWorkspaceEnableMenuBarMenu'      : 'videm.wsp.EnableMenuBar',
+    \ 'g:VLWorkspaceEnableToolBarMenu'      : 'videm.wsp.EnableToolBar',
+    \ 'g:VLWorkspaceDispWspNameInTitle'     : 'videm.wsp.ShowWspName',
+    \ 'g:VLWorkspaceSaveAllBeforeBuild'     : 'videm.wsp.SaveBeforeBuild',
+    \ 'g:VLWorkspaceHighlightSourceFile'    : 'videm.wsp.HlSourceFile',
+    \ 'g:VLWorkspaceActiveProjectHlGroup'   : 'videm.wsp.ActProjHlGroup',
     \
-    \ 'g:VLWShowMenuKey'            : '.videm.wsp.keybind.ShowMenu',
-    \ 'g:VLWPopupMenuKey'           : '.videm.wsp.keybind.PopupMenu',
-    \ 'g:VLWOpenNodeKey'            : '.videm.wsp.keybind.OpenNode',
-    \ 'g:VLWOpenNode2Key'           : '.videm.wsp.keybind.OpenNode2',
-    \ 'g:VLWOpenNodeInNewTabKey'    : '.videm.wsp.keybind.OpenNodeNewTab',
-    \ 'g:VLWOpenNodeInNewTab2Key'   : '.videm.wsp.keybind.OpenNodeNewTab2',
-    \ 'g:VLWOpenNodeSplitKey'       : '.videm.wsp.keybind.OpenNodeSplit',
-    \ 'g:VLWOpenNodeSplit2Key'      : '.videm.wsp.keybind.OpenNodeSplit2',
-    \ 'g:VLWOpenNodeVSplitKey'      : '.videm.wsp.keybind.OpenNodeVSplit',
-    \ 'g:VLWOpenNodeVSplit2Key'     : '.videm.wsp.keybind.OpenNodeVSplit2',
-    \ 'g:VLWGotoParentKey'          : '.videm.wsp.keybind.GotoParent',
-    \ 'g:VLWGotoRootKey'            : '.videm.wsp.keybind.GotoRoot',
-    \ 'g:VLWGotoNextSibling'        : '.videm.wsp.keybind.GotoNextSibling',
-    \ 'g:VLWGotoPrevSibling'        : '.videm.wsp.keybind.GotoPrevSibling',
-    \ 'g:VLWRefreshBufferKey'       : '.videm.wsp.keybind.RefreshBuffer',
-    \ 'g:VLWToggleHelpInfo'         : '.videm.wsp.keybind.ToggleHelpInfo',
+    \ 'g:VLWShowMenuKey'            : 'videm.wsp.keybind.ShowMenu',
+    \ 'g:VLWPopupMenuKey'           : 'videm.wsp.keybind.PopupMenu',
+    \ 'g:VLWOpenNodeKey'            : 'videm.wsp.keybind.OpenNode',
+    \ 'g:VLWOpenNode2Key'           : 'videm.wsp.keybind.OpenNode2',
+    \ 'g:VLWOpenNodeInNewTabKey'    : 'videm.wsp.keybind.OpenNodeNewTab',
+    \ 'g:VLWOpenNodeInNewTab2Key'   : 'videm.wsp.keybind.OpenNodeNewTab2',
+    \ 'g:VLWOpenNodeSplitKey'       : 'videm.wsp.keybind.OpenNodeSplit',
+    \ 'g:VLWOpenNodeSplit2Key'      : 'videm.wsp.keybind.OpenNodeSplit2',
+    \ 'g:VLWOpenNodeVSplitKey'      : 'videm.wsp.keybind.OpenNodeVSplit',
+    \ 'g:VLWOpenNodeVSplit2Key'     : 'videm.wsp.keybind.OpenNodeVSplit2',
+    \ 'g:VLWGotoParentKey'          : 'videm.wsp.keybind.GotoParent',
+    \ 'g:VLWGotoRootKey'            : 'videm.wsp.keybind.GotoRoot',
+    \ 'g:VLWGotoNextSibling'        : 'videm.wsp.keybind.GotoNextSibling',
+    \ 'g:VLWGotoPrevSibling'        : 'videm.wsp.keybind.GotoPrevSibling',
+    \ 'g:VLWRefreshBufferKey'       : 'videm.wsp.keybind.RefreshBuffer',
+    \ 'g:VLWToggleHelpInfo'         : 'videm.wsp.keybind.ToggleHelpInfo',
 \ }
 
 " 这些是需要反转来使用的选项，设置的时候支持已新选项的方式设置
 let s:InverseCompatSettings = {
-    \ 'g:VLWorkspaceSymbolDatabase'     : '.videm.wsp.SymbolDatabase',
-    \ 'g:VLWorkspaceCodeCompleteEngine' : '.videm.wsp.CodeCompleteEngine',
+    \ 'g:VLWorkspaceSymbolDatabase'     : 'videm.wsp.SymbolDatabase',
+    \ 'g:VLWorkspaceCodeCompleteEngine' : 'videm.wsp.CodeCompleteEngine',
     \
-    \ 'g:VLCalltips_DispCalltipsKey'    : '.videm.common.calltips.DispCalltipsKey',
-    \ 'g:VLCalltips_NextCalltipsKey'    : '.videm.common.calltips.NextCalltipsKey',
-    \ 'g:VLCalltips_PrevCalltipsKey'    : '.videm.common.calltips.PrevCalltipsKey',
-    \ 'g:VLCalltips_IndicateArgument'   : '.videm.common.calltips.IndicateArgument',
-    \ 'g:VLCalltips_EnableSyntaxTest'   : '.videm.common.calltips.EnableSyntaxTest',
+    \ 'g:VLCalltips_DispCalltipsKey'    : 'videm.common.calltips.DispCalltipsKey',
+    \ 'g:VLCalltips_NextCalltipsKey'    : 'videm.common.calltips.NextCalltipsKey',
+    \ 'g:VLCalltips_PrevCalltipsKey'    : 'videm.common.calltips.PrevCalltipsKey',
+    \ 'g:VLCalltips_IndicateArgument'   : 'videm.common.calltips.IndicateArgument',
+    \ 'g:VLCalltips_EnableSyntaxTest'   : 'videm.common.calltips.EnableSyntaxTest',
 \ }
 
 " ============================================================================
@@ -267,10 +267,10 @@ function! videm#wsp#SettingsHook(event, data, priv) "{{{2
     endif
 
     let prefix = ''
-    if opt ==# '.videm.cc.Current'
-        let prefix = '.videm.cc'
-    elseif opt ==# '.videm.symdb.Current'
-        let prefix = '.videm.symdb'
+    if opt ==# 'videm.cc.Current'
+        let prefix = 'videm.cc'
+    elseif opt ==# 'videm.symdb.Current'
+        let prefix = 'videm.symdb'
     endif
 
     let li = s:GetAlterList(prefix)
@@ -346,10 +346,10 @@ function! videm#wsp#WspConfSetCurr(conf, ...) "{{{2
 
     " 后向兼容处理
     let old_opts = {
-        \ '.videm.cc.omnicpp.Enable'    : 1,
-        \ '.videm.cc.vimccc.Enable'     : 1,
-        \ '.videm.symdb.cscope.Enable'  : 1,
-        \ '.videm.symdb.gtags.Enable'   : 1,
+        \ 'videm.cc.omnicpp.Enable'    : 1,
+        \ 'videm.cc.vimccc.Enable'     : 1,
+        \ 'videm.symdb.cscope.Enable'  : 1,
+        \ 'videm.symdb.gtags.Enable'   : 1,
     \ }
     let found_old = 0
 
@@ -363,7 +363,7 @@ function! videm#wsp#WspConfSetCurr(conf, ...) "{{{2
             let val = conf[opt]
             " 后向兼容处理
             let lst = split(opt, '\.')
-            let optx = printf('.videm.%s.Current', lst[1])
+            let optx = printf('videm.%s.Current', lst[1])
             let valx = lst[2]
             if val
                 call videm#settings#Set(optx, valx)
@@ -414,7 +414,7 @@ endfunction
 "}}}
 " ============================================================================
 " 新老选项优先级问题
-" 1、如果 '.videm.Compatible' 非零，则老选项优先，否则参考2
+" 1、如果 'videm.Compatible' 非零，则老选项优先，否则参考2
 " 2、如果需要反转的选项的新老选项同时设置，那么新选项优先，会无条件把新选项的
 "    值赋予老选项。需要反转的选项无法通过设置新选项的方式实时刷新老选项
 function! s:InitInverseCompatSettings() "{{{2
@@ -454,7 +454,7 @@ function! s:InitUserSettings() "{{{2
 endfunction
 "}}}2
 function! s:InitSettings() "{{{2
-    if videm#settings#Get('.videm.Compatible')
+    if videm#settings#Get('videm.Compatible')
         call s:InitCompatSettings()
     endif
     call videm#settings#Init(s:DefaultSettings)
@@ -517,7 +517,7 @@ function! s:OpenFile(sFile, ...) "优雅地打开一个文件 {{{2
     let bNeedResizeWspWin = (winnr('$') == 1)
 
     let bak_splitright = &splitright
-    if videm#settings#Get('.videm.wsp.WinPos') ==? 'left'
+    if videm#settings#Get('videm.wsp.WinPos') ==? 'left'
         set splitright
     else
         set nosplitright
@@ -525,9 +525,9 @@ function! s:OpenFile(sFile, ...) "优雅地打开一个文件 {{{2
     call vlutils#OpenFile(sFile, bKeepCursorPos)
     let &splitright = bak_splitright
 
-    let nWspWinNr = bufwinnr('^'.videm#settings#Get('.videm.wsp.BufName').'$')
+    let nWspWinNr = bufwinnr('^'.videm#settings#Get('videm.wsp.BufName').'$')
     if bNeedResizeWspWin && nWspWinNr != -1
-        exec 'vertical' nWspWinNr 'resize' videm#settings#Get('.videm.wsp.WinSize')
+        exec 'vertical' nWspWinNr 'resize' videm#settings#Get('videm.wsp.WinSize')
     endif
 
     if bKeepCursorPos
@@ -566,7 +566,7 @@ function! s:OpenFileVSplit(sFile, ...) "{{{2
     endif
 
     let bak_splitright = &splitright
-    if videm#settings#Get('.videm.wsp.WinPos') ==? 'left'
+    if videm#settings#Get('videm.wsp.WinPos') ==? 'left'
         set splitright
     else
         set nosplitright
@@ -668,12 +668,12 @@ function! s:OnceInit() "{{{2
     " 初始化配置
     call s:InitSettings()
 
-    if videm#settings#Get('.videm.wsp.EnableMenuBar')
+    if videm#settings#Get('videm.wsp.EnableMenuBar')
         " 添加菜单栏菜单
         call s:InstallMenuBarMenu()
     endif
 
-    if videm#settings#Get('.videm.wsp.EnableToolBar')
+    if videm#settings#Get('videm.wsp.EnableToolBar')
         " 添加工具栏菜单
         call s:InstallToolBarMenu()
     endif
@@ -688,7 +688,7 @@ function! s:OnceInit() "{{{2
     augroup END
 
     " 设置标题栏
-    if videm#settings#Get('.videm.wsp.ShowWspName')
+    if videm#settings#Get('videm.wsp.ShowWspName')
         set titlestring=%(<%{Videm_GetWorkspaceName()}>\ %)%t%(\ %M%)
                 \%(\ (%{expand(\"%:~:h\")})%)%(\ %a%)%(\ -\ %{v:servername}%)
     endif
@@ -703,18 +703,18 @@ function! s:OnceInit() "{{{2
     call s:LoadPlugin()
 
     " 载入插件后, 再注册 Current 选项
-    call videm#wsp#WspOptRegister('.videm.cc.Current',
-            \                     join(s:GetAlterList('.videm.cc'), '|'))
-    call videm#wsp#WspOptRegister('.videm.symdb.Current',
-            \                     join(s:GetAlterList('.videm.symdb'), '|'))
-    call videm#wsp#WspRestartOptRegister('.videm.cc.Current')
+    call videm#wsp#WspOptRegister('videm.cc.Current',
+            \                     join(s:GetAlterList('videm.cc'), '|'))
+    call videm#wsp#WspOptRegister('videm.symdb.Current',
+            \                     join(s:GetAlterList('videm.symdb'), '|'))
+    call videm#wsp#WspRestartOptRegister('videm.cc.Current')
     call videm#settings#RegisterHook('videm#wsp#SettingsHook', 0, 1)
     " 注册了hook后刷新一次这个选项, 可能会产生抖动,
     " 因为有些插件经历了启用后再禁用, 现时工作区未打开, 插件应该检查这一状况
-    call videm#settings#Set('.videm.cc.Current',
-            \               videm#settings#Get('.videm.cc.Current'))
-    call videm#settings#Set('.videm.symdb.Current',
-            \               videm#settings#Get('.videm.symdb.Current'))
+    call videm#settings#Set('videm.cc.Current',
+            \               videm#settings#Get('videm.cc.Current'))
+    call videm#settings#Set('videm.symdb.Current',
+            \               videm#settings#Get('videm.symdb.Current'))
 
     let s:OnceInit = 1
 endfunction
@@ -799,7 +799,7 @@ function! s:InitVLWorkspace(file) abort " 初始化 {{{2
     pyx videm.org.cpp = ws
     pyx ws.OpenWorkspace(vim.eval('sFile'))
     pyx ws.RefreshBuffer()
-    if videm#settings#Get('.videm.wsp.ShowBriefHelp')
+    if videm#settings#Get('videm.wsp.ShowBriefHelp')
         call s:ToggleBriefHelp(1)
     endif
 
@@ -824,12 +824,12 @@ endfunction
 " 创建窗口，会确保一个标签页只打开一个工作空间窗口
 function! s:CreateVLWorkspaceWin() "{{{2
     "create the workspace window
-    let splitMethod = videm#settings#Get('.videm.wsp.WinPos') ==? "left" ?
+    let splitMethod = videm#settings#Get('videm.wsp.WinPos') ==? "left" ?
             \ "topleft " : "botright "
-    let splitSize = videm#settings#Get('.videm.wsp.WinSize')
+    let splitSize = videm#settings#Get('videm.wsp.WinSize')
 
     if !exists('t:VLWorkspaceBufName')
-        let t:VLWorkspaceBufName = videm#settings#Get('.videm.wsp.BufName')
+        let t:VLWorkspaceBufName = videm#settings#Get('videm.wsp.BufName')
         silent! exec splitMethod . 'vertical ' . splitSize . ' new'
         silent! exec "edit" fnameescape(t:VLWorkspaceBufName)
     else
@@ -853,7 +853,7 @@ function! s:CreateVLWorkspaceWin() "{{{2
     setlocal foldcolumn=0
     setlocal nobuflisted
     setlocal nospell
-    if videm#settings#Get('.videm.wsp.ShowLineNum')
+    if videm#settings#Get('videm.wsp.ShowLineNum')
         setlocal nu
     else
         setlocal nonu
@@ -862,7 +862,7 @@ function! s:CreateVLWorkspaceWin() "{{{2
     "删除所有插入模式的缩写
     iabc <buffer>
 
-    if videm#settings#Get('.videm.wsp.HlCursorLine')
+    if videm#settings#Get('videm.wsp.HlCursorLine')
         setlocal cursorline
     endif
 
@@ -872,90 +872,90 @@ endfunction
 
 function! s:SetupKeyMappings() "设置键盘映射 {{{2
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.ShowMenu')
+            \ videm#settings#Get('videm.wsp.keybind.ShowMenu')
             \ ':call <SID>ShowMenu()<CR>'
 
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.PopupMenu')
+            \ videm#settings#Get('videm.wsp.keybind.PopupMenu')
             \ ':call <SID>OnRightMouseClick()<CR>'
 
     nnoremap <silent> <buffer> <2-LeftMouse> :call <SID>OnMouseDoubleClick()<CR>
     nnoremap <silent> <buffer> <CR> :call <SID>OnMouseDoubleClick()<CR>
 
     " NOTE: 这几个全局变量不好改, 先这样吧
-    let g:VLWOpenNodeKey = videm#settings#Get('.videm.wsp.keybind.OpenNode')
-    let g:VLWOpenNode2Key = videm#settings#Get('.videm.wsp.keybind.OpenNode2')
-    let g:VLWOpenNodeInNewTabKey = videm#settings#Get('.videm.wsp.keybind.OpenNodeNewTab')
-    let g:VLWOpenNodeInNewTab2Key = videm#settings#Get('.videm.wsp.keybind.OpenNodeNewTab2')
-    let g:VLWOpenNodeSplitKey = videm#settings#Get('.videm.wsp.keybind.OpenNodeSplit')
-    let g:VLWOpenNodeSplit2Key = videm#settings#Get('.videm.wsp.keybind.OpenNodeSplit2')
-    let g:VLWOpenNodeVSplitKey = videm#settings#Get('.videm.wsp.keybind.OpenNodeVSplit')
-    let g:VLWOpenNodeVSplit2Key = videm#settings#Get('.videm.wsp.keybind.OpenNodeVSplit2')
-    let g:VLWGotoParentKey = videm#settings#Get('.videm.wsp.keybind.GotoParent')
-    let g:VLWGotoRootKey = videm#settings#Get('.videm.wsp.keybind.GotoRoot')
-    let g:VLWGotoNextSibling = videm#settings#Get('.videm.wsp.keybind.GotoNextSibling')
-    let g:VLWGotoPrevSibling = videm#settings#Get('.videm.wsp.keybind.GotoPrevSibling')
-    let g:VLWRefreshBufferKey = videm#settings#Get('.videm.wsp.keybind.RefreshBuffer')
-    let g:VLWToggleHelpInfo = videm#settings#Get('.videm.wsp.keybind.ToggleHelpInfo')
+    let g:VLWOpenNodeKey = videm#settings#Get('videm.wsp.keybind.OpenNode')
+    let g:VLWOpenNode2Key = videm#settings#Get('videm.wsp.keybind.OpenNode2')
+    let g:VLWOpenNodeInNewTabKey = videm#settings#Get('videm.wsp.keybind.OpenNodeNewTab')
+    let g:VLWOpenNodeInNewTab2Key = videm#settings#Get('videm.wsp.keybind.OpenNodeNewTab2')
+    let g:VLWOpenNodeSplitKey = videm#settings#Get('videm.wsp.keybind.OpenNodeSplit')
+    let g:VLWOpenNodeSplit2Key = videm#settings#Get('videm.wsp.keybind.OpenNodeSplit2')
+    let g:VLWOpenNodeVSplitKey = videm#settings#Get('videm.wsp.keybind.OpenNodeVSplit')
+    let g:VLWOpenNodeVSplit2Key = videm#settings#Get('videm.wsp.keybind.OpenNodeVSplit2')
+    let g:VLWGotoParentKey = videm#settings#Get('videm.wsp.keybind.GotoParent')
+    let g:VLWGotoRootKey = videm#settings#Get('videm.wsp.keybind.GotoRoot')
+    let g:VLWGotoNextSibling = videm#settings#Get('videm.wsp.keybind.GotoNextSibling')
+    let g:VLWGotoPrevSibling = videm#settings#Get('videm.wsp.keybind.GotoPrevSibling')
+    let g:VLWRefreshBufferKey = videm#settings#Get('videm.wsp.keybind.RefreshBuffer')
+    let g:VLWToggleHelpInfo = videm#settings#Get('videm.wsp.keybind.ToggleHelpInfo')
 
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.OpenNode')
+            \ videm#settings#Get('videm.wsp.keybind.OpenNode')
             \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeKey)<CR>'
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.OpenNode2')
+            \ videm#settings#Get('videm.wsp.keybind.OpenNode2')
             \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNode2Key)<CR>'
 
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeNewTab')
+            \ videm#settings#Get('videm.wsp.keybind.OpenNodeNewTab')
             \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeInNewTabKey)<CR>'
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeNewTab2')
+            \ videm#settings#Get('videm.wsp.keybind.OpenNodeNewTab2')
             \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeInNewTab2Key)<CR>'
 
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeSplit')
+            \ videm#settings#Get('videm.wsp.keybind.OpenNodeSplit')
             \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeSplitKey)<CR>'
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeSplit2')
+            \ videm#settings#Get('videm.wsp.keybind.OpenNodeSplit2')
             \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeSplit2Key)<CR>'
 
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeVSplit')
+            \ videm#settings#Get('videm.wsp.keybind.OpenNodeVSplit')
             \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeVSplitKey)<CR>'
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.OpenNodeVSplit2')
+            \ videm#settings#Get('videm.wsp.keybind.OpenNodeVSplit2')
             \ ':call <SID>OnMouseDoubleClick(g:VLWOpenNodeVSplit2Key)<CR>'
 
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.GotoParent')
+            \ videm#settings#Get('videm.wsp.keybind.GotoParent')
             \ ':call <SID>GotoParent()<CR>'
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.GotoRoot')
+            \ videm#settings#Get('videm.wsp.keybind.GotoRoot')
             \ ':call <SID>GotoRoot()<CR>'
 
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.GotoNextSibling')
+            \ videm#settings#Get('videm.wsp.keybind.GotoNextSibling')
             \ ':call <SID>GotoNextSibling()<CR>'
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.GotoPrevSibling')
+            \ videm#settings#Get('videm.wsp.keybind.GotoPrevSibling')
             \ ':call <SID>GotoPrevSibling()<CR>'
 
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.RefreshBuffer')
+            \ videm#settings#Get('videm.wsp.keybind.RefreshBuffer')
             \ ':call <SID>RefreshBuffer()<CR>'
 
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.ToggleHelpInfo')
+            \ videm#settings#Get('videm.wsp.keybind.ToggleHelpInfo')
             \ ':call <SID>ToggleHelpInfo()<CR>'
 
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.CutOneNode')
+            \ videm#settings#Get('videm.wsp.keybind.CutOneNode')
             \ ':call <SID>CutOneNode()<CR>'
     exec 'xnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.CutNodes')
+            \ videm#settings#Get('videm.wsp.keybind.CutNodes')
             \ ':<C-u>call <SID>CutNodes()<CR>'
     exec 'nnoremap <silent> <buffer>'
-            \ videm#settings#Get('.videm.wsp.keybind.PasteNodes')
+            \ videm#settings#Get('videm.wsp.keybind.PasteNodes')
             \ ':call <SID>PasteNodes()<CR>'
 endfunction
 
@@ -966,7 +966,7 @@ function! s:LocateFile(fileName) "{{{2
     endif
 
     let l:curWinNum = winnr()
-    let l:winNum = bufwinnr(videm#settings#Get('.videm.wsp.BufName'))
+    let l:winNum = bufwinnr(videm#settings#Get('videm.wsp.BufName'))
     if l:winNum == -1
         return 1
     endif
@@ -1011,7 +1011,7 @@ function! s:LocateFile(fileName) "{{{2
         normal! zz
     endif
 
-    if videm#settings#Get('.videm.wsp.HlCursorLine')
+    if videm#settings#Get('videm.wsp.HlCursorLine')
         " NOTE: 高亮光标所在行时, 刷新有点问题, 强制刷新
         set nocursorline
         set cursorline
@@ -1056,7 +1056,7 @@ endfunction
 "}}}
 function! s:Autocmd_LocateCurrentFile() "{{{2
     " 会不会比较慢？
-    if !videm#settings#Get('.videm.wsp.LinkToEditor')
+    if !videm#settings#Get('videm.wsp.LinkToEditor')
         return
     endif
 
@@ -1329,7 +1329,7 @@ function! s:ToggleHelpInfo(...) "{{{2
         let val = get(a:000, 0, 0)
         return videm#settings#Get(a:opt, val)
     endfunction
-    let prefix = '.videm.wsp.keybind.'
+    let prefix = 'videm.wsp.keybind.'
 
     let lHelpInfo = []
 
@@ -1487,7 +1487,7 @@ function! s:ToggleBriefHelp(...) "{{{2
     endif
 
     let lHelpInfo = []
-    let prefix = '.videm.wsp.keybind.'
+    let prefix = 'videm.wsp.keybind.'
 
     let sLine = printf('" Press %s to display help',
             \          videm#settings#Get(prefix.'ToggleHelpInfo'))

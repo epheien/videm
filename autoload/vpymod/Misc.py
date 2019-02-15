@@ -261,7 +261,7 @@ def GetBgThdCnt():
     return count
 
 class ConfTree:
-    '''一种抽象的树状结构，路径表示方式为 ".videm.wsp.conf"
+    '''一种抽象的树状结构，路径表示方式为 "videm.wsp.conf"
     叶子结点只支持保存四种类型：字典、列表、数字、字符串'''
     def __init__(self):
         self.tree = {}
@@ -365,11 +365,11 @@ if __name__ == '__main__':
     assert l == SplitSmclStr(JoinToSmclStr(l))
 
     conftree = ConfTree()
-    conftree.Set('.videm.wsp.conf', 'hello')
-    assert conftree.Get('.videm.wsp.conf') == 'hello'
+    conftree.Set('videm.wsp.conf', 'hello')
+    assert conftree.Get('videm.wsp.conf') == 'hello'
     assert not conftree.Has('.abc')
-    assert conftree.Has('.videm.wsp')
-    assert conftree.Get('.videm.wsp.xxx', 123) == 123
+    assert conftree.Has('videm.wsp')
+    assert conftree.Get('videm.wsp.xxx', 123) == 123
     print(conftree.Save('x.json'))
 
     print(GetFileModificationTime(sys.argv[0]))

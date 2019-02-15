@@ -20,7 +20,7 @@
     "excludePaths": [], 
     "incPathFlag": 0, 
     "includePaths": [], 
-    "localConfigText": "# Code Complete Engine\n.videm.cc.Current    = 'none'\n# Symbol Database\n.videm.symdb.Current = 'gtags'", 
+    "localConfigText": "# Code Complete Engine\nvidem.cc.Current    = 'none'\n# Symbol Database\nvidem.symdb.Current = 'gtags'", 
     "macroFiles": [], 
     "nsinfo": {
         "nsalias": {}, 

@@ -27,10 +27,10 @@
     "incPathFlag": 0, 
     "includePaths": [], 
     "localConfig": {
-        ".videm.cc.omnicpp.Enable": 0, 
-        ".videm.cc.vimccc.Enable": 1, 
-        ".videm.symdb.cscope.Enable": 0, 
-        ".videm.symdb.gtags.Enable": 1
+        "videm.cc.omnicpp.Enable": 0, 
+        "videm.cc.vimccc.Enable": 1, 
+        "videm.symdb.cscope.Enable": 0, 
+        "videm.symdb.gtags.Enable": 1
     }, 
     "macroFiles": [], 
     "nsinfo": {

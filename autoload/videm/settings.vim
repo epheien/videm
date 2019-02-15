@@ -4,7 +4,7 @@
 " Create:   2013-04-22
 " Change:   2013-05-18
 
-" 选项结构，'.' 作为分隔符，如 .videm.wsp.LinkToEditor
+" 选项结构，'.' 作为分隔符，如 videm.wsp.LinkToEditor
 
 let s:settings = {}
 
