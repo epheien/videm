@@ -657,7 +657,7 @@ function! s:OnceInit() "{{{2
     call s:InitPythonInterfaces()
 
     " 先清空用到的自动组
-    augroup VLWorkspace
+    augroup VWorkspace
         autocmd!
     augroup END
 
@@ -682,21 +682,7 @@ function! s:OnceInit() "{{{2
     call s:InstallCommands()
 
     " 安装自动命令
-    augroup VLWorkspace
-        autocmd Syntax dbgvar nnoremap <buffer> 
-                    \<CR> :exec "Cfoldvar " . line(".")<CR>
-        autocmd Syntax dbgvar nnoremap <buffer> 
-                    \<2-LeftMouse> :exec "Cfoldvar " . line(".")<CR>
-        autocmd Syntax dbgvar nnoremap <buffer> 
-                    \dd :exec "Cdelvar" matchstr(getline('.'),
-                    \   '^[^a-zA-Z_]\{3} \zsvar\d\+')<CR>
-                    "\   '^\(\[[-+]\]\| \* \)\s*\zsvar\d\+')<CR> " FIXME: BUG
-
-        autocmd Syntax dbgvar nnoremap <silent> <buffer> 
-                    \p :call search('^'.repeat(' ',
-                    \   len(matchstr(getline('.'), '^.\{-1,}[-+*]'))-2-2)
-                    \.'.[-+*]', 'bcW')<CR>
-
+    augroup VWorkspace
         autocmd BufReadPost         * call <SID>Autocmd_WorkspaceEditorOptions()
         autocmd BufEnter            * call <SID>Autocmd_LocateCurrentFile()
     augroup END
