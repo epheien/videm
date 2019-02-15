@@ -170,8 +170,6 @@ let s:DefaultSettings = {
     \ '.videm.wsp.HlSourceFile'     : 1,
     \ '.videm.wsp.ActProjHlGroup'   : 'SpecialKey',
     \ '.videm.wsp.ShowBriefHelp'    : 1,
-    \ '.videm.wsp.AutoSession'      : 0,
-    \ '.videm.wsp.SessionOptions'   : 'buffers,curdir,folds,help,localoptions,tabpages,winsize,resize',
     \
     \ '.videm.wsp.keybind.ShowMenu'         : '.',
     \ '.videm.wsp.keybind.PopupMenu'        : ',',
@@ -701,9 +699,6 @@ function! s:OnceInit() "{{{2
 
         autocmd BufReadPost         * call <SID>Autocmd_WorkspaceEditorOptions()
         autocmd BufEnter            * call <SID>Autocmd_LocateCurrentFile()
-        autocmd SessionLoadPost     * call videm#wsp#InitWorkspace('')
-        " NOTE: 现在vim退出的时候，不会先把工作空间关掉，所以需要这个自动命令
-        autocmd VimLeavePre         * call s:AutoSaveSession()
     augroup END
 
     " 设置标题栏
@@ -1546,6 +1541,10 @@ endfunction
 "}}}
 function! s:CutOneNode() "{{{2
     let row = line('.')
+    let answer = input('This will cut a node on cursor line, confirm? (y/n)', 'y')
+    if answer !~? '^y'
+        return
+    endif
     pyx ws.CutNodes(int(vim.eval('row')), 1)
 endfunction
 "}}}
