@@ -70,9 +70,7 @@ let g:VidemDir = g:videm_dir
 let g:VidemPyDir = g:videm_pydir
 
 " 如果这个选项为零，所有后向兼容的选项都失效
-if !videm#settings#Has('videm.Compatible')
-    call videm#settings#Set('videm.Compatible', 1)
-endif
+call videm#settings#Set('videm.Compatible', 0)
 
 call s:InitVariable("g:VLWorkspaceWinSize", 30)
 call s:InitVariable("g:VLWorkspaceWinPos", "left")
