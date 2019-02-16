@@ -84,7 +84,7 @@ call s:InitVariable('g:VLWorkspaceEnableToolBarMenu', 1)
 call s:InitVariable('g:VLWorkspaceDispWspNameInTitle', 1)
 call s:InitVariable('g:VLWorkspaceSaveAllBeforeBuild', 0)
 call s:InitVariable('g:VLWorkspaceHighlightSourceFile', 1)
-call s:InitVariable('g:VLWorkspaceActiveProjectHlGroup', 'SpecialKey')
+call s:InitVariable('g:VLWorkspaceActiveProjectHlGroup', 'Special')
 
 "=======================================
 " 标记是否已经运行
@@ -166,7 +166,7 @@ let s:DefaultSettings = {
     \ 'videm.wsp.ShowWspName'      : 1,
     \ 'videm.wsp.SaveBeforeBuild'  : 1,
     \ 'videm.wsp.HlSourceFile'     : 1,
-    \ 'videm.wsp.ActProjHlGroup'   : 'SpecialKey',
+    \ 'videm.wsp.ActProjHlGroup'   : 'Special',
     \ 'videm.wsp.ShowBriefHelp'    : 1,
     \
     \ 'videm.wsp.keybind.ShowMenu'         : '.',

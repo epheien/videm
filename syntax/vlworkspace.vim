@@ -72,7 +72,7 @@ endif
 hi def link VLWorkspace PreProc
 hi def link VLWProject Type
 hi def link VLWVirtualDirectory Directory
-hi def link VLWActiveProject SpecialKey
+hi def link VLWActiveProject Special
 
 hi def link VLWTreeLead Special
 hi def link VLWFilePre Linenr
