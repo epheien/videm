@@ -71,7 +71,7 @@ endif
 
 hi def link VLWorkspace PreProc
 hi def link VLWProject Type
-hi def link VLWVirtualDirectory Statement
+hi def link VLWVirtualDirectory Directory
 hi def link VLWActiveProject SpecialKey
 
 hi def link VLWTreeLead Special
