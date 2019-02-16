@@ -612,8 +612,16 @@ function! VLWStatusLine() "{{{2
     return printf('%s[%s]', Videm_GetWorkspaceName(), GetWspConfName())
 endfunction
 "}}}2
-function! videm#wsp#InitWorkspace(sWspFile) "{{{2
-    call s:InitVLWorkspace(a:sWspFile)
+" 支持直接在默认工作区打开项目文件
+function! videm#wsp#InitWorkspace(sWspFile) abort "{{{2
+    let fname = a:sWspFile
+    if fnamemodify(a:sWspFile, ":e") ==? g:VLWorkspacePrjFileSuffix
+        call s:InitVLWorkspace('')
+        py3 vim.command('let lnum = %s' % ToVimEval(ws.VLWIns.GetRootLineNum()))
+        call s:AddProjectNode(lnum, fname)
+    else
+        call s:InitVLWorkspace(fname)
+    endif
 endfunction
 "}}}2
 function! videm#wsp#IsStarted() "{{{2

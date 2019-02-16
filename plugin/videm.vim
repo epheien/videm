@@ -19,8 +19,7 @@ endif
 let g:loaded_videm = 1
 
 " 命令导出
-command! -nargs=? -complete=file VidemOpen 
-            \                           call videm#wsp#InitWorkspace('<args>')
+command -nargs=? -complete=file VidemOpen call videm#wsp#InitWorkspace(<q-args>)
 
 
 " vim: fdm=marker fen et sts=4 fdl=1
