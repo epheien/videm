@@ -829,16 +829,11 @@ function! s:Build_exit_cb(channel, retcode) dict
     endif
 
     " 以下为读入 quickfix
-    let tmp = tempname()
     " NOTE: 终端运行的命令，换行符貌似都是 "\r\n"
     let lines = split(join(self.content, ''), "\r\\?\n")
-    let ret = writefile(lines, tmp)
-    if ret
-        call delete(tmp)
-        echoerr 'failed to writefile' tmp
-        return
-    endif
-    execute 'cgetfile' tmp
+    for line in lines
+        caddexpr line
+    endfor
 
     let found = 0
     for winnr in range(1, winnr('$'))
@@ -854,9 +849,6 @@ function! s:Build_exit_cb(channel, retcode) dict
     if !self.exitval
         call win_gotoid(winid)
     endif
-
-    " 清理临时文件，避免一直增多
-    call delete(tmp)
 endfunction
 function! s:Build_close_cb(channel) dict
 endfunction
