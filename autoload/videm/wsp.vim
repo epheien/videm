@@ -5131,20 +5131,30 @@ function! Videm_GetWorkspaceName() "{{{2
 endfunction
 "}}}
 function! Videm_GetWorkspaceBase() "{{{2
-    pyx vim.command("return %s" % ToVimEval(ws.VLWIns.GetBase()))
+    py3 vim.command("return %s" % ToVimEval(ws.VLWIns.GetBase()))
+endfunction
+"}}}
+function! Videm_GetWorkspaceDirectory() "{{{2
+    py3 vim.command("return %s" % ToVimEval(ws.VLWIns.dirName))
+endfunction
+"}}}
+function! Videm_GetWorkspaceFilename() "{{{2
+    py3 vim.command("return %s" % ToVimEval(ws.VLWIns.fileName))
 endfunction
 "}}}
 function! Videm_IsFileInWorkspace(fname) "{{{2
     return s:IsWorkspaceFile(a:fname)
 endfunction
 "}}}
-function! Videm_GetProjectRunInfo(projName)
+function! Videm_GetProjectRunInfo(projName) "{{{2
     py3 vim.command('return %s' % ToVimEval(ws.GetProjectRunInfo(vim.eval('a:projName'))))
 endfunction
-function! Videm_GetActiveProjectName()
+"}}}
+function! Videm_GetActiveProjectName() "{{{2
     py3 vim.command('return %s' % ToVimEval(ws.VLWIns.GetActiveProjectName()))
 endfunction
-function! Videm_GetAllFiles(...)
+"}}}
+function! Videm_GetAllFiles(...) "{{{2
     let abspath = get(a:000, 0, 0)
     if abspath
         py3 vim.command('return %s' % ToVimEval(ws.VLWIns.GetAllFiles(True)))
@@ -5152,4 +5162,5 @@ function! Videm_GetAllFiles(...)
         py3 vim.command('return %s' % ToVimEval(ws.VLWIns.GetAllFiles(False)))
     endif
 endfunction
+"}}}
 " vim:fdm=marker:fen:et:sts=4:fdl=1:

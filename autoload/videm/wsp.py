@@ -401,7 +401,7 @@ class VimLiteWorkspace(object):
         self.buildMTime = time.time()
 
     def LoadWspSettings(self):
-        if self.VLWIns.fileName:
+        if self.VLWIns.fileName and not self.VLWIns.dummyWsp:
             # 读取配置文件
             settingsFile = os.path.splitext(self.VLWIns.fileName)[0] \
                 + '.wspsettings'
@@ -423,7 +423,8 @@ class VimLiteWorkspace(object):
                             % ToVimEval(self.VLWSettings.GetLocalConfigText()))
 
     def SaveWspSettings(self):
-        return self.VLWSettings.Save()
+        if not self.VLWIns.dummyWsp:
+            return self.VLWSettings.Save()
 
     def InstallPopupMenu(self):
         for idx, value in enumerate(self.popupMenuW):
@@ -1758,7 +1759,7 @@ class VimLiteWorkspace(object):
 
         if nodeType == VLWorkspace.TYPE_WORKSPACE: #工作空间右键菜单
             if choice == 'Create a New Project...':
-                if self.VLWIns.name == 'DEFAULT_WORKSPACE':
+                if self.VLWIns.name == 'DEFAULT_WORKSPACE' and False:
                     vim.command('echohl WarningMsg')
                     vim.command('echo "Can not create new project'\
                         ' in the default workspace."')

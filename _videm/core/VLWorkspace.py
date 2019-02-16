@@ -275,6 +275,7 @@ class VLWorkspace(object):
           兄弟结点，自己本身没有下一个兄弟结点
         '''
         self.doc = None
+        self.dummyWsp = False   # 是否为默认工作区 DEFAULT_WORKSPACE
         self.rootNode = None
         self.name = ''
         self.fileName = ''
@@ -309,8 +310,7 @@ class VLWorkspace(object):
                 print('IOError:', fileName)
                 raise IOError
             self.rootNode = XmlUtils.GetRoot(self.doc)
-            self.name = XmlUtils.GetRoot(self.doc).getAttribute('Name')\
-                    
+            self.name = XmlUtils.GetRoot(self.doc).getAttribute('Name')
             self.fileName = os.path.abspath(fileName)
             # NOTE: 必须是真实路径（跟随符号链接）
             self.fileName = os.path.realpath(self.fileName)
@@ -374,6 +374,7 @@ class VLWorkspace(object):
     </BuildMatrix>
 </CodeLite_Workspace>
 ''')
+            self.dummyWsp = True
             self.rootNode = XmlUtils.GetRoot(self.doc)
             self.name = XmlUtils.GetRoot(self.doc).getAttribute('Name')
             self.dirName = os.getcwd()
@@ -1424,6 +1425,8 @@ class VLWorkspace(object):
         GetBase()   -> videm
         name        -> videm-1.0
         '''
+        if self.dummyWsp:
+            return 'DEFAULT_WORKSPACE'
         return os.path.splitext(self.baseName)[0]
 
     def GetWorkspaceFileName(self):
