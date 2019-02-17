@@ -9,6 +9,8 @@ if exists('s:loaded')
 endif
 let s:loaded = 1
 
+let s:term_running = 0
+
 " NOTE:
 " 除非指定 g: 来访问全局变量，否则在autoload的其他脚本无法直接调用此脚本的符号
 " 而plugin的脚本无此限制
@@ -822,6 +824,7 @@ function! s:Build_exit_cb(channel, retcode) dict
     if !self.bufnr
         return
     endif
+    let s:term_running = 0
     let self.exitval = a:retcode
 
     if !self.quickfix
@@ -854,7 +857,13 @@ function! s:Build_close_cb(channel) dict
 endfunction
 "}}}
 " 使用 job 机制运行构建命令，构建完毕后，读取全局的 quickfix
+" (argv, opts={})
 function! vlutils#TermRun(argv, ...) "{{{2
+    if s:term_running
+        call vlutils#EchoWarnMsg('There is an already running job')
+        return 0
+    endif
+
     let opts = get(a:000, 0, {})
     let d = {'content': [], 'bufnr': 0, 'winid': win_getid(),
             \ 'quickfix': get(opts, 'quickfix', 0)}
@@ -890,8 +899,12 @@ function! vlutils#TermRun(argv, ...) "{{{2
                 \   'env': get(opts, 'env', {})
                 \ })
     let d.bufnr = bufnr
+    if bufnr
+        let s:term_running = 1
+    endif
 
     call win_gotoid(d.winid)
+    return bufnr
 endfunction
 "}}}
 " 模拟 python 的 os 和 os.path 模块
