@@ -871,7 +871,6 @@ function! vlutils#TermRun(argv, ...) "{{{2
     let d = {'argv': a:argv, 'content': [], 'bufnr': 0, 'winid': win_getid(),
             \ 'quickfix': get(opts, 'quickfix', 0)}
     let curwin = 0
-    let term_name = '== VidemTerminal =='
 
     " 如果已有
     for winnr in range(1, winnr('$'))
@@ -880,7 +879,7 @@ function! vlutils#TermRun(argv, ...) "{{{2
         endif
         let bufnr = winbufnr(winnr)
         if term_getstatus(bufnr) =~# '\<finished\>' &&
-                \ bufname(bufnr) ==# term_name
+                \ getbufvar(bufnr, 'vlutils_term_name', '') ==# 'VlutilsTerminal'
             if win_gotoid(win_getid(winnr))
                 let curwin = 1
             endif
@@ -889,6 +888,7 @@ function! vlutils#TermRun(argv, ...) "{{{2
     endfor
 
     let d['starttime'] = localtime()
+    let term_name = join(map(copy(a:argv), {idx, val -> shellescape(val)}))
     let bufnr = term_start(
                 \ a:argv,
                 \ {
@@ -905,6 +905,7 @@ function! vlutils#TermRun(argv, ...) "{{{2
     let d.bufnr = bufnr
     if bufnr
         let s:term_running = 1
+        call setbufvar(bufnr, 'vlutils_term_name', 'VlutilsTerminal')
     endif
 
     call win_gotoid(d.winid)
