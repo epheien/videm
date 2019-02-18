@@ -15,84 +15,36 @@ CONTENTS                                *Videm-Contents*
 1. Introduction                         |Videm-Introduction|
 2. Prerequisites                        |Videm-Prerequisites|
 3. Installation                         |Videm-Installation|
-    3.1 Upgrade from VimLite            |Videm-Installation-Upgrade|
 4. Project Manager                      |Videm-ProjectManager|
     4.1. KeyBindings                    |Videm-ProjectManager-KeyBindings|
     4.2. Commands                       |Videm-ProjectManager-Commands|
-    4.3. Cscope                         |Videm-ProjectManager-Cscope|
-    4.4. Gtags                          |Videm-ProjectManager-Gtags|
-5. Code Completion                      |Videm-CodeCompletion|
-    5.1. OmniCpp                        |Videm-CodeCompletion-OmniCpp|
-        5.1.1. Commands                 |Videm-CodeCompletion-OmniCpp-Cmds|
-        5.1.2. Macros Handling          |Videm-CodeCompletion-OmniCpp-Macros|
-        5.1.3. Limitation               |Videm-CodeCompletion-OmniCpp-Limit|
-    5.2. VIMCCC                         |Videm-CodeCompletion-VIMCCC|
-6. Debugger                             |Videm-Debugger|
-    6.1. KeyBindings                    |Videm-Debugger-KeyBindings|
-    6.2. Commands                       |Videm-Debugger-Commands|
-7. Options                              |Videm-Options|
-    7.1. Project Manager Options        |Videm-Options-ProjectManager|
-    7.2. Calltips Options               |Videm-Options-Calltips|
-    7.3. OmniCpp Options                |Videm-Options-OmniCpp|
-    7.4. VIMCCC Options                 |Videm-Options-VIMCCC|
-    7.5. Debugger Options               |Videm-Options-Debugger|
-8. Tips                                 |Videm-Tips|
-    8.1. Configuration Sample           |Videm-ConfigSample|
-    8.2. Use cl.exe On Windows          |Videm-Windows|
-    8.3. Search Paths For Parser        |Videm-SearchPaths|
-    8.4. Trouble Shooting               |Videm-TroubleShooting|
-9. Limitation                           |Videm-Limitation|
+5. Options                              |Videm-Options|
+    5.1. Project Manager Options        |Videm-Options-ProjectManager|
+6. Tips                                 |Videm-Tips|
+    6.1. Use cl.exe On Windows          |Videm-Windows|
+    6.2. Trouble Shooting               |Videm-TroubleShooting|
+7. Limitation                           |Videm-Limitation|
 
 ==============================================================================
 1. Introduction                         *Videm-Introduction*
 
-Videm is a C/C++ IDE based on vim.
-
-Videm mainly consists of the following modules:
-
-    * Project Manager:                  The project manager module can
-                                        generate makefile for your project.
-
-    * Code Completion:                  An enhanced OmniCpp and a VIMCCC 
-                                        code completion plugin. Generally,
-                                        code completion engine can also supply
-                                        code navigation such as "Goto Symbol
-                                        Definition" and "Goto Symbol
-                                        Declaration".
-
-                                        OmniCpp supports the following 
-                                        completion: namespace, structure, 
-                                        class member, using, using namespace, 
-                                        class template, stl, etc.
-
-                                        VIMCCC which based on libclang
-                                        supports mostly accurate code
-                                        completion.
-
-    * Symbol Database                   Cscope and gnu global. Symbol database
-                                        just for code browsing and navigation.
-
-    * Debugger Integration:             Gdb integration, by pyclewn.
+Videm is an intuitive C/C++ project manager which can works like IDE.
+Videm only provides project manager and some APIs, other features will be
+provided by other plugins.
 
 ==============================================================================
 2. Prerequisites                        *Videm-Prerequisites*
 
+Make sure your vim's version is 8.1 or later and compile with this features: >
+    +python3
+    +terminal
+<
 Videm depends on following software: >
-    python
+    python3
     python-lxml (optional)
     make
-    cscope
-    global
     gcc
     gdb
-    libclang (version 3.0, required by VIMCCC)
-<
-On ubuntu (10.04), just run: >
-    sudo apt-get install python python-lxml build-essential gdb cscope global
-<
-Make sure your vim's version is 7.3 or later and compile with this features: >
-    +python
-    +netbeans_intg (required by debugger)
 <
 And make sure you have these settings in your vimrc file: >
     set nocp
@@ -102,28 +54,12 @@ And make sure you have these settings in your vimrc file: >
 ==============================================================================
 3. Installation                         *Videm-Installation*
 
-The latest release of Videm can be found from this url:
+For vim-plug >
+    Plug 'epheien/termdbg'
 
-    http://www.vim.org/scripts/script.php?script_id=4599
-
-And Videm in github will be comming soon...
-
-------------------------------------------------------------------------------
-3.1. Upgrade from VimLite               *Videm-Installation-Upgrade*
-Videm is compatible with VimLite, also include options. But Videm has its new
-option subsystem. On VimLite, you can configure an option like this >
-    let g:VLWorkspaceWinSize = 30
-and on Videm, you can do it like this: >
-    call videm#settings#Set('videm.wsp.WinSize', 30)
-
-Currently either manner is valid, but new options only can be done by the new
-manner.
-
-If an option starts with '.', then it is a Videm new option, only can be used
-with videm#settings module. Get it like this >
-    let output = videm#settings#Get({opt})
-and set it like this >
-    call videm#settings#Set({opt}, {val})
+For manual installation
+    - Extract the files and put them in your .vim directory  
+      (usually `~/.vim`).
 
 ==============================================================================
 4. Project Manager                      *Videm-ProjectManager*
@@ -192,7 +128,7 @@ Press <F1> in workspace buffer for quick help information.
     <C-n>           Go to next sibling node |videm.wsp.keybind.GotoNextSibling|
     <C-p>           Go to prev sibling node |videm.wsp.keybind.GotoPrevSibling|
     .               Show text menu          |videm.wsp.keybind.ShowMenu|
-    ,               Popup gui menu          |videm.wsp.keybind.PopupMenu|
+    <RightRelease>  Popup gui menu          |videm.wsp.keybind.PopupMenu|
     R               Refresh buffer          |videm.wsp.keybind.RefreshBuffer|
     dd              Cut one node            |videm.wsp.keybind.CutOneNode|
     d               Cut node (visual mode)  |videm.wsp.keybind.CutNodes|
@@ -237,306 +173,24 @@ Press <F1> in workspace buffer for quick help information.
 
     VBuildersSettings                   Open 'Builders Settings' dialog.
 
-    VSymbolDatabaseInit                 Initialize the symbol database.
-
-    VSymbolDatabaseUpdate               Update the symbol database.
-
-    VSearchSymbolDefinition {symbol}    Search this symbol definition.
-
-    VSearchSymbolDeclaration {symbol}   Search this symbol declaration.
-
-    VSearchSymbolCalling {symbol}       Search where calling this symbol.
-
-    VSearchSymbolReference {symbol}     Search where reference this symbol.
-
     VPlugInfo                           Show the information of Videm's
                                         plugins.
 
-------------------------------------------------------------------------------
-4.3. Cscope                             *Videm-ProjectManager-Cscope*
-
-Videm uses cscope database to achieve some features, such as jump to
-definition, jump to declaration, search workspace files, etc.
-Run ':h cscope' for more info.
-
-Commands:~
-
-    VCscopeInitDatabase                 Initialize cscope database. Videm
-                                        will generate database forcibly.
-
-    VCscopeUpdateDatabase               Update database. Only be valided when
-                                        has been connected to the workspace
-                                        cscope database.
-
-------------------------------------------------------------------------------
-4.4. Gtags                              *Videm-ProjectManager-Gtags*
-
-Videm can also uses gtags (gnu global) database to achieve some features, such
-as jump to definition, jump to declaration, search workspace files, etc.
-NOTE: You can not use cscope and gtags in the same time.
-
-Commands:~
-
-    VCscopeInitDatabase                 Initialize gtags database. Videm
-                                        will generate database forcibly.
-
-    VCscopeUpdateDatabase               Update database. Only be valided when
-                                        has been connected to the workspace
-                                        gtags database.
-
 ==============================================================================
-5. Code Completion                      *Videm-CodeCompletion*
-
-Popup menu format: ~
->
-    +------------------------+
-    |method1()  f  +  MyClass|
-    |_member1   m  +  MyClass|
-    |_member2   m  #  MyClass|
-    |_member3   m  -  MyClass|
-    +------------------------+
-        ^       ^  ^     ^
-       (1)     (2)(3)   (4)
-<
-(1) Name of the symbol, when a match ends with '()' it's a function.
-
-(2) Kind of the symbol, possible kinds are: >
-    * c = classes
-    * d = macro definitions
-    * e = enumerators (values inside an enumeration)
-    * f = function definitions
-    * g = enumeration names
-    * m = class, struct, and union members
-    * n = namespaces
-    * p = function prototypes
-    * s = structure names
-    * t = typedefs
-    * u = union names
-    * v = variable definitions
-    * x = using types
-
-(3) Access, possible values are: >
-    * + = public
-    * # = protected
-    * - = private
-Note: Enumerators have no access information
-
-(4) Parent scope where the symbol is defined.
-Note: If the parent scope is '<global>' it's a global symbol.
-Note: Anonymous scope may starts with "__anon".
-
-
-Global Scope Completion~
-
-The global scope completion allows you to complete global symbols for the base 
-you are currently typing. The base can start with '::' or not.
-Note: Global scope completion only works with a non empty base, if you run a
-completion just after a '::' the completion will fail. The reason is that if
-there is no base to complete the script will try to display all the tags in
-the database. For small project it could be not a problem but for others you
-may wait 5 minutes or more for a result.
-
-eg1: >
-    pthread_cr<C-x><C-o>    =>      pthread_create
-<
-Where pthread_create is a global function.
-eg2: >
-    ::globa<C-x><C-o>       =>     ::global_func()
-                                    +----------------+
-                                    |global_func()  f|
-                                    |global_var1    v|
-                                    |global_var2    v|
-                                    +----------------+
-<
-Where global_var1, global_var2 and global_func are global symbols
-eg3: >
-    ::<C-x><C-o>            =>      [NO MATCH]
-<
-No match because a global completion from an empty base is not allowed.
-
-
-Member Completion~
-
-You can complete members of a container(class, struct, namespace, enum).
-Videm Code Completion will auto popup complete menu when you type ':' or '.'
-or '>'. Of cause you can use <C-x><C-o> to start completing.
-
-eg: >
-    MyNamespace::<C-x><C-o>
-                +--------------------------------+
-                |E_ENUM0            e MyNamespace|
-                |E_ENUM1            e MyNamespace|
-                |E_ENUM2            e MyNamespace|
-                |MyClass            c MyNamespace|
-                |MyEnum             g MyNamespace|
-                |MyStruct           s MyNamespace|
-                |MyUnion            u MyNamespace|
-                |SubNamespace       n MyNamespace|
-                |doSomething(       f MyNamespace|
-                |myVar              v MyNamespace|
-                |something_t        t MyNamespace|
-                +--------------------------------+
-
-------------------------------------------------------------------------------
-5.1. OmniCpp                            *Videm-CodeCompletion-OmniCpp*
-
-OmniCpp needs a tags database to support completion, you need parse the
-workspace before starting code completion. Put the cursor on workspace line
-in VLWorkspace buffer window, popup the menu, select "Parse Workspace (Quick)".
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5.1.1. Commands                         *Videm-CodeCompletion-OmniCpp-Cmds*
-
-    VOmniCppParseFiles <file1> ...      Parse files.
-
-    VOmniCppParseCurrFile               Parse current editing file.
-                                        NOTE: You ought to save current file
-                                        before run this command.
-
-    VOmniCppParseCurrFileDeep           Parse current editing file and the
-                                        files it includes.
-                                        NOTE: You ought to save current file
-                                        before run this command.
-
-    VOmniCppAsyncParseCurrFile          Parse current editing file
-                                        asynchronously.
-                                        NOTE: You ought to save current file
-                                        before run this command.
-
-    VOmniCppAsyncParseCurrFileDeep      Parse current editing file and the
-                                        files it includes asynchronously.
-                                        NOTE: You ought to save current file
-                                        before run this command.
-
-    VOmniCppTagsSetttings               Open 'OmniCpp Tags Setting' dialog.
-                                        This also can set the search paths for
-                                        other parsers.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5.1.2. Macros Handling                  *Videm-CodeCompletion-OmniCpp-Macros*
-
-List in 'Videm -> OmniCpp Tags Settings -> Macros' are to be pre-processed by
-OmniCpp parser. Usually, you would like to add new macros which confuse the
-parsing.
-
-Usually, you will add gcc predefined macros if you use gcc, run (On Linux) >
-    cpp -dM /dev/null
-and put the outputs to 'Videm -> OmniCpp Tags Settings -> Macros'.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5.1.3. Limitation                       *Videm-CodeCompletion-OmniCpp-Limit*
-
-OmniCpp is not a C/C++ compiler, so...
-Some C++ features are not supported, some implemented features may not work
-properly in some conditions. They are multiple reasons like a lack of
-information in the database, performance issues and so on...
-
-Here is a list for whiches are not supported:~
-1. Does not support local variables completion, use <C-x><C-n> instead.
-2. Does not support using [namespace] statement in included files. This
-   behavior is not recommended.
-3. Does not support friend. Solution is just displaying all class members.
-4. Does not support complex typedef. Solution is configuring corresponding
-   type replacement. eg: >
-   typedef typename _Alloc::template rebind<value_type>::other _Pair_alloc_type;
-5. Does not support overload functions with different return types.
-6. Does not support function template.
-7. Does not support '.' and '->' overload for performance considerations. 
-
-------------------------------------------------------------------------------
-5.1. VIMCCC                             *Videm-CodeCompletion-VIMCCC*
-
-You can set 'videm.wsp.CodeCompleteEngine' to "vimccc" to enable clang code
-completion.
-
-You need to install liblang to let it work. After installation, VIMCCC code
-completion will auto work, but not when the current build configuration of the
-project is custom build. And the options of compiler must compatible with
-clang, otherwise VIMCCC will not work correctly. VIMCCC currently work with
-libclang 3.0.
-
-
-There are several commands for VIMCCC.
-
-    VIMCCCQuickFix                      Retrieve clang diagnostics to quickfix,
-                                        if the diagnostics are not empty, open
-                                        the quickfix window.
-
-    VIMCCCSetArgs {arg1} [arg2] ...     Set clang compiler options
-
-    VIMCCCAppendArgs {arg1} [arg2] ...  Append clang compiler options
-
-    VIMCCCPrintArgs                     Print clang compiler options
-
-    VVIMCCCSettings                     Open 'VIMCCC Setting' dialog. This can
-                                        set the search paths for clang.
-
-==============================================================================
-6. Debugger                             *Videm-Debugger*
-
-Videm integrate pyclewn in it.
-Start to debug the active projcet, just press the icon in toolbar or run: >
-    :VDbgStart
-<
-NOTE: You must start degger before setting a breakpoint.
-
-------------------------------------------------------------------------------
-6.1. KeyBindings                        *Videm-Debugger-KeyBindings*
-
-    <CR>
-    <2-LeftMouse>                       Fold and unfold the watching var.
-                                        Only valid in var watching buffer.
-
-    dd                                  Delete watching var on the current line.
-                                        Only valid in var watching buffer.
-
-    p                                   Jump to parent of the expanded var.
-                                        Only valid in var watching buffer.
-
-    <C-p>                               Print the selecting text.
-                                        Only valid in the Visual mode and can
-                                        be changed by option
-                                        'videm.dbg.pyclewn.PrintVarKey'.
-
-    <C-w>                               Watch the selecting text.
-                                        Only valid in the Visual mode and can
-                                        be changed by option
-                                        'videm.dbg.pyclewn.PrintVarKey'.
-
-------------------------------------------------------------------------------
-6.2. Commands                           *Videm-Debugger-Commands*
-
-    VDbgStart                           Start debugger.
-
-    VDbgStop                            Stop debugger.
-
-    VDbgStepIn                          Step in.
-
-    VDbgNext                            Next.
-
-    VDbgStepOut                         Step out.
-
-    VDbgContinue                        Continue
-
-    VDbgToggleBp [1]                    Toggle breakpoint of the cursor line.
-                                        If supples 1 as an argument, a
-                                        hardware breakpoint will be added
-                                        instead of a normal one.
-
-Please run ':view ~/videm/doc/vpyclewn.txt' for more commands. If you are
-on Windows run ':view $VIM\videm\doc\vpyclewn.txt' instead.
-Because of avoiding conflicts with official pyclewn, currently the help file
-of pyclewn.txt rename to vpyclewn.txt and do not put into vim's doc folder.
-
-==============================================================================
-7. Options                              *Videm-Options*
+5. Options                              *Videm-Options*
 
 Right hand side is the default value, you can modify other values for the same
 type. If type of the right hand side value is integer, 0 for False, non-zero
 for True. 
 
+Example: >
+    let g:videm_user_options = {
+        \ 'videm.wsp.ShowBriefHelp'     : 0,
+        \ 'videm.wsp.SaveBeforeBuild'   : 1,
+    \ }
+
 ------------------------------------------------------------------------------
-7.1. Project Manager Options            *Videm-Options-ProjectManager*
+5.1. Project Manager Options            *Videm-Options-ProjectManager*
 
 *videm.wsp.ShowBriefHelp*              number (default 1)
     If set to 1, Videm will display a brief help in workspace buffer.
@@ -554,7 +208,7 @@ for True.
 *videm.wsp.HlCursorLine*               number (default 1)
     Highlight the workspace buffer cursor line.
 
-*videm.wsp.LinkToEditor*               number (default 1)
+*videm.wsp.LinkToEditor*               number (default 0)
     If not 0, when the curser put on one source file buffer, the cursor of
     worksapce buffer's cursor will go the the corresponding source file line.
 
@@ -641,9 +295,8 @@ for True.
 
 *videm.wsp.keybind.ShowMenu*           string (default ".")
     The key to popup general menu.
-*videm.wsp.keybind.PopupMenu*          string (default ",")
-    The key to popup gui menu, often it is set '<RightRelease>' if you wish to
-    use mouse.
+*videm.wsp.keybind.PopupMenu*          string (default "<RightRelease>")
+    The key to popup gui menu.
 
 *videm.wsp.keybind.RefreshBuffer*      string (default "R")
 
@@ -656,197 +309,10 @@ for True.
 *videm.wsp.keybind.ToggleHelpInfo*     string (default "<F1>")
     The key to toggle help info.
 
-------------------------------------------------------------------------------
-7.2. Calltips Options                   *Videm-Options-Calltips*
-
-*videm.common.calltips.DispCalltipsKey*    string (default "<A-p>")
-    The key to trigger function calltips.
-
-*videm.common.calltips.NextCalltipsKey*    string (default "<A-j>")
-    The key to display the next calltips.
-
-*videm.common.calltips.PrevCalltipsKey*    string (default "<A-k>")
-    The key to display the prev calltips.
-
-*videm.common.calltips.IndicateArgument*   number (default 1)
-Enable indicating which function argument is being edited. If you feel this
-feature is slow, you may set it to 0.
-
-*videm.common.calltips.EnableSyntaxTest*   number (default 0)
-    Enable syntax testing. As well known, syntax testing in vim is very slow,
-    if function calltips in your vim crash your speed, you may not set this
-    to 1.
-
-------------------------------------------------------------------------------
-7.3. OmniCpp Options                    *Videm-Options-OmniCpp*
-
-*videm.cc.omnicpp.MayCompleteDot*      number (default 1)
-    Auto trigger code completion when input '.' (dot).
-
-*videm.cc.omnicpp.MayCompleteArrow*    number (default 1)
-    Auto trigger code completion when input '>' (right arrow).
-
-*videm.cc.omnicpp.MayCompleteColon*    number (default 1)
-    Auto trigger code completion when input ':' (colon). >
-
-*videm.cc.omnicpp.ItemSelectMode*      number (default 2)
-    When completeopt does not contain longest option, this setting controls the
-    behaviour of the popup menu selection.
-      * 0 -> don't select first item.
-      * 1 -> select first item (inserting it to the text).
-      * 2 -> select first item (without inserting it to the text).
-
-*videm.cc.omnicpp.ReturnToCalltips*    number (default 1)
-    Map <CR> (return) key to auto trigger function calltips after select a
-    function item in the code completion popup menu.
-
-*videm.cc.omnicpp.UseLibCxxParser*     number (default 0)
-    Use libCxxParser.so, a simple C++ parser written in C++. It is very fast and
-    provide more accurate local variables parsing. You need compile and install it
-    firstly if you want it.
-
-*videm.cc.omnicpp.LibCxxParserPath*    string (default
-                                                "~/videm/lib/libCxxParser.so")
-    The libCxxParser.so path. On Windows, you need set this variable correctly.
-
-*videm.cc.omnicpp.GotoDeclKey*         string (default "<C-p>")
-    Goto declaration of symbols key.
-    It does not need cscope and is more accurate.
-    NOTE: You should keep the ctags database is up to date.
-
-*videm.cc.omnicpp.GotoImplKey*         string (default "<C-]>")
-    Goto implementation of symbols key. It also jump to included file when locates
-    the cursor in '#include' line.
-    It does not need cscope and is more accurate.
-    NOTE: You should keep the ctags database is up to date.
-
-*videm.cc.omnicpp.InclAllCondCmplBrch* number (default 1)
-    Include all condition compilation branches, also, #if 0 is not included.
-    For example, if this option value is not 0, the following code will include
-    'a' and 'b' symbols.
-        #if 1
-        int a;
-        #else
-        int b;
-        #endif
-
-------------------------------------------------------------------------------
-7.4. VIMCCC Options                     *Videm-Options-VIMCCC*
-
-If enable VIMCCC without Videm. >
-    let g:VIMCCC_Enable = 0
-
-*videm.cc.vimccc.ClangLibraryPath*     string (default "")
-    Clang library path.
-
-*videm.cc.vimccc.CompleteMacros*       number (default 0)
-    If equal to 1, clang should complete preprocessor macros and constants.
-
-*videm.cc.vimccc.CompletePatterns*     number (default 0)
-    If equal to 1, clang should complete code patterns, i.e loop constructs
-    etc.
-
-*videm.cc.vimccc.IgnoreCase*           number (default &ignorecase)
-    Ignore case in code completion.
-
-*videm.cc.vimccc.MayCompleteDot*       number (default 1)
-    Auto trigger code completion when input '.' (dot).
-    let g:VIMCCC_MayCompleteDot = 1
-
-*videm.cc.vimccc.MayCompleteArrow*     number (default 1)
-    Auto trigger code completion when input '>' (right arrow).
-
-*videm.cc.vimccc.MayCompleteColon*     number (default 1)
-    Auto trigger code completion when input ':' (colon).
-
-*videm.cc.vimccc.ItemSelectionMode*    number (default 2)
-    When completeopt does not contain longest option, this setting controls the
-    behaviour of the popup menu selection.
-      * 0 -> don't select first item.
-      * 1 -> select first item (inserting it to the text).
-      * 2 -> select first item (without inserting it to the text).
-
-*videm.cc.vimccc.MapReturnToDispCalltips*  number (default 1)
-    Map <CR> (return) key to auto trigger function calltips after select a
-    function item in the code completion popup menu.
-
-*videm.cc.vimccc.GotoDeclKey*          string (default "<C-p>")
-    Goto declaration of symbols key.
-    NOTE: Currently, it does not work as mean of name as libclang limitation.
-     *  For a cursor that is a reference, retrieve a cursor representing the
-     *  entity that it references.
-
-*videm.cc.vimccc.GotoImplKey*          string (default "<C-]>")
-    Goto implementation of symbols key. It also jump to included file when
-    locates the cursor in '#include' line.
-    NOTE: Currently, it does not work as mean of name as libclang limitation.
-     *  For a cursor that is either a reference to or a declaration
-     *  of some entity, retrieve a cursor that describes the definition of
-     *  that entity.
-    NOTE: Currently, it can goto implementation of symbols, but you need goto
-    the declaration of symbols, and then goto the implementation, as liblang
-    limitation.
-
-*videm.cc.vimccc.AutoPopupMenu*        number (default 1)
-    Auto popup code completion menu, this is an awesome feature.
-    So you do not need to press <C-x><C-o> to trigger an code completion, just
-    typing.
-
-*videm.cc.vimccc.AutoTriggerCharCount* number (default 2)
-    When g:VIMCCC_AutoPopupMenu is not 0, this defines the minimum chars to
-    trigger an code completion.
-
-------------------------------------------------------------------------------
-7.5. Debugger Options                   *Videm-Options-Debugger*
-
-*videm.dbg.pyclewn.FrameSignBackground*    string (default "DarkMagenta")
-    The frame sign background color, can be #xxxxxx format.
-
-*videm.dbg.pyclewn.SaveBpInfo*         number (default 1)
-    Save breakpoints. Currently, Videm can only treats all breakpoints as
-    normal location breakpoint, it means Videm only saves breakpoints as
-    command "break {file}:{line}". So the condition of breakpoint will be lost.
-
 ==============================================================================
-8. Tips                                 *Videm-Tips*
+6. Tips                                 *Videm-Tips*
 ------------------------------------------------------------------------------
-8.1. Configuration Sample               *Videm-ConfigSample*
-
-If you wish use gvim and mouse, the following configuration will be helpful >
-    set nocompatible
-    filetype plugin indent on
-    syntax on
-
-    set mouse=a
-    set pumheight=5
-
-    " This global variable is used to set the user's options for Videm by Videm
-    let g:videm_user_options = {
-        \ 'videm.Compatible'                   : 0,
-        \ 'videm.wsp.ShowBriefHelp'            : 0,
-        \ 'videm.wsp.keybind.PopupMenu'        : "<RightRelease>",
-        \ 'videm.wsp.LinkToEditor'             : 0,
-        \ 'videm.wsp.SaveBeforeBuild'          : 1,
-        \
-        \ 'videm.common.calltips.IndicateArgument' : 0,
-        \
-        \ 'videm.cc.omnicpp.UseLibCxxParser'       : 1,
-        \ 'videm.cc.omnicpp.InclAllCondCmplBrch'   : 1,
-    \ }
-    let g:videm_user_options['videm.wsp.SymbolDatabase'] = "gtags"
-
-If you wish to use VIMCCC >
-    let g:videm_user_options['videm.wsp.CodeCompleteEngine'] = "vimccc"
-    let g:videm_user_options['videm.cc.vimccc.CompleteMacros'] = 1
-
-Suggested symbol searching key bindings >
-    nnoremap <C-\>g :VSearchSymbolDefinition <C-R>=expand("<cword>")<CR><CR>
-    nnoremap <C-\>p :VSearchSymbolDeclaration <C-R>=expand("<cword>")<CR><CR>
-    nnoremap <C-\>c :VSearchSymbolCalling <C-R>=expand("<cword>")<CR><CR>
-    nnoremap <C-\>s :VSearchSymbolReference <C-R>=expand("<cword>")<CR><CR>
-
-------------------------------------------------------------------------------
-8.2. Use cl.exe On Windows              *Videm-Windows*
+6.1. Use cl.exe On Windows              *Videm-Windows*
 
 NOTE: This have not been test currently.
 
@@ -863,23 +329,7 @@ NOTE: Compile the program with cl.exe, this implies that Videm can not debug
       the program with gdb, use windbg instead.
 
 ------------------------------------------------------------------------------
-8.3. Search Paths For Parser            *Videm-SearchPaths*
-
-If you update gcc, the search paths for parser will need to be updated also.
-Run the following command and find the search list of gcc, and then update the
-search paths for parser in 'Videm -> (OmniCpp Tags|VIMCCC) Settings' . >
-     echo "" | gcc -v -x c++ -fsyntax-only - 2>&1
-
-------------------------------------------------------------------------------
-8.4. Trouble Shooting                   *Videm-TroubleShooting*
-
-    Q: Can I use VIMCCC as standalone plugin? ~
-    A: Yes, just run VIMCCCInitForcibly command to start. Run VIMCCCSetArgs
-       and VIMCCCAppendArgs commands to setup the source file compile flags.
-
-    Q: VIMCCC does not seem to work, what's problem? ~
-    A: Be sure you have inited VIMCCC, and run VIMCCCQuickFix to see what's
-       wrong.
+6.2. Trouble Shooting                   *Videm-TroubleShooting*
 
     Q: Why my customize options not work? ~
     A: If you use pathogen plugin, make sure run 'call pathogen#infect()'
@@ -892,71 +342,11 @@ search paths for parser in 'Videm -> (OmniCpp Tags|VIMCCC) Settings' . >
        to change vimdialog keybinding. The same issue as "Save" action, it's
        option name is 'g:VimDialogSaveKey'.
 
-    Q: Why OmniCpp does not seem to work properly? ~
-    A: Make sure you parse workspace before code completion, just open
-       workspace popup menu (put the cursor in workspace line and press '.')
-       and select 'Parse Workspace' like item. Currently Videm only parse file
-       automatically after you save it, otherwise Videm do not parse any file
-       automatically, so you must parse workspace manually, for example, after
-       add new files, after change search paths, after change compile flags,
-       etc.
-
-    Q: Why OmniCpp can not find some symbols? ~
-    A: Try to set "videm.cc.omnicpp.InclAllCondCmplBrch" to 0 and reparse the
-       file after restart Videm. Because some macros will disturb OmniCpp. For
-       example like following: >
-    void func(void)
-    {
-    #if CASE1
-       if (cond1) {
-    #else
-       if (cond2) {
-    #endif
-           do_something;
-       }
-    }
-    void func2(void);
-<
-       When "videm.cc.omnicpp.InclAllCondCmplBrch" is not 0, OmniCpp will
-       follow all preprocessor branch, so the symbol "func2" will not be
-       parsed. If you do not want to change OmniCpp options, change your code.
-
-    Q: How can I keep OmniCpp tags database up-to-date? ~
-    A: Videm will parse file after saving it, but there is some case Videm
-       will not parse new files. These are all cases:
-        * Added new projects
-        * Added new files
-        * Modified "OmniCpp Tags Settings...""
-        * Modified "Workspace Settings..."
-        * Changed workspace build configuration
-        * Modified "Settings" of project
-       So, after the above actions, please select a "Parse Workspace" menu
-       item manually.
-
-    Q: What different about "Parse Workspace" series menu items? ~
-    A:  * Parse Workspace (Full, Async)
-            Regenerate the tags database and parse all workspace files and all
-            headers included by workspace files asynchronously.
-
-        * Parse Workspace (Quick, Async)
-            Parse all workspace files and all headers included by workspace
-            files asynchronously. Needless parsing will be ignored.
-
-        * Parse Workspace (Full, Shallow)
-            Regenerate the tags database and parse all workspace files
-            synchronously.
-
-        * Parse Workspace (Quick, Shallow)
-            Parse all workspace files synchronously. Needless parsing will be
-            ignored.
-
 ==============================================================================
-9. Limitation                           *Videm-Limitation*
+7. Limitation                           *Videm-Limitation*
 ------------------------------------------------------------------------------
 On Windows, a general file and path which pattern is '[A-Za-z0-9_\-+.]\+' are
-supported only. Any special file and path name will cause some problems,
-especially in debugging. And Chinese file and path name are not supported
-because of string encoding issue of python 2.x.
+supported only. Any special file and path name will cause some problems.
 
 On Linux, special file and path name are partially supported, but the debugger
 only supports general file and path name.

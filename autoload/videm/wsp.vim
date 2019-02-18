@@ -78,7 +78,7 @@ call s:InitVariable("g:VLWorkspaceBufName", '== VidemWorkspace ==')
 call s:InitVariable("g:VLWorkspaceShowLineNumbers", 0)
 call s:InitVariable("g:VLWorkspaceHighlightCursorline", 1)
 " 若为 1，编辑项目文件时，在工作空间的光标会自动定位到对应的文件所在的行
-call s:InitVariable('g:VLWorkspaceLinkToEidtor', 1)
+call s:InitVariable('g:VLWorkspaceLinkToEidtor', 0)
 call s:InitVariable('g:VLWorkspaceEnableMenuBarMenu', 1)
 call s:InitVariable('g:VLWorkspaceEnableToolBarMenu', 1)
 call s:InitVariable('g:VLWorkspaceDispWspNameInTitle', 1)
@@ -159,7 +159,7 @@ let s:DefaultSettings = {
     \ 'videm.wsp.BufName'          : '== VidemWorkspace ==',
     \ 'videm.wsp.ShowLineNum'      : 0,
     \ 'videm.wsp.HlCursorLine'     : 1,
-    \ 'videm.wsp.LinkToEditor'     : 1,
+    \ 'videm.wsp.LinkToEditor'     : 0,
     \ 'videm.wsp.EnableMenuBar'    : 1,
     \ 'videm.wsp.EnablePopUpMenu'  : 1,
     \ 'videm.wsp.EnableToolBar'    : 1,
@@ -170,7 +170,7 @@ let s:DefaultSettings = {
     \ 'videm.wsp.ShowBriefHelp'    : 1,
     \
     \ 'videm.wsp.keybind.ShowMenu'         : '.',
-    \ 'videm.wsp.keybind.PopupMenu'        : ',',
+    \ 'videm.wsp.keybind.PopupMenu'        : '<RightRelease>',
     \ 'videm.wsp.keybind.OpenNode'         : 'o',
     \ 'videm.wsp.keybind.OpenNode2'        : 'go',
     \ 'videm.wsp.keybind.OpenNodeNewTab'   : 't',
