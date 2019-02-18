@@ -30,7 +30,7 @@ provided by other plugins, such as terminal-debug (`:h terminal-debug`),
 For vim-plug
 
 ```viml
-Plug 'epheien/termdbg'
+Plug 'epheien/videm'
 ```
 
 For manual installation
