@@ -44,3 +44,7 @@ Run `:VidemOpen` to start, and press `.` to show operation menus.
 
 Run `:h videm.txt` for more information.
 
+## Screenshots
+
+![Build](https://ws2.sinaimg.cn/large/006tKfTcgy1g0aiabz8lqj313z0u0nfo.jpg)
+![Debug](https://ws1.sinaimg.cn/large/006tKfTcgy1g0aiaeacrnj313z0u0qnk.jpg)
