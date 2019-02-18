@@ -834,9 +834,12 @@ function! s:Build_exit_cb(channel, retcode) dict
     " 以下为读入 quickfix
     " NOTE: 终端运行的命令，换行符貌似都是 "\r\n"
     let lines = split(join(self.content, ''), "\r\\?\n")
+    call setqflist([], 'r')
+    caddexpr string(self.argv)
     for line in lines
         caddexpr line
     endfor
+    caddexpr printf('[Finished in %d seconds with code %d]', localtime() - self.starttime, self.exitval)
 
     let found = 0
     for winnr in range(1, winnr('$'))
@@ -865,7 +868,7 @@ function! vlutils#TermRun(argv, ...) "{{{2
     endif
 
     let opts = get(a:000, 0, {})
-    let d = {'content': [], 'bufnr': 0, 'winid': win_getid(),
+    let d = {'argv': a:argv, 'content': [], 'bufnr': 0, 'winid': win_getid(),
             \ 'quickfix': get(opts, 'quickfix', 0)}
     let curwin = 0
     let term_name = '== VidemTerminal =='
@@ -885,6 +888,7 @@ function! vlutils#TermRun(argv, ...) "{{{2
         endif
     endfor
 
+    let d['starttime'] = localtime()
     let bufnr = term_start(
                 \ a:argv,
                 \ {
