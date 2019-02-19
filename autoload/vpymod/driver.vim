@@ -16,10 +16,10 @@ function vpymod#driver#Init()
     endif
     let s:init = 1
 
-    pyx import sys
-    pyx import os.path
-    pyx import vim
-    pyx sys.path.append(os.path.dirname(vim.eval('s:sfile')))
+    py3 import sys
+    py3 import os.path
+    py3 import vim
+    py3 sys.path.append(os.path.dirname(vim.eval('s:sfile')))
 endfunction
 
 " vim: fdm=marker fen et sw=4 sts=4 fdl=1

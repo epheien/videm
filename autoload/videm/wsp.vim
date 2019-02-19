@@ -467,7 +467,7 @@ function! g:VLWGetAllFiles() "{{{2
     let files = []
     if g:VLWorkspaceHasStarted
         " FIXME: Windows 下，所有反斜扛(\)加倍，因为 python 输出 '\\'
-        pyx vim.command('let files = %s' 
+        py3 vim.command('let files = %s' 
                     \% [i for i in ws.VLWIns.GetAllFiles(True)])
     endif
     return files
@@ -700,10 +700,10 @@ function! s:OnceInit() "{{{2
     endif
 
     " 这几个全局变量是常驻的，因为插件会引用到
-    pyx ws = VimLiteWorkspace()
+    py3 ws = VimLiteWorkspace()
     " 以后统一使用 videm
-    pyx videm.wsp = ws
-    pyx videm.org.cpp = ws
+    py3 videm.wsp = ws
+    py3 videm.org.cpp = ws
 
     " 载入插件，应该在初始化所有公共设施后、初始化任何工作区实例前执行
     call s:LoadPlugin()
@@ -756,14 +756,14 @@ function! s:InitVLWorkspace(file) abort " 初始化 {{{2
 
     " 如果之前已经启动过，而现在 sFile 为空的话，直接打开原来的缓冲区即可
     if sFile ==# '' && g:VLWorkspaceHasStarted
-        pyx ws.CreateWindow()
-        pyx ws.SetupStatusLine()
+        py3 ws.CreateWindow()
+        py3 ws.SetupStatusLine()
         return
     endif
 
     " 如果之前启动过，无论如何都要先关了旧的
     if g:VLWorkspaceHasStarted
-        pyx ws.CloseWorkspace()
+        py3 ws.CloseWorkspace()
     endif
 
     " 开始
@@ -786,7 +786,7 @@ function! s:InitVLWorkspace(file) abort " 初始化 {{{2
         let sAnswer = input("(y/n): ")
         echohl None
         if sAnswer =~? '^y'
-            pyx VLWorkspace.ConvertWspFileToNewFormat(vim.eval('sFile'))
+            py3 VLWorkspace.ConvertWspFileToNewFormat(vim.eval('sFile'))
             let sFile = fnamemodify(sFile, ':r') . '.' 
                         \. g:VLWorkspaceWspFileSuffix
             redraw
@@ -799,21 +799,21 @@ function! s:InitVLWorkspace(file) abort " 初始化 {{{2
     call videm#wsp#WspConfSave(s:WspConfBakp)
 
     " 打开工作区文件，初始化全局变量
-    pyx ws = VimLiteWorkspace()
+    py3 ws = VimLiteWorkspace()
     " 以后统一使用 videm
-    pyx videm.wsp = ws
-    pyx videm.org.cpp = ws
-    pyx ws.OpenWorkspace(vim.eval('sFile'))
-    pyx ws.RefreshBuffer()
+    py3 videm.wsp = ws
+    py3 videm.org.cpp = ws
+    py3 ws.OpenWorkspace(vim.eval('sFile'))
+    py3 ws.RefreshBuffer()
     if videm#settings#Get('videm.wsp.ShowBriefHelp')
         call s:ToggleBriefHelp(1)
     endif
 
     " 用于项目设置的全局变量
-    pyx g_projects = {}
-    pyx g_settings = {}
-    pyx g_bldConfs = {}
-    pyx g_glbBldConfs = {}
+    py3 g_projects = {}
+    py3 g_settings = {}
+    py3 g_bldConfs = {}
+    py3 g_glbBldConfs = {}
 
     " 重置帮助信息开关
     let b:bHelpInfoOn = 0
@@ -824,7 +824,7 @@ function! s:InitVLWorkspace(file) abort " 初始化 {{{2
 endfunction
 "}}}
 function! GetWspConfName() "{{{2
-    pyx vim.command("return %s" % ToVimEval(ws.cache_confName))
+    py3 vim.command("return %s" % ToVimEval(ws.cache_confName))
 endfunction
 "}}}
 " 创建窗口，会确保一个标签页只打开一个工作空间窗口
@@ -977,7 +977,7 @@ function! s:LocateFile(fileName) "{{{2
         return 1
     endif
 
-    pyx vim.command("let l:path = %s" % ToVimEval(
+    py3 vim.command("let l:path = %s" % ToVimEval(
                 \ws.VLWIns.GetWspFilePathByFileName(vim.eval('a:fileName'))))
     if l:path ==# ''
         " 文件不属于工作空间, 返回
@@ -985,7 +985,7 @@ function! s:LocateFile(fileName) "{{{2
     endif
 
     " 当前光标所在文件即为正在编辑的文件, 直接返回
-    pyx if ws.VLWIns.GetFileByLineNum(ws.window.cursor[0], True)
+    py3 if ws.VLWIns.GetFileByLineNum(ws.window.cursor[0], True)
                 \== vim.eval('a:fileName'): vim.command('return 3')
 
     if l:curWinNum != l:winNum
@@ -1037,10 +1037,10 @@ function s:Autocmd_WorkspaceEditorOptions() "{{{2
         return
     endif
     " 不是工作区的文件就直接跳出
-    pyx if not ws.VLWIns.IsWorkspaceFile(vim.eval("sFile")):
+    py3 if not ws.VLWIns.IsWorkspaceFile(vim.eval("sFile")):
                 \vim.command('return')
 
-    pyx vim.command("let lEditorOptions = %s" 
+    py3 vim.command("let lEditorOptions = %s" 
                 \% ToVimEval(ws.VLWSettings.GetEditorOptions()))
 
     if empty(lEditorOptions)
@@ -1156,7 +1156,7 @@ function! s:GetVisualSelection() "{{{2
 endfunction
 "}}}
 function! s:IsWorkspaceFile(file) "{{{2
-    pyx if ws.VLWIns.IsWorkspaceFile(vim.eval("a:file")):
+    py3 if ws.VLWIns.IsWorkspaceFile(vim.eval("a:file")):
             \ vim.command('return 1')
     return 0
 endfunction
@@ -1189,97 +1189,97 @@ endfunction
 "{{{1
 function! s:OnMouseDoubleClick(...) "{{{2
     let sKey = get(a:000, 0, '')
-    pyx ws.OnMouseDoubleClick(vim.eval("sKey"))
+    py3 ws.OnMouseDoubleClick(vim.eval("sKey"))
 endfunction
 
 function! s:OnRightMouseClick() "{{{2
-    pyx ws.OnRightMouseClick()
+    py3 ws.OnRightMouseClick()
 endfunction
 
 
 function! s:ChangeBuildConfig() "{{{2
-    pyx ws.ChangeBuildConfig()
+    py3 ws.ChangeBuildConfig()
 endfunction
 
 
 function! s:ShowMenu() "显示菜单 {{{2
-    pyx ws.ShowMenu()
+    py3 ws.ShowMenu()
 endfunction
 
 
 function! videm#wsp#MenuOperation(menu) "菜单操作 {{{2
     "menu 作为 id, 工作空间菜单形如 'W_Create a New Project'
-    pyx ws.MenuOperation(vim.eval('a:menu'))
+    py3 ws.MenuOperation(vim.eval('a:menu'))
 endfunction
 
 
 function! s:ExpandNode() "{{{2
-    pyx ws.ExpandNode()
+    py3 ws.ExpandNode()
 endfunction
 
 
 function! s:FoldNode() "{{{2
-    pyx ws.FoldNode()
+    py3 ws.FoldNode()
 endfunction
 
 
 function! s:GotoParent() "{{{2
-    pyx ws.GotoParent()
+    py3 ws.GotoParent()
 endfunction
 
 
 function! s:GotoRoot() "{{{2
-    pyx ws.GotoRoot()
+    py3 ws.GotoRoot()
 endfunction
 
 
 function! s:GotoNextSibling() "{{{2
-    pyx ws.GotoNextSibling()
+    py3 ws.GotoNextSibling()
 endfunction
 
 
 function! s:GotoPrevSibling() "{{{2
-    pyx ws.GotoPrevSibling()
+    py3 ws.GotoPrevSibling()
 endfunction
 
 
 function! s:AddFileNode(lnum, name) "{{{2
-    pyx ws.AddFileNode(vim.eval('a:lnum'), vim.eval('a:name'))
+    py3 ws.AddFileNode(vim.eval('a:lnum'), vim.eval('a:name'))
 endfunction
 
 
 function! s:AddFileNodes(lnum, names) "批量添加文件节点 {{{2
-    pyx ws.AddFileNodes(vim.eval('a:lnum'), vim.eval('a:names'))
+    py3 ws.AddFileNodes(vim.eval('a:lnum'), vim.eval('a:names'))
 endfunction
 
 
 function! s:AddVirtualDirNode(lnum, name) "{{{2
-    pyx ws.AddVirtualDirNode(vim.eval('a:lnum'), vim.eval('a:name'))
+    py3 ws.AddVirtualDirNode(vim.eval('a:lnum'), vim.eval('a:name'))
 endfunction
 
 
 function! s:AddProjectNode(lnum, projFile) "{{{2
-    pyx ws.AddProjectNode(vim.eval('a:lnum'), vim.eval('a:projFile'))
+    py3 ws.AddProjectNode(vim.eval('a:lnum'), vim.eval('a:projFile'))
 endfunction
 
 
 function! s:DeleteNode(lnum) "{{{2
-    pyx ws.DeleteNode(vim.eval('a:lnum'))
+    py3 ws.DeleteNode(vim.eval('a:lnum'))
 endfunction
 
 
 function! s:RefreshLines(start, end) "刷新数行，不包括 end 行 {{{2
-    pyx ws.RefreshLines(vim.eval('a:start'), vim.eval('a:end'))
+    py3 ws.RefreshLines(vim.eval('a:start'), vim.eval('a:end'))
 endfunction
 
 function! s:RefreshStatusLine() "{{{2
-    pyx ws.RefreshStatusLine()
+    py3 ws.RefreshStatusLine()
 endfunction
 
 function! s:RefreshBuffer() "{{{2
     " 跳至工作区缓冲区窗口
     let nOrigWinNr = winnr()
-    pyx vim.command("let nWspBufNum = %d" % ws.bufNum)
+    py3 vim.command("let nWspBufNum = %d" % ws.bufNum)
     let nWspWinNr = bufwinnr(nWspBufNum)
     if nWspWinNr == -1
         " 没有打开工作区窗口
@@ -1302,7 +1302,7 @@ function! s:RefreshBuffer() "{{{2
 
     call s:ToggleHelpInfo(0)
     call s:ToggleBriefHelp(0)
-    pyx ws.RefreshBuffer()
+    py3 ws.RefreshBuffer()
 
     if bNeedBriefHelp
         call s:ToggleBriefHelp(1)
@@ -1456,7 +1456,7 @@ function! s:ToggleHelpInfo(...) "{{{2
         setlocal modifiable
         exec 'silent! 1,'.(1+len(lHelpInfo)-1) . ' delete _'
         setlocal nomodifiable
-        pyx ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() - 
+        py3 ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() - 
                 \ int(vim.eval('len(lHelpInfo)')))
 
         if exists('b:dOrigView')
@@ -1472,7 +1472,7 @@ function! s:ToggleHelpInfo(...) "{{{2
         setlocal modifiable
         call append(0, lHelpInfo)
         setlocal nomodifiable
-        pyx ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() + 
+        py3 ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() + 
                 \ int(vim.eval('len(lHelpInfo)')))
         call cursor(1, 1)
     else
@@ -1509,7 +1509,7 @@ function! s:ToggleBriefHelp(...) "{{{2
         setlocal modifiable
         exec printf('silent! 1,%d delete _', len(lHelpInfo))
         setlocal nomodifiable
-        pyx ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() - 
+        py3 ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() - 
                 \ int(vim.eval('len(lHelpInfo)')))
     elseif flag > 0
         " on
@@ -1520,7 +1520,7 @@ function! s:ToggleBriefHelp(...) "{{{2
         setlocal modifiable
         call append(0, lHelpInfo)
         setlocal nomodifiable
-        pyx ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() + 
+        py3 ws.VLWIns.SetWorkspaceLineNum(ws.VLWIns.GetRootLineNum() + 
                 \ int(vim.eval('len(lHelpInfo)')))
     else
         if b:bBriefHelpOn
@@ -1537,7 +1537,7 @@ function! s:CutOneNode() "{{{2
     if answer !~? '^y'
         return
     endif
-    pyx ws.CutNodes(int(vim.eval('row')), 1)
+    py3 ws.CutNodes(int(vim.eval('row')), 1)
 endfunction
 "}}}
 function! s:CutNodes() "{{{2
@@ -1545,12 +1545,12 @@ function! s:CutNodes() "{{{2
     let end = line("'>")
     let length = end - start + 1
 
-    pyx ws.CutNodes(int(vim.eval('start')), int(vim.eval('length')))
+    py3 ws.CutNodes(int(vim.eval('start')), int(vim.eval('length')))
 endfunction
 "}}}
 function! s:PasteNodes() "{{{2
     let row = line('.')
-    pyx ws.PasteNodes(int(vim.eval('row')))
+    py3 ws.PasteNodes(int(vim.eval('row')))
 endfunction
 "}}}
 "}}}1
@@ -1558,41 +1558,41 @@ endfunction
 "{{{1
 function! s:BuildProject(projName) "{{{2
     "au! BufReadPost quickfix setlocal nonu nowrap | nunmap <2-LeftMouse>
-    pyx ws.BuildProject(vim.eval('a:projName'))
+    py3 ws.BuildProject(vim.eval('a:projName'))
 endfunction
 
 function! s:CleanProject(projName) "{{{2
-    pyx ws.CleanProject(vim.eval('a:projName'))
+    py3 ws.CleanProject(vim.eval('a:projName'))
 endfunction
 
 function! s:RebuildProject(projName) "{{{2
-    pyx ws.RebuildProject(vim.eval('a:projName'))
+    py3 ws.RebuildProject(vim.eval('a:projName'))
 endfunction
 
 function! s:RunProject(projName) "{{{2
-    pyx ws.RunProject(vim.eval('a:projName'))
+    py3 ws.RunProject(vim.eval('a:projName'))
 endfunction
 
 function! s:BuildActiveProject() "{{{2
     if g:VLWorkspaceHasStarted
-        pyx ws.BuildActiveProject()
+        py3 ws.BuildActiveProject()
     endif
 endfunction
 function! s:CleanActiveProject() "{{{2
     if g:VLWorkspaceHasStarted
-        pyx ws.CleanActiveProject()
+        py3 ws.CleanActiveProject()
     endif
 endfunction
 function! s:RunActiveProject() "{{{2
     if g:VLWorkspaceHasStarted
-        pyx ws.RunActiveProject()
+        py3 ws.RunActiveProject()
     endif
 endfunction
 
 
 function! s:BuildAndRunActiveProject() "{{{2
     if g:VLWorkspaceHasStarted
-        pyx ws.BuildAndRunActiveProject()
+        py3 ws.BuildAndRunActiveProject()
     endif
 endfunction
 
@@ -1603,7 +1603,7 @@ endfunction
 function! s:CreateWorkspacePostCbk(dlg, data) "{{{2
     if a:data ==# 'True'
         "call s:RefreshBuffer()
-        pyx ws.ReloadWorkspace()
+        py3 ws.ReloadWorkspace()
     endif
 endfunction
 
@@ -1654,11 +1654,11 @@ function! s:CreateWorkspace(...) "{{{2
         if a:1.type == g:VC_DIALOG && sWspName !=# ''
             "echo sWspName
             "echo l:file
-            pyx ret = ws.VLWIns.CreateWorkspace(vim.eval('sWspName'), 
+            py3 ret = ws.VLWIns.CreateWorkspace(vim.eval('sWspName'), 
                         \os.path.dirname(vim.eval('l:file')))
-            "pyx if ret: ws.LoadWspSettings()
-            "pyx if ret: ws.OpenTagsDatabase()
-            pyx vim.command('call dialog.ConnectPostCallback('
+            "py3 if ret: ws.LoadWspSettings()
+            "py3 if ret: ws.OpenTagsDatabase()
+            py3 vim.command('call dialog.ConnectPostCallback('
                         \'s:GetSFuncRef("s:CreateWorkspacePostCbk"), "%s")' 
                         \% str(ret))
         endif
@@ -1873,14 +1873,14 @@ function! s:CreateProject(...) abort "{{{2
             "echo l:categories
             "echo l:templateFile
             if l:templateFile !=# ''
-                pyx ret = ws.VLWIns.CreateProjectFromTemplate(
+                py3 ret = ws.VLWIns.CreateProjectFromTemplate(
                             \vim.eval('l:projName'), 
                             \os.path.dirname(vim.eval('l:file')), 
                             \vim.eval('l:templateFile'), 
                             \vim.eval('l:cmpType'))
             else
                 " 没有项目模板，默认创建 'Executable' 的空项目
-                pyx ret = ws.VLWIns.CreateProject(
+                py3 ret = ws.VLWIns.CreateProject(
                             \vim.eval('l:projName'), 
                             \os.path.dirname(vim.eval('l:file')), 
                             \vim.eval('l:projType'), 
@@ -1888,9 +1888,9 @@ function! s:CreateProject(...) abort "{{{2
             endif
 
             " 创建失败
-            pyx if isinstance(ret, bool) and not ret: vim.command('return 1')
+            py3 if isinstance(ret, bool) and not ret: vim.command('return 1')
 
-            pyx vim.command('call dialog.ConnectPostCallback('
+            py3 vim.command('call dialog.ConnectPostCallback('
                         \'s:GetSFuncRef("s:CreateProjectPostCbk"), %d)' % ret)
         endif
 
@@ -1910,7 +1910,7 @@ function! s:CreateProject(...) abort "{{{2
     call ctl.SetValue(getcwd())
 
     if g:VLWorkspaceHasStarted
-        pyx vim.command("call ctl.SetValue(%s)" % ToVimEval(ws.VLWIns.dirName))
+        py3 vim.command("call ctl.SetValue(%s)" % ToVimEval(ws.VLWIns.dirName))
     endif
 
     call ctl.SetId(1)
@@ -2038,7 +2038,7 @@ endfunction
 " ========== Swap Source / Header =========
 function! s:SwapSourceHeader() "{{{2
     let sFile = expand("%:p")
-    pyx ws.SwapSourceHeader(vim.eval("sFile"))
+    py3 ws.SwapSourceHeader(vim.eval("sFile"))
 endfunction
 "}}}
 " ========== Find Files =========
@@ -2050,7 +2050,7 @@ function! s:FindFiles(sMatchName, ...) "{{{2
         let sMatchName = input("Input name to be matched:\n")
         echohl None
     endif
-    pyx ws.FindFiles(vim.eval('sMatchName'), int(vim.eval('bNoCase')))
+    py3 ws.FindFiles(vim.eval('sMatchName'), int(vim.eval('bNoCase')))
 endfunction
 "}}}
 " ========== Open Include File =========
@@ -2071,18 +2071,18 @@ function! s:OpenIncludeFile() "{{{2
     let sCurFile = expand('%:p')
     let sFile = ''
 
-    pyx l_project = ws.VLWIns.GetProjectByFileName(vim.eval('sCurFile'))
-    pyx l_searchPaths = ws.GetParserSearchPaths()
-    pyx if l_project: l_searchPaths += ws.GetProjectIncludePaths(
+    py3 l_project = ws.VLWIns.GetProjectByFileName(vim.eval('sCurFile'))
+    py3 l_searchPaths = ws.GetParserSearchPaths()
+    py3 if l_project: l_searchPaths += ws.GetProjectIncludePaths(
                 \l_project.GetName())
     " 如果没有所属的项目, 就用当前活动的项目的头文件搜索路径
-    pyx if not l_project: l_searchPaths += ws.GetActiveProjectIncludePaths()
-    pyx vim.command("let sFile = %s" % ToVimEval(IncludeParser.ExpandIncludeFile(
+    py3 if not l_project: l_searchPaths += ws.GetActiveProjectIncludePaths()
+    py3 vim.command("let sFile = %s" % ToVimEval(IncludeParser.ExpandIncludeFile(
                 \l_searchPaths,
                 \vim.eval('sInclude'),
                 \int(vim.eval('bUserInclude')))))
-    pyx del l_searchPaths
-    pyx del l_project
+    py3 del l_searchPaths
+    py3 del l_project
 
     if sFile !=# ''
         exec 'e ' . sFile
@@ -2271,8 +2271,8 @@ function! s:ChangeEditingEnvVarSetCbk(ctl, data) "{{{2
 endfunction
 
 function! s:SaveEnvVarSettingsCbk(dlg, data) "{{{2
-    pyx ins = EnvVarSettingsST.Get()
-    pyx ins.DeleteAllEnvVarSets()
+    py3 ins = EnvVarSettingsST.Get()
+    py3 ins.DeleteAllEnvVarSets()
     let sCurSet = ''
     for ctl in a:dlg.controls
         if ctl.GetId() == s:ID_EnvVarSettingsEnvVarSets
@@ -2283,25 +2283,25 @@ function! s:SaveEnvVarSettingsCbk(dlg, data) "{{{2
                     " 跳过 data 中的 sCurSet 的数据, 应该用 table 控件的数据
                     continue
                 endif
-                pyx ins.NewEnvVarSet(vim.eval("item[0]"))
+                py3 ins.NewEnvVarSet(vim.eval("item[0]"))
                 for expr in item[1]
-                    pyx ins.AddEnvVar(vim.eval("item[0]"), vim.eval("expr"))
+                    py3 ins.AddEnvVar(vim.eval("item[0]"), vim.eval("expr"))
                 endfor
             endfor
         elseif ctl.GetId() == s:ID_EnvVarSettingsEnvVarList
             let table = ctl.table
-            pyx ins.NewEnvVarSet(vim.eval("sCurSet"))
-            pyx ins.ClearEnvVarSet(vim.eval("sCurSet"))
+            py3 ins.NewEnvVarSet(vim.eval("sCurSet"))
+            py3 ins.ClearEnvVarSet(vim.eval("sCurSet"))
             for line in table
-                pyx ins.AddEnvVar(vim.eval("sCurSet"), vim.eval("line[0]"))
+                py3 ins.AddEnvVar(vim.eval("sCurSet"), vim.eval("line[0]"))
             endfor
         endif
     endfor
     " 保存
-    pyx ins.Save()
-    pyx ins._ExpandSelf()
-    pyx del ins
-    pyx ws.VLWIns.TouchAllProjectFiles()
+    py3 ins.Save()
+    py3 ins._ExpandSelf()
+    py3 del ins
+    py3 ws.VLWIns.TouchAllProjectFiles()
 endfunction
 "}}}
 function! s:GetEnvVarSettingsHelpText() "{{{2
@@ -2341,12 +2341,12 @@ Currently, "Environment Variables" is only valid for "Project Settings".
 '''
     return s
 PYTHON_EOF
-    pyx vim.command("return %s" % ToVimEval(GetEnvVarSettingsHelpText()))
+    py3 vim.command("return %s" % ToVimEval(GetEnvVarSettingsHelpText()))
 endfunction
 function! s:CreateEnvVarSettingsDialog() "{{{2
     let dlg = g:VimDialog.New('== Environment Variables Settings ==')
     call dlg.SetExtraHelpContent(s:GetEnvVarSettingsHelpText())
-    pyx ins = EnvVarSettingsST.Get()
+    py3 ins = EnvVarSettingsST.Get()
 
     "1.EnvVarSets
     "===========================================================================
@@ -2366,7 +2366,7 @@ function! s:CreateEnvVarSettingsDialog() "{{{2
     let dSetsCtl = ctl
     call ctl.SetId(s:ID_EnvVarSettingsEnvVarSets)
     call ctl.SetIndent(4)
-    pyx vim.command("let lEnvVarSets = %s" % ToVimEval(list(ins.envVarSets.keys())))
+    py3 vim.command("let lEnvVarSets = %s" % ToVimEval(list(ins.envVarSets.keys())))
     call sort(lEnvVarSets)
     for sEnvVarSet in lEnvVarSets
         call ctl.AddItem(sEnvVarSet)
@@ -2417,7 +2417,7 @@ PYTHON_EOF
 
     call dlg.AddFooterButtons()
 
-    pyx del ins
+    py3 del ins
     return dlg
 endfunction
 "}}}1
@@ -2458,158 +2458,158 @@ endfunction
 function! s:CompilerSettings_OperateContents(dDlg, bIsSave, bPreValue) "{{{2
     let dDlg = a:dDlg
     let bIsSave = a:bIsSave " 非零表示从控件内容保存，零表示更新控件内容
-    let bPreValue = a:bPreValue " 非零表示使用 combo 控件上次的值获取 pyx 实例
+    let bPreValue = a:bPreValue " 非零表示使用 combo 控件上次的值获取 py3 实例
     let dCtl = dDlg.GetControlByID(s:ID_CSCtl_Compiler)
     if bPreValue
-        pyx cmpl = BuildSettingsST.Get().GetCompilerByName(
+        py3 cmpl = BuildSettingsST.Get().GetCompilerByName(
                     \vim.eval("dCtl.GetPrevValue()"))
     else
-        pyx cmpl = BuildSettingsST.Get().GetCompilerByName(
+        py3 cmpl = BuildSettingsST.Get().GetCompilerByName(
                     \vim.eval("dCtl.GetValue()"))
     endif
-    pyx if not cmpl: vim.command("return")
+    py3 if not cmpl: vim.command("return")
     for dCtl in dDlg.controls
         let ctlId = dCtl.GetId()
         if 0
         " ====== Start =====
         elseif ctlId == s:ID_CSCtl_cCmpCmd
             if bIsSave
-                pyx cmpl.cCmpCmd = vim.eval("dCtl.GetValue()")
+                py3 cmpl.cCmpCmd = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.cCmpCmd))
             endif
         elseif ctlId == s:ID_CSCtl_cxxCmpCmd
             if bIsSave
-                pyx cmpl.cxxCmpCmd = vim.eval("dCtl.GetValue()")
+                py3 cmpl.cxxCmpCmd = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.cxxCmpCmd))
             endif
         elseif ctlId == s:ID_CSCtl_cPrpCmd
             if bIsSave
-                pyx cmpl.cPrpCmd = vim.eval("dCtl.GetValue()")
+                py3 cmpl.cPrpCmd = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.cPrpCmd))
             endif
         elseif ctlId == s:ID_CSCtl_cxxPrpCmd
             if bIsSave
-                pyx cmpl.cxxPrpCmd = vim.eval("dCtl.GetValue()")
+                py3 cmpl.cxxPrpCmd = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.cxxPrpCmd))
             endif
         elseif ctlId == s:ID_CSCtl_cDepGenCmd
             if bIsSave
-                pyx cmpl.cDepGenCmd = vim.eval("dCtl.GetValue()")
+                py3 cmpl.cDepGenCmd = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.cDepGenCmd))
             endif
         elseif ctlId == s:ID_CSCtl_cxxDepGenCmd
             if bIsSave
-                pyx cmpl.cxxDepGenCmd = vim.eval("dCtl.GetValue()")
+                py3 cmpl.cxxDepGenCmd = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.cxxDepGenCmd))
             endif
         elseif ctlId == s:ID_CSCtl_linkCmd
             if bIsSave
-                pyx cmpl.linkCmd = vim.eval("dCtl.GetValue()")
+                py3 cmpl.linkCmd = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.linkCmd))
             endif
         elseif ctlId == s:ID_CSCtl_arGenCmd
             if bIsSave
-                pyx cmpl.arGenCmd = vim.eval("dCtl.GetValue()")
+                py3 cmpl.arGenCmd = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.arGenCmd))
             endif
         elseif ctlId == s:ID_CSCtl_soGenCmd
             if bIsSave
-                pyx cmpl.soGenCmd = vim.eval("dCtl.GetValue()")
+                py3 cmpl.soGenCmd = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.soGenCmd))
             endif
         elseif ctlId == s:ID_CSCtl_objExt
             if bIsSave
-                pyx cmpl.objExt = vim.eval("dCtl.GetValue()")
+                py3 cmpl.objExt = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.objExt))
             endif
         elseif ctlId == s:ID_CSCtl_depExt
             if bIsSave
-                pyx cmpl.depExt = vim.eval("dCtl.GetValue()")
+                py3 cmpl.depExt = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.depExt))
             endif
         elseif ctlId == s:ID_CSCtl_prpExt
             if bIsSave
-                pyx cmpl.prpExt = vim.eval("dCtl.GetValue()")
+                py3 cmpl.prpExt = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.prpExt))
             endif
         elseif ctlId == s:ID_CSCtl_PATH
             if bIsSave
-                pyx cmpl.PATH = vim.eval("dCtl.GetValue()")
+                py3 cmpl.PATH = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.PATH))
             endif
         elseif ctlId == s:ID_CSCtl_envSetupCmd
             if bIsSave
-                pyx cmpl.envSetupCmd = vim.eval("dCtl.GetValue()")
+                py3 cmpl.envSetupCmd = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.envSetupCmd))
             endif
         elseif ctlId == s:ID_CSCtl_includePaths
             if bIsSave
-                pyx cmpl.includePaths = vim.eval("dCtl.GetValue()")
+                py3 cmpl.includePaths = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.includePaths))
             endif
         elseif ctlId == s:ID_CSCtl_libraryPaths
             if bIsSave
-                pyx cmpl.libraryPaths = vim.eval("dCtl.GetValue()")
+                py3 cmpl.libraryPaths = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.libraryPaths))
             endif
         elseif ctlId == s:ID_CSCtl_incPat
             if bIsSave
-                pyx cmpl.incPat = vim.eval("dCtl.GetValue()")
+                py3 cmpl.incPat = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.incPat))
             endif
         elseif ctlId == s:ID_CSCtl_macPat
             if bIsSave
-                pyx cmpl.macPat = vim.eval("dCtl.GetValue()")
+                py3 cmpl.macPat = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.macPat))
             endif
         elseif ctlId == s:ID_CSCtl_lipPat
             if bIsSave
-                pyx cmpl.lipPat = vim.eval("dCtl.GetValue()")
+                py3 cmpl.lipPat = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.lipPat))
             endif
         elseif ctlId == s:ID_CSCtl_libPat
             if bIsSave
-                pyx cmpl.libPat = vim.eval("dCtl.GetValue()")
+                py3 cmpl.libPat = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" 
+                py3 vim.command("call dCtl.SetValue(%s)" 
                             \% ToVimEval(cmpl.libPat))
             endif
         else
@@ -2619,16 +2619,16 @@ function! s:CompilerSettings_OperateContents(dDlg, bIsSave, bPreValue) "{{{2
 
     if bIsSave
         " 保存
-        pyx BuildSettingsST.Get().SetCompilerByName(cmpl, cmpl.name)
-        pyx BuildSettingsST.Get().Save()
+        py3 BuildSettingsST.Get().SetCompilerByName(cmpl, cmpl.name)
+        py3 BuildSettingsST.Get().Save()
     endif
-    pyx del cmpl
+    py3 del cmpl
 endfunction
 "}}}
 function! s:CompilerSettingsSaveCbk(dDlg, data) "{{{2
     call s:CompilerSettings_OperateContents(a:dDlg, 1, 0)
     " 所有项目都需要重建 Makefile 了
-    pyx ws.VLWIns.TouchAllProjectFiles()
+    py3 ws.VLWIns.TouchAllProjectFiles()
 endfunction
 "}}}
 function! s:CompilerSettingsChangeCompilerCbk(dCtl, data) "{{{2
@@ -2661,7 +2661,7 @@ function! s:CreateCompilersSettingsDialog() "{{{2
     let dCtl.ignoreModify = 1 " 不统计本控件的修改
     call dCtl.ConnectActionPostCallback(
                 \s:GetSFuncRef('s:CompilerSettingsChangeCompilerCbk'), '')
-    pyx vim.command('let lCmplNames = %s' 
+    py3 vim.command('let lCmplNames = %s' 
                 \% ToVimEval(BuildSettingsST.Get().GetCompilerNameList()))
     for cmplName in lCmplNames
         call dCtl.AddItem(cmplName)
@@ -2820,24 +2820,24 @@ endfunction
 function! s:BuildersSettings_OperateContents(dDlg, bIsSave, bPreValue) "{{{2
     let dDlg = a:dDlg
     let bIsSave = a:bIsSave " 非零表示从控件内容保存，零表示更新控件内容
-    let bPreValue = a:bPreValue " 非零表示使用 combo 控件上次的值获取 pyx 实例
+    let bPreValue = a:bPreValue " 非零表示使用 combo 控件上次的值获取 py3 实例
     let dCtl = dDlg.GetControlByID(s:ID_BSSCtl_Builders)
     if bPreValue
-        pyx bs = BuildSettingsST.Get().GetBuilderByName(
+        py3 bs = BuildSettingsST.Get().GetBuilderByName(
                     \vim.eval("dCtl.GetPrevValue()"))
     else
-        pyx bs = BuildSettingsST.Get().GetBuilderByName(
+        py3 bs = BuildSettingsST.Get().GetBuilderByName(
                     \vim.eval("dCtl.GetValue()"))
     endif
-    pyx if not bs: vim.command("return")
+    py3 if not bs: vim.command("return")
     for dCtl in dDlg.controls
         if 0
         " ======
         elseif dCtl.GetId() == s:ID_BSSCtl_BuilderCommand
             if bIsSave
-                pyx bs.command = vim.eval("dCtl.GetValue()")
+                py3 bs.command = vim.eval("dCtl.GetValue()")
             else
-                pyx vim.command("call dCtl.SetValue(%s)" % ToVimEval(bs.command))
+                py3 vim.command("call dCtl.SetValue(%s)" % ToVimEval(bs.command))
             endif
         " ======
         else
@@ -2846,17 +2846,17 @@ function! s:BuildersSettings_OperateContents(dDlg, bIsSave, bPreValue) "{{{2
 
     if bIsSave
         " 保存
-        pyx BuildSettingsST.Get().SetBuilderByName(bs, bs.name)
-        pyx BuildSettingsST.Get().Save()
+        py3 BuildSettingsST.Get().SetBuilderByName(bs, bs.name)
+        py3 BuildSettingsST.Get().Save()
         if !bPreValue
         " 进这个分支表示是保存退出
             " 设置激活的 Builder
-            pyx BuildSettingsST.Get().SetActiveBuilder(bs.name)
+            py3 BuildSettingsST.Get().SetActiveBuilder(bs.name)
         endif
         " 重新读取 ws.builder
-        pyx ws.builder = BuilderManagerST.Get().GetActiveBuilderInstance()
+        py3 ws.builder = BuilderManagerST.Get().GetActiveBuilderInstance()
     endif
-    pyx del bs
+    py3 del bs
 endfunction
 "}}}
 function! s:BuildersSettingsSaveCbk(dDlg, data) "{{{2
@@ -2895,12 +2895,12 @@ function! s:CreateBuildersSettingsDialog() "{{{2
                 \s:GetSFuncRef('s:BuildersSettingsChangeBuilderCbk'), '')
 
     let lBuilders = []
-    pyx vim.command("let lBuilders = %s" 
+    py3 vim.command("let lBuilders = %s" 
                 \% ToVimEval(BuildSettingsST.Get().GetBuilderNameList()))
     for sBuilderName in lBuilders
         call dCtl.AddItem(sBuilderName)
     endfor
-    pyx vim.command("call dCtl.SetValue(%s)" % ToVimEval(ws.builder.name))
+    py3 vim.command("call dCtl.SetValue(%s)" % ToVimEval(ws.builder.name))
 
     call dDlg.AddControl(dCtl)
     call dDlg.AddBlankLine()
@@ -2977,7 +2977,7 @@ function! s:BBS_NewSetCbk(ctl, data) "{{{2
 
         if !empty(dListCtl)
             call dListCtl.DeleteAllLines()
-            pyx vim.command(
+            py3 vim.command(
                         \'let lProjectNames = %s' % ws.VLWIns.GetProjectList())
             for sProjectName in lProjectNames
                 call dListCtl.AddLineByValues(0, sProjectName)
@@ -3037,7 +3037,7 @@ function! s:BBS_ChangeBatchBuildNameCbk(ctl, data) "{{{2
     endif
 
     call dListCtl.DeleteAllLines()
-    pyx vim.command('let lProjectNames = %s' % ws.VLWIns.GetProjectList())
+    py3 vim.command('let lProjectNames = %s' % ws.VLWIns.GetProjectList())
     let lBatchBuild = dData[dSetsCtl.GetValue()]
     for sProjectName in lBatchBuild
         call dListCtl.AddLineByValues(1, sProjectName)
@@ -3071,8 +3071,8 @@ function! s:BatchBuildSettingsSaveCbk(dlg, data) "{{{2
     endif
 
     "直接字典间赋值
-    pyx ws.VLWSettings.batchBuild = vim.eval("dSetsCtl.GetData()")
-    pyx ws.VLWSettings.Save()
+    py3 ws.VLWSettings.batchBuild = vim.eval("dSetsCtl.GetData()")
+    py3 ws.VLWSettings.Save()
 endfunction
 
 function! s:CreateBatchBuildSettingsDialog() "{{{2
@@ -3096,7 +3096,7 @@ function! s:CreateBatchBuildSettingsDialog() "{{{2
     let dSetsCtl = ctl
     call ctl.SetId(s:ID_BatchBuildSettingsNames)
     call ctl.SetIndent(4)
-    pyx vim.command("let lNames = %s"
+    py3 vim.command("let lNames = %s"
             \      % ToVimEval(ws.VLWSettings.GetBatchBuildNames()))
     for sName in lNames
         call ctl.AddItem(sName)
@@ -3106,9 +3106,9 @@ function! s:CreateBatchBuildSettingsDialog() "{{{2
     call dlg.AddControl(ctl)
 
     " 顺序列表控件
-    pyx vim.command('let lProjectNames = %s'
+    py3 vim.command('let lProjectNames = %s'
             \      % ToVimEval(ws.VLWIns.GetProjectList()))
-    pyx vim.command('let lBatchBuild = %s' 
+    py3 vim.command('let lBatchBuild = %s' 
             \      % ToVimEval(ws.VLWSettings.GetBatchBuildList('Default')))
 
     let ctl = g:VCTable.New('', 2)
@@ -3136,7 +3136,7 @@ function! s:CreateBatchBuildSettingsDialog() "{{{2
     call dlg.AddControl(ctl)
 
     " 保存整个字典
-    pyx vim.command("let dData = %s" % ToVimEval(ws.VLWSettings.batchBuild))
+    py3 vim.command("let dData = %s" % ToVimEval(ws.VLWSettings.batchBuild))
     call dSetsCtl.SetData(dData)
 
     " 保存当前所属的 set 名字，在 change callback 里面有用
@@ -3504,11 +3504,11 @@ PYTHON_EOF
                     return 1
                 endif
             endif
-            pyx matrix = ws.VLWIns.GetBuildMatrix()
+            py3 matrix = ws.VLWIns.GetBuildMatrix()
             for ctl in dlg.controls
                 if ctl.gId == s:BuildMatrixMappingGID
                     let projName = ctl.data
-                    pyx vim.command("call ctl.SetValue(%s)" 
+                    py3 vim.command("call ctl.SetValue(%s)" 
                                 \% ToVimEval(matrix.GetProjectSelectedConf(
                                 \vim.eval("wspSelConfName"), 
                                 \vim.eval("projName"))))
@@ -3519,7 +3519,7 @@ PYTHON_EOF
                     call dlg.RefreshCtlByGId(s:BuildMatrixMappingGID)
                 endif
             endfor
-            pyx del matrix
+            py3 del matrix
             if empty(a:data)
                 call dlg.RequestRefresh() " 要求回调后刷新
             endif
@@ -3592,22 +3592,22 @@ def WspBCMSaveCbk(matrix, wspConfName, projName, confName):
 PYTHON_EOF
     let dlg = a:dlg
     let wspConfName = ''
-    pyx matrix = ws.VLWIns.GetBuildMatrix()
+    py3 matrix = ws.VLWIns.GetBuildMatrix()
     for ctl in dlg.controls
         if ctl.GetId() == s:WspConfigurationCtlID
             let wspConfName = ctl.GetValue()
         elseif ctl.GetGId() == s:BuildMatrixMappingGID
             let projName = ctl.GetData()
             let confName = ctl.GetValue()
-            pyx WspBCMSaveCbk(matrix, vim.eval('wspConfName'), 
+            py3 WspBCMSaveCbk(matrix, vim.eval('wspConfName'), 
                         \vim.eval('projName'), vim.eval('confName'))
         endif
     endfor
 
     "保存
-    pyx ws.VLWIns.SetBuildMatrix(matrix)
-    pyx ws.UpdateBuildMTime()
-    pyx del matrix
+    py3 ws.VLWIns.SetBuildMatrix(matrix)
+    py3 ws.UpdateBuildMTime()
+    py3 del matrix
 
     "重置为未修改
     call dlg.SetData(0)
@@ -3728,42 +3728,42 @@ endfunction
 function! s:SaveWspSettingsCbk(dlg, data) "{{{2
     for ctl in a:dlg.controls
         if ctl.GetId() == s:ID_WspSettingsEnvironment
-            pyx vim.command('let sOldName = %s'
+            py3 vim.command('let sOldName = %s'
                     \ % ToVimEval(ws.VLWSettings.GetEnvVarSetName()))
             let sNewName = ctl.GetValue()
-            pyx ws.VLWSettings.SetEnvVarSetName(vim.eval("sNewName"))
+            py3 ws.VLWSettings.SetEnvVarSetName(vim.eval("sNewName"))
             if sOldName !=# sNewName
                 " 下面固定调用这个了
-                "pyx ws.VLWIns.TouchAllProjectFiles()
+                "py3 ws.VLWIns.TouchAllProjectFiles()
             endif
         elseif ctl.GetId() == s:ID_WspSettingsEditorOptions
-            pyx ws.VLWSettings.SetEditorOptions(vim.eval("ctl.GetValue()"))
+            py3 ws.VLWSettings.SetEditorOptions(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsCSourceExtensions
-            pyx ws.VLWSettings.cSrcExts =
+            py3 ws.VLWSettings.cSrcExts =
                     \ SplitSmclStr(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsCppSourceExtensions
-            pyx ws.VLWSettings.cppSrcExts =
+            py3 ws.VLWSettings.cppSrcExts =
                     \ SplitSmclStr(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsEnableLocalConfig
-            pyx ws.VLWSettings.enableLocalConfig = int(vim.eval("ctl.GetValue()"))
+            py3 ws.VLWSettings.enableLocalConfig = int(vim.eval("ctl.GetValue()"))
         elseif ctl.GetId() == s:ID_WspSettingsLocalConfig
             let text = join(ctl.values, "\n")
-            pyx ws.VLWSettings.SetLocalConfigText(vim.eval("text"))
+            py3 ws.VLWSettings.SetLocalConfigText(vim.eval("text"))
         endif
     endfor
     " 回调
     call s:WspSetNotf.CallChain('save', a:dlg)
     " 保存
-    pyx ws.SaveWspSettings()
+    py3 ws.SaveWspSettings()
     " Extension Options 关系到项目 Makefile
-    pyx ws.VLWIns.TouchAllProjectFiles()
+    py3 ws.VLWIns.TouchAllProjectFiles()
     " 是否启动局部配置直接影响还原设置的方式
-    pyx if not ws.VLWSettings.enableLocalConfig:
+    py3 if not ws.VLWSettings.enableLocalConfig:
             \ vim.command("call videm#wsp#WspConfRestore(1)")
-    pyx if ws.VLWSettings.enableLocalConfig:
+    py3 if ws.VLWSettings.enableLocalConfig:
             \ vim.command("call videm#wsp#WspConfRestore(0)")
     " 载入的时候就有刷新操作了
-    pyx ws.LoadWspSettings()
+    py3 ws.LoadWspSettings()
 endfunction
 "}}}
 " 工作区设置的帮助信息
@@ -3812,7 +3812,7 @@ Variables which start with '*' need to restart Videm to take effect.
 
     return s
 PYTHON_EOF
-    pyx vim.command("return %s" % ToVimEval(GetWspSettingsHelpText()))
+    py3 vim.command("return %s" % ToVimEval(GetWspSettingsHelpText()))
 endfunction
 "}}}
 " 这个动作可以定制，具有一定的定义性，用于 OmniCpp 和 VIMCCC
@@ -3830,13 +3830,13 @@ function! s:CreateWspSettingsDialog() "{{{2
     let ctl = g:VCComboBox.New('Environment Sets:')
     call ctl.SetId(s:ID_WspSettingsEnvironment)
     call ctl.SetIndent(4)
-    pyx vim.command("let lEnvVarSets = %s"
+    py3 vim.command("let lEnvVarSets = %s"
             \      % ToVimEval(list(EnvVarSettingsST.Get().envVarSets.keys())))
     call sort(lEnvVarSets)
     for sEnvVarSet in lEnvVarSets
         call ctl.AddItem(sEnvVarSet)
     endfor
-    pyx vim.command("call ctl.SetValue(%s)"
+    py3 vim.command("call ctl.SetValue(%s)"
             \      % ToVimEval(ws.VLWSettings.GetEnvVarSetName()))
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
@@ -3852,7 +3852,7 @@ function! s:CreateWspSettingsDialog() "{{{2
             \                   . "single line will be faster):")
     call ctl.SetId(s:ID_WspSettingsEditorOptions)
     call ctl.SetIndent(4)
-    pyx vim.command("let editorOptions = %s" 
+    py3 vim.command("let editorOptions = %s" 
             \      % ToVimEval(ws.VLWSettings.GetEditorOptions()))
     call ctl.SetValue(editorOptions)
     call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "vim")
@@ -3869,7 +3869,7 @@ function! s:CreateWspSettingsDialog() "{{{2
     "let ctl = g:VCCheckItem.New('Enable Local Configurations:')
     "call ctl.SetId(s:ID_WspSettingsEnableLocalConfig)
     "call ctl.SetIndent(4)
-    "pyx if ws.VLWSettings.enableLocalConfig: vim.command("call ctl.SetValue(1)")
+    "py3 if ws.VLWSettings.enableLocalConfig: vim.command("call ctl.SetValue(1)")
     "call dlg.AddControl(ctl)
     "let sep = g:VCSeparator.New('~')
     "call sep.SetIndent(4)
@@ -3879,7 +3879,7 @@ function! s:CreateWspSettingsDialog() "{{{2
     "        \ . " (Please read the Extra Help info):")
     "call ctl.SetId(s:ID_WspSettingsLocalConfig)
     "call ctl.SetIndent(4)
-    "pyx vim.command("let localConfig = %s"
+    "py3 vim.command("let localConfig = %s"
     "        \       % ToVimEval(ws.VLWSettings.GetLocalConfigText()))
     "call ctl.SetValue(localConfig)
     "call ctl.ConnectButtonCallback(s:GetSFuncRef("s:EditTextBtnCbk"), "conf")
@@ -3913,7 +3913,7 @@ function! s:CreateWspSettingsDialog() "{{{2
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
 
-    pyx vim.command("let cSrcExts = %s" % ToVimEval(ws.VLWSettings.cSrcExts))
+    py3 vim.command("let cSrcExts = %s" % ToVimEval(ws.VLWSettings.cSrcExts))
     let ctl = g:VCSingleText.New('Additional C Source File Extensions:')
     call ctl.SetId(s:ID_WspSettingsCSourceExtensions)
     call ctl.SetIndent(4)
@@ -3921,7 +3921,7 @@ function! s:CreateWspSettingsDialog() "{{{2
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
 
-    pyx vim.command("let cppSrcExts = %s" % ToVimEval(ws.VLWSettings.cppSrcExts))
+    py3 vim.command("let cppSrcExts = %s" % ToVimEval(ws.VLWSettings.cppSrcExts))
     let ctl = g:VCSingleText.New('Additional C++ Source File Extensions:')
     call ctl.SetId(s:ID_WspSettingsCppSourceExtensions)
     call ctl.SetIndent(4)
@@ -4066,7 +4066,7 @@ absolute path.
 '''
     return s
 PYTHON_EOF
-    pyx vim.command("return %s" % ToVimEval(GetProjectSettingsHelpText()))
+    py3 vim.command("return %s" % ToVimEval(GetProjectSettingsHelpText()))
 endfunction
 "}}}2
 function! s:AddBuildTblLineCbk(ctl, data) "{{{2
@@ -4230,9 +4230,9 @@ function! s:ProjectSettings_OperateContents(dlg, bIsSave, bUsePreValue) "{{{2
     else
         let sConfigName = ctl.GetValue()
     endif
-    pyx vim.command("let confDict = %s" % ToVimEval(ws.GetProjectConfigDict(
+    py3 vim.command("let confDict = %s" % ToVimEval(ws.GetProjectConfigDict(
                 \           vim.eval('sProjectName'), vim.eval('sConfigName'))))
-    pyx vim.command("let glbCnfDict = %s" % ToVimEval(
+    py3 vim.command("let glbCnfDict = %s" % ToVimEval(
                 \ws.GetProjectGlbCnfDict(vim.eval('sProjectName'))))
     for ctl in dlg.controls
         let ctlId = ctl.GetId()
@@ -4331,7 +4331,7 @@ function! s:ProjectSettings_OperateContents(dlg, bIsSave, bUsePreValue) "{{{2
                 "let confDict['ignFiles'] = ctl.GetValue()
             else
                 "call ctl.SetValue(confDict['ignFiles'])
-                pyx vim.command("call ctl.SetValue(%s)" % ToVimEval(
+                py3 vim.command("call ctl.SetValue(%s)" % ToVimEval(
                         \        PrettyIgnoredFiles(ws,
                         \               vim.eval('sProjectName'),
                         \               vim.eval("confDict['ignFiles']"))))
@@ -4567,11 +4567,11 @@ function! s:ProjectSettings_OperateContents(dlg, bIsSave, bUsePreValue) "{{{2
     endfor
     if bIsSave
         " 保存
-        pyx ws.SaveProjectSettings(vim.eval('sProjectName'), 
+        py3 ws.SaveProjectSettings(vim.eval('sProjectName'), 
                     \             vim.eval('sConfigName'), 
                     \             vim.eval('confDict'), 
                     \             vim.eval('glbCnfDict'))
-        pyx ws.UpdateBuildMTime()
+        py3 ws.UpdateBuildMTime()
     endif
 endfunction
 "}}}2
@@ -4610,13 +4610,13 @@ function! s:ProjectSettings_CreateDialog(sProjectName) "{{{2
     let ctl.ignoreModify = 1 " 不统计本控件的修改
     call ctl.ConnectActionPostCallback(
                 \s:GetSFuncRef('s:ProjectSettings_ChangeConfigCbk'), '')
-    pyx vim.command('let lConfigs = %s' % ToVimEval(
+    py3 vim.command('let lConfigs = %s' % ToVimEval(
                 \       ws.GetProjectConfigList(vim.eval('sProjectName'))))
     for sConfigName in lConfigs
         call ctl.AddItem(sConfigName)
     endfor
     " 设置当前的配置名字
-    pyx vim.command('call ctl.SetValue(%s)' % ToVimEval(
+    py3 vim.command('call ctl.SetValue(%s)' % ToVimEval(
                 \ws.GetProjectCurrentConfigName(vim.eval('sProjectName'))))
     call dlg.AddControl(ctl)
     call dlg.AddBlankLine()
@@ -4652,7 +4652,7 @@ function! s:ProjectSettings_CreateDialog(sProjectName) "{{{2
     let ctl = g:VCComboBox.New('Compiler:')
     call ctl.SetId(s:ID_PSCtl_Compiler)
     call ctl.SetIndent(8)
-    pyx vim.command('let lCmplNames = %s' 
+    py3 vim.command('let lCmplNames = %s' 
                 \% ToVimEval(BuildSettingsST.Get().GetCompilerNameList()))
     for sCmplName in lCmplNames
         call ctl.AddItem(sCmplName)
@@ -5056,8 +5056,8 @@ function! s:InitPythonInterfaces() "{{{2
     call vpymod#driver#Init()
     let pyf = g:vlutils#os.path.join(fnamemodify(s:sfile, ':h'), 'wsp.py')
     exec 'py3file' fnameescape(pyf)
-    pyx from Misc import GetBgThdCnt, Touch, GetMTime
-    pyx from Macros import VIMLITE_VER
+    py3 from Misc import GetBgThdCnt, Touch, GetMTime
+    py3 from Macros import VIMLITE_VER
 endfunction
 "}}}2
 " NOTE: 以下是插件必须遵守的约定
@@ -5128,14 +5128,14 @@ endfunction
 " ============================================================================
 function! Videm_GetVersion() "{{{2
     if s:bHadInited
-        pyx vim.command("return %d" % VIMLITE_VER)
+        py3 vim.command("return %d" % VIMLITE_VER)
     else
         return 0
     endif
 endfunction
 "}}}
 function! Videm_GetWorkspaceName() "{{{2
-    pyx vim.command("return %s" % ToVimEval(ws.VLWIns.name))
+    py3 vim.command("return %s" % ToVimEval(ws.VLWIns.name))
 endfunction
 "}}}
 function! Videm_GetWorkspaceBase() "{{{2
