@@ -163,7 +163,7 @@ let s:DefaultSettings = {
     \ 'videm.wsp.EnableMenuBar'    : 1,
     \ 'videm.wsp.EnablePopUpMenu'  : 1,
     \ 'videm.wsp.EnableToolBar'    : 1,
-    \ 'videm.wsp.ShowWspName'      : 1,
+    \ 'videm.wsp.ShowWspName'      : 0,
     \ 'videm.wsp.SaveBeforeBuild'  : 1,
     \ 'videm.wsp.HlSourceFile'     : 1,
     \ 'videm.wsp.ActProjHlGroup'   : 'Special',
