@@ -527,11 +527,13 @@ class VLWorkspace(object):
 
         name = os.path.basename(datum['node'].getAttribute('Name'))
         text = MakeLevelPreStrDependList(datum['deepFlag']) + expandText + name
-            
+
         # 当前激活的项目需要特殊标记 on 2013-01-25
         if self.DoGetTypeOfNode(datum['node']) == TYPE_PROJECT \
            and name == self.GetActiveProjectName():
             text += '*' # 暂时使用这个作为标记
+        elif self.DoGetTypeOfNode(datum['node']) == TYPE_VIRTUALDIRECTORY:
+            text += '/' # 对于目录来说，我们在后面加斜杠，和 NERDTree 一致
 
         return text
 
