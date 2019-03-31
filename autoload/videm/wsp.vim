@@ -9,11 +9,6 @@ if exists("g:loaded_autoload_wsp")
 endif
 let g:loaded_autoload_wsp = 1
 
-" 先设置 python 脚本编码
-python3 << PYTHON_EOF
-# -*- encoding: utf-8 -*-
-PYTHON_EOF
-
 " 用于初始化
 function! videm#wsp#Init()
     return 1
@@ -614,6 +609,15 @@ endfunction
 "}}}2
 " 支持直接在默认工作区打开项目文件
 function! videm#wsp#InitWorkspace(sWspFile) abort "{{{2
+    if !has('python3')
+        call s:echow("[videm] Error: Required vim compiled with +python3")
+        return
+    endif
+    if v:version < 703
+        call s:echow("[videm] Error: Required vim 7.3 or later")
+        return
+    endif
+
     let fname = a:sWspFile
     if fnamemodify(a:sWspFile, ":e") ==? g:VLWorkspacePrjFileSuffix
         call s:InitVLWorkspace('')

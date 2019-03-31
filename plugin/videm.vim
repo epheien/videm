@@ -4,15 +4,6 @@
 " Create:   2012-08-05
 " Change:   2012-08-05
 
-if !has('python3')
-    echoerr "[videm] Error: Required vim compiled with +python3"
-    finish
-endif
-if v:version < 703
-    echoerr "[videm] Error: Required vim 7.3 or later"
-    finish
-endif
-
 if exists('g:loaded_videm')
     finish
 endif
