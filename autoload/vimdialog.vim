@@ -2901,7 +2901,8 @@ function! g:VimDialog.SetupSyntaxHighlight()
     "syn match VCButton '\V[\.\{-2,}]'
     " NOTE: 因为尾部的ID字符串可能为']'，所以需要处理这种情况，
     "       不知道非行尾如何表示？
-    syn match VCButton '\[[0-9A-Za-z_ .]\{-2,}\]\ze.'
+    "syn match VCButton '\[[0-9A-Za-z_ .]\{-2,}\]\ze.'
+    syn match VCButton '\[[^]]\{-2,}\]\ze.'
 
     "字符串过长时的提示符号
     syn match VCExtend '\V@\ze|'
