@@ -555,8 +555,12 @@ function! g:VCSingleText.Action()
     endif
 
     echohl Question
+    let prompt = ''
+    if !empty(self.label)
+        let prompt = self.label . "\n"
+    endif
     " TODO: 设置自动完成类型
-    let l:value = input(self.label . "\n", self.value, "file")
+    let l:value = input(prompt, self.value, "file")
     if exists("l:value") && len(l:value) != 0
         call self.SetValue(l:value)
         let l:ret = 1
