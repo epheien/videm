@@ -3020,7 +3020,8 @@ function! s:_OKCbk(ctl, ...)
     call a:ctl.owner.SaveAndQuit()
 endfunction
 "}}}
-function! g:VimDialog.AddFooterButtons() "{{{2
+" disableApply=0
+function! g:VimDialog.AddFooterButtons(...) "{{{2
     call self.AddBlankLine()
     call self.AddSeparator()
 
@@ -3045,7 +3046,7 @@ function! g:VimDialog.AddFooterButtons() "{{{2
     call ctl.ConnectButtonCallback(1, s:GetSFuncRef('s:_CancelCbk'), '')
     call ctl.ConnectButtonCallback(2, s:GetSFuncRef('s:_OKCbk'), '')
 
-    if self.isPopup || self.disableApply
+    if self.isPopup || self.disableApply || get(a:000, 0, 0)
         call ctl.RemoveButton(0)
         call remove(lButtonLabel, 0)
 
