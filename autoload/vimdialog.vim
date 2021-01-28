@@ -2738,7 +2738,9 @@ function! g:VimDialog.Save() "{{{2
     endif
 
     if has_key(self, 'saveCallback')
-        call self.saveCallback(self, self.saveCallbackData)
+        if self.saveCallback(self, self.saveCallbackData)
+            return 1
+        endif
     endif
 
     "作为子窗口的时候，不显示已保存提示信息
@@ -2747,7 +2749,7 @@ function! g:VimDialog.Save() "{{{2
         if exists("*strftime")
             echo "All have been saved at "
             echohl Special
-            echon strftime("%c")
+            echon strftime("%Y-%m-%d %H:%M:%S")
         else
             echo "All have been saved."
         endif
@@ -2772,7 +2774,9 @@ function! g:VimDialog.SaveAndQuit() "{{{2
         return
     endif
 
-    call self.Save()
+    if self.Save()
+        return
+    endif
     if has_key(self, "callback") "DEPRECATE!
         let l:ret = self.callback(self)
         if l:ret
