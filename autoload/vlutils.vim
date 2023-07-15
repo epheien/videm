@@ -106,27 +106,27 @@ endfunction
 " 可用 - 即可用其他窗口替换本窗口而不会令本窗口的内容消失
 function! vlutils#IsWindowUsable(nWinNr) "{{{2
     let nWinNr = a:nWinNr
-	" 特殊窗口，如特殊缓冲类型的窗口、预览窗口
+    " 特殊窗口，如特殊缓冲类型的窗口、预览窗口
     let bIsSpecialWindow = getwinvar(nWinNr, '&buftype') !=# ''
                 \|| getwinvar(nWinNr, '&previewwindow')
     if bIsSpecialWindow
         return 0
     endif
 
-	" 窗口缓冲是否已修改
+    " 窗口缓冲是否已修改
     let bModified = getwinvar(nWinNr, '&modified')
 
-	" 如果可允许隐藏，则无论缓冲是否修改
+    " 如果可允许隐藏，则无论缓冲是否修改
     if &hidden
         return 1
     endif
 
-	" 如果缓冲区没有修改，或者，已修改，但是同时有其他窗口打开着，则表示可用
-	if !bModified || vlutils#BufInWinCount(winbufnr(nWinNr)) >= 2
-		return 1
-	else
-		return 0
-	endif
+    " 如果缓冲区没有修改，或者，已修改，但是同时有其他窗口打开着，则表示可用
+    if !bModified || vlutils#BufInWinCount(winbufnr(nWinNr)) >= 2
+        return 1
+    else
+        return 0
+    endif
 endfunction
 "}}}
 " 获取第一个"可用"(常规, 非特殊)的窗口
@@ -135,9 +135,9 @@ endfunction
 function! vlutils#GetFirstUsableWinNr() "{{{2
     let i = 1
     while i <= winnr("$")
-		if vlutils#IsWindowUsable(i)
-			return i
-		endif
+        if vlutils#IsWindowUsable(i)
+            return i
+        endif
 
         let i += 1
     endwhile
@@ -146,36 +146,36 @@ endfunction
 "}}}
 " 获取宽度最大的窗口编号
 function! vlutils#GetMaxWidthWinNr() "{{{2
-	let i = 1
-	let nResult = 0
-	let nMaxWidth = 0
-	while i <= winnr("$")
-		let nCurWidth = winwidth(i)
-		if nCurWidth > nMaxWidth
-			let nMaxWidth = nCurWidth
-			let nResult = i
-		endif
-		let i += 1
-	endwhile
+    let i = 1
+    let nResult = 0
+    let nMaxWidth = 0
+    while i <= winnr("$")
+        let nCurWidth = winwidth(i)
+        if nCurWidth > nMaxWidth
+            let nMaxWidth = nCurWidth
+            let nResult = i
+        endif
+        let i += 1
+    endwhile
 
-	return nResult
+    return nResult
 endfunction
 "}}}
 " 获取高度最大的窗口编号
 function! vlutils#GetMaxHeightWinNr() "{{{2
-	let i = 1
-	let nResult = 0
-	let nMaxHeight = 0
-	while i <= winnr("$")
-		let nCurHeight = winheight(i)
-		if nCurHeight > nMaxHeight
-			let nMaxHeight = nCurHeight
-			let nResult = i
-		endif
-		let i += 1
-	endwhile
+    let i = 1
+    let nResult = 0
+    let nMaxHeight = 0
+    while i <= winnr("$")
+        let nCurHeight = winheight(i)
+        if nCurHeight > nMaxHeight
+            let nMaxHeight = nCurHeight
+            let nResult = i
+        endif
+        let i += 1
+    endwhile
 
-	return nResult
+    return nResult
 endfunction
 "}}}
 " '优雅地'打开一个文件, 在需要的时候会分割窗口
@@ -356,15 +356,15 @@ endfunction
 "}}}
 " 获取选择的文本，从 mark 插件复制过来的...
 function! vlutils#GetVisualSelection() "{{{2
-	let save_clipboard = &clipboard
-	set clipboard= " Avoid clobbering the selection and clipboard registers.
-	let save_reg = getreg('"')
-	let save_regmode = getregtype('"')
-	silent normal! gvy
-	let res = getreg('"')
-	call setreg('"', save_reg, save_regmode)
-	let &clipboard = save_clipboard
-	return res
+    let save_clipboard = &clipboard
+    set clipboard= " Avoid clobbering the selection and clipboard registers.
+    let save_reg = getreg('"')
+    let save_regmode = getregtype('"')
+    silent normal! gvy
+    let res = getreg('"')
+    call setreg('"', save_reg, save_regmode)
+    let &clipboard = save_clipboard
+    return res
 endfunction
 "}}}
 " 是否在 Windows 平台
@@ -735,26 +735,26 @@ endfunction
 " 简单的计时器静态类
 let s:TimerData = {'t1': 0, 't2': 0} "{{{1
 function! vlutils#TimerStart() "{{{2
-	let s:TimerData.t1 = reltime()
+    let s:TimerData.t1 = reltime()
 endfunction
 
 function! vlutils#TimerEnd() "{{{2
-	let s:TimerData.t2 = reltime()
+    let s:TimerData.t2 = reltime()
 endfunction
 
 function! vlutils#TimerEchoMes() "{{{2
-	echom printf("%f", ((str2float(reltimestr(s:TimerData.t2)) 
-				\- str2float(reltimestr(s:TimerData.t1)))))
+    echom printf("%f", ((str2float(reltimestr(s:TimerData.t2)) 
+                \- str2float(reltimestr(s:TimerData.t1)))))
 endfunction
 
 function! vlutils#TimerGetDelta() "{{{2
-	return (str2float(reltimestr(s:TimerData.t2))
+    return (str2float(reltimestr(s:TimerData.t2))
             \ - str2float(reltimestr(s:TimerData.t1)))
 endfunction
 
 function! vlutils#TimerEndEcho() "{{{2
-	call vlutils#TimerEnd()
-	call vlutils#TimerEchoMes()
+    call vlutils#TimerEnd()
+    call vlutils#TimerEchoMes()
 endfunction
 "}}}1
 " 分割 sep 作为分割符的字符串为列表，双倍的 sep 代表 sep 自身
